@@ -4,8 +4,255 @@
   <meta charset="utf-8">
   <title>Warframe Arbitrations Guide</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="./style.css">
-  <script src="./app.js" defer></script>
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: #121821;
+      --panel-2: #19212c;
+      --border: #273242;
+      --text: #e9eef5;
+      --muted: #a7b1be;
+      --accent: #72c7ff;
+      --active: rgba(114, 199, 255, 0.14);
+      --shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.55 Arial, Helvetica, sans-serif;
+    }
+
+    a { color: var(--accent); }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(11, 13, 16, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-wrap input {
+      width: min(420px, 50vw);
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      outline: none;
+    }
+
+    .search-wrap button {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .search-wrap button:hover {
+      background: var(--panel-2);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      min-height: calc(100vh - 67px);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 67px;
+      height: calc(100vh - 67px);
+      overflow: auto;
+      padding: 18px 14px 24px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+    }
+
+    .sidebar a {
+      display: block;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 7px 10px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      transition: 0.15s ease;
+    }
+
+    .sidebar a:hover {
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    .sidebar a.active {
+      background: var(--active);
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .sidebar .depth-0 { padding-left: 10px; }
+    .sidebar .depth-1 { padding-left: 24px; }
+    .sidebar .depth-2 { padding-left: 38px; }
+
+    .main { min-width: 0; }
+
+    .content {
+      width: min(100%, 1200px);
+      margin: 0 auto;
+      padding: 28px 28px 80px;
+    }
+
+    .loading { color: var(--muted); }
+
+    .google-export {
+      color: var(--text);
+    }
+
+    .google-export a {
+      color: #7dcfff !important;
+    }
+
+    .google-export img {
+      max-width: 100% !important;
+      height: auto !important;
+      cursor: zoom-in;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .google-export table {
+      max-width: 100%;
+      display: block;
+      overflow-x: auto;
+    }
+
+    .google-export p,
+    .google-export li,
+    .google-export td,
+    .google-export th,
+    .google-export span,
+    .google-export div,
+    .google-export h1,
+    .google-export h2,
+    .google-export h3,
+    .google-export h4,
+    .google-export h5,
+    .google-export h6 {
+      color: var(--text) !important;
+    }
+
+    .google-export [style*="background-color: rgb(255, 242, 204)"],
+    .google-export [style*="background-color:#fff2cc"] {
+      background-color: #5a501d !important;
+      color: #fff8d2 !important;
+    }
+
+    .google-export [style*="background-color: rgb(217, 234, 211)"],
+    .google-export [style*="background-color:#d9ead3"] {
+      background-color: #1e4a34 !important;
+      color: #eefdf4 !important;
+    }
+
+    .google-export [style*="background-color: rgb(207, 226, 243)"],
+    .google-export [style*="background-color:#cfe2f3"] {
+      background-color: #1d4166 !important;
+      color: #eef7ff !important;
+    }
+
+    .google-export [style*="background-color: rgb(244, 204, 204)"],
+    .google-export [style*="background-color:#f4cccc"] {
+      background-color: #562727 !important;
+      color: #fff1f1 !important;
+    }
+
+    .google-export [style*="background-color: rgb(217, 210, 233)"],
+    .google-export [style*="background-color:#d9d2e9"] {
+      background-color: #48345a !important;
+      color: #f5efff !important;
+    }
+
+    mark.search-hit {
+      background: #ffd54a;
+      color: #111;
+      padding: 0.04em 0.14em;
+      border-radius: 4px;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: grid;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 24px;
+      cursor: zoom-out;
+    }
+
+    .lightbox img {
+      max-width: 94vw;
+      max-height: 94vh;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .content {
+        padding: 20px 16px 60px;
+      }
+
+      .search-wrap input {
+        width: 42vw;
+      }
+
+      .brand span {
+        display: none;
+      }
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -34,5 +281,246 @@
   <div id="lightbox" class="lightbox" hidden>
     <img id="lightboxImg" alt="Expanded image">
   </div>
+
+  <script>
+    const EXPORT_HTML_PATH = "./export/WarframeArbitrationsGuide.html";
+
+    let searchHits = [];
+    let currentSearchIndex = -1;
+    let observer = null;
+
+    async function loadGuide() {
+      const content = document.getElementById("content");
+
+      try {
+        const response = await fetch(EXPORT_HTML_PATH, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Failed to load export HTML (${response.status})`);
+        }
+
+        const rawHtml = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(rawHtml, "text/html");
+
+        rewriteRelativeImages(doc);
+        removeJunk(doc);
+        const outline = extractHeadings(doc);
+
+        content.innerHTML = `<div class="google-export">${doc.body.innerHTML}</div>`;
+
+        buildSidebar(outline);
+        setupSectionObserver();
+        setupImages();
+      } catch (error) {
+        console.error(error);
+        content.innerHTML = `<p>Failed to load the guide content.</p>`;
+      }
+    }
+
+    function rewriteRelativeImages(doc) {
+      doc.querySelectorAll("img").forEach((img) => {
+        const src = img.getAttribute("src");
+        if (!src) return;
+        if (/^(https?:|data:)/i.test(src)) return;
+        img.setAttribute("src", `./export/${src.replace(/^\\.?\\//, "")}`);
+      });
+    }
+
+    function removeJunk(doc) {
+      doc.querySelectorAll("script, noscript, meta, link").forEach((el) => el.remove());
+    }
+
+    function slugify(text) {
+      return text
+        .toLowerCase()
+        .trim()
+        .replace(/[^\\w\\s-]/g, "")
+        .replace(/\\s+/g, "-")
+        .replace(/-+/g, "-");
+    }
+
+    function extractHeadings(doc) {
+      const headings = Array.from(doc.body.querySelectorAll("h1, h2, h3"));
+      const used = new Set();
+
+      return headings.map((heading, index) => {
+        let id = heading.id?.trim() || slugify(heading.textContent) || `section-${index}`;
+        while (used.has(id)) id += "-x";
+        used.add(id);
+        heading.id = id;
+
+        return {
+          id,
+          text: heading.textContent.trim(),
+          depth: heading.tagName === "H1" ? 0 : heading.tagName === "H2" ? 1 : 2
+        };
+      });
+    }
+
+    function buildSidebar(outline) {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.innerHTML = "";
+
+      outline.forEach((item) => {
+        const link = document.createElement("a");
+        link.href = `#${item.id}`;
+        link.textContent = item.text;
+        link.className = `depth-${item.depth}`;
+
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          const target = document.getElementById(item.id);
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+
+        sidebar.appendChild(link);
+      });
+    }
+
+    function setupSectionObserver() {
+      const links = Array.from(document.querySelectorAll("#sidebar a"));
+      const targets = links
+        .map((link) => {
+          const id = link.getAttribute("href")?.slice(1);
+          const target = document.getElementById(id);
+          if (!target) return null;
+          return { link, target };
+        })
+        .filter(Boolean);
+
+      if (observer) observer.disconnect();
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          let best = null;
+
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            if (!best || entry.boundingClientRect.top < best.boundingClientRect.top) {
+              best = entry;
+            }
+          }
+
+          if (!best) return;
+
+          links.forEach((link) => link.classList.remove("active"));
+          const match = targets.find((item) => item.target === best.target);
+          if (match) match.link.classList.add("active");
+        },
+        {
+          rootMargin: "-18% 0px -68% 0px",
+          threshold: [0, 1]
+        }
+      );
+
+      targets.forEach((item) => observer.observe(item.target));
+    }
+
+    function setupImages() {
+      const lightbox = document.getElementById("lightbox");
+      const lightboxImg = document.getElementById("lightboxImg");
+
+      document.querySelectorAll("#content img").forEach((img) => {
+        img.addEventListener("click", () => {
+          lightboxImg.src = img.src;
+          lightbox.hidden = false;
+        });
+      });
+
+      lightbox.addEventListener("click", () => {
+        lightbox.hidden = true;
+        lightboxImg.removeAttribute("src");
+      });
+    }
+
+    function clearSearchHighlights() {
+      document.querySelectorAll("mark.search-hit").forEach((mark) => {
+        const parent = mark.parentNode;
+        if (!parent) return;
+        parent.replaceChild(document.createTextNode(mark.textContent || ""), mark);
+        parent.normalize();
+      });
+
+      searchHits = [];
+      currentSearchIndex = -1;
+    }
+
+    function highlightSearch(term) {
+      clearSearchHighlights();
+      if (!term.trim()) return;
+
+      const root = document.getElementById("content");
+      const escaped = term.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&");
+      const regex = new RegExp(escaped, "gi");
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+
+      const textNodes = [];
+      let node;
+
+      while ((node = walker.nextNode())) {
+        if (!node.nodeValue.trim()) continue;
+
+        const parentName = node.parentNode?.nodeName?.toLowerCase();
+        if (["script", "style", "mark"].includes(parentName)) continue;
+
+        if (regex.test(node.nodeValue)) {
+          textNodes.push(node);
+        }
+        regex.lastIndex = 0;
+      }
+
+      for (const textNode of textNodes) {
+        const text = textNode.nodeValue;
+        const frag = document.createDocumentFragment();
+        let lastIndex = 0;
+        let match;
+
+        while ((match = regex.exec(text)) !== null) {
+          const start = match.index;
+          const end = start + match[0].length;
+
+          if (start > lastIndex) {
+            frag.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+          }
+
+          const mark = document.createElement("mark");
+          mark.className = "search-hit";
+          mark.textContent = text.slice(start, end);
+          frag.appendChild(mark);
+          searchHits.push(mark);
+
+          lastIndex = end;
+        }
+
+        if (lastIndex < text.length) {
+          frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+        }
+
+        textNode.parentNode.replaceChild(frag, textNode);
+        regex.lastIndex = 0;
+      }
+    }
+
+    function goToSearchHit(direction) {
+      const term = document.getElementById("searchBox").value;
+      if (!term.trim()) return;
+
+      if (searchHits.length === 0) highlightSearch(term);
+      if (searchHits.length === 0) return;
+
+      currentSearchIndex = (currentSearchIndex + direction + searchHits.length) % searchHits.length;
+      const hit = searchHits[currentSearchIndex];
+      hit.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    document.getElementById("searchNextBtn").addEventListener("click", () => goToSearchHit(1));
+    document.getElementById("searchPrevBtn").addEventListener("click", () => goToSearchHit(-1));
+    document.getElementById("searchBox").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") goToSearchHit(1);
+    });
+    document.getElementById("searchBox").addEventListener("input", clearSearchHighlights);
+
+    loadGuide();
+  </script>
 </body>
 </html>
