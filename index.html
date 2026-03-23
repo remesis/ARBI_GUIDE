@@ -440,7 +440,7 @@
       if (!term.trim()) return;
 
       const root = document.getElementById("content");
-      const escaped = term.replace(/[.*+?^${}()|[\]\]/g, "\\$&");
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const regex = new RegExp(escaped, "gi");
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
 
