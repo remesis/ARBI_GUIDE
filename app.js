@@ -1,4 +1,4 @@
-const EXPORT_HTML_PATH = "export/WarframeArbitrationsGuide.html";
+const EXPORT_HTML_PATH = "./export/WarframeArbitrationsGuide.html";
 
 let searchHits = [];
 let currentSearchIndex = -1;
@@ -17,11 +17,10 @@ async function loadGuide() {
     const parser = new DOMParser();
     const doc = parser.parseFromString(rawHtml, "text/html");
 
-    installExportStyles(doc);
     rewriteRelativeImages(doc);
-    unwrapGoogleRedirectLinks(doc);
+    removeJunk(doc);
 
-    const outline = extractOutlineLinks(doc);
+    const outline = extractHeadings(doc);
 
     content.innerHTML = `<div class="google-export">${doc.body.innerHTML}</div>`;
 
@@ -34,24 +33,6 @@ async function loadGuide() {
   }
 }
 
-function installExportStyles(doc) {
-  document.querySelectorAll("[data-export-style]").forEach((el) => el.remove());
-
-  doc.querySelectorAll("style, link[rel='stylesheet']").forEach((el) => {
-    const clone = el.cloneNode(true);
-
-    if (clone.tagName === "LINK") {
-      const href = clone.getAttribute("href");
-      if (href && !/^(https?:|data:|\/)/i.test(href)) {
-        clone.setAttribute("href", `export/${href.replace(/^\.?\//, "")}`);
-      }
-    }
-
-    clone.setAttribute("data-export-style", "1");
-    document.head.appendChild(clone);
-  });
-}
-
 function rewriteRelativeImages(doc) {
   doc.querySelectorAll("img").forEach((img) => {
     const src = img.getAttribute("src");
@@ -59,79 +40,41 @@ function rewriteRelativeImages(doc) {
 
     if (/^(https?:|data:)/i.test(src)) return;
 
-    img.setAttribute("src", `export/${src.replace(/^\.?\//, "")}`);
+    img.setAttribute("src", `./export/${src.replace(/^\.?\//, "")}`);
   });
 }
 
-function unwrapGoogleRedirectLinks(doc) {
-  doc.querySelectorAll("a[href]").forEach((a) => {
-    const href = a.getAttribute("href");
-    if (!href) return;
+function removeJunk(doc) {
+  doc.querySelectorAll("script, noscript, meta, link").forEach((el) => el.remove());
+}
 
-    if (href.startsWith("https://www.google.com/url?q=")) {
-      try {
-        const url = new URL(href);
-        const actual = url.searchParams.get("q");
-        if (actual) {
-          a.setAttribute("href", actual);
-        }
-      } catch (err) {
-        console.warn("Failed to unwrap redirect:", href, err);
-      }
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+function extractHeadings(doc) {
+  const headings = Array.from(doc.body.querySelectorAll("h1, h2, h3"));
+  const used = new Set();
+
+  return headings.map((heading, index) => {
+    let id = heading.id?.trim() || slugify(heading.textContent) || `section-${index}`;
+    while (used.has(id)) {
+      id += "-x";
     }
+    used.add(id);
+    heading.id = id;
+
+    return {
+      id,
+      text: heading.textContent.trim(),
+      depth: heading.tagName === "H1" ? 0 : heading.tagName === "H2" ? 1 : 2
+    };
   });
-}
-
-function extractOutlineLinks(doc) {
-  const anchors = Array.from(doc.body.querySelectorAll('a[href^="#h."]'));
-  const outline = [];
-  const seen = new Set();
-
-  for (const a of anchors) {
-    const href = a.getAttribute("href");
-    const text = a.textContent.trim();
-
-    if (!href || !text) continue;
-    if (seen.has(href)) continue;
-
-    seen.add(href);
-
-    outline.push({
-      href,
-      text,
-      depth: getDepthFromText(text)
-    });
-  }
-
-  return outline;
-}
-
-function getDepthFromText(text) {
-  if (
-    text === "Warframes:" ||
-    text === "Weapons" ||
-    text === "Companions" ||
-    text === "Gear Items" ||
-    text === "Arbitration Tilesets" ||
-    text === "Miscellaneous" ||
-    text === "Pre-Buffing Before Mission" ||
-    text === "AURA CHOICE"
-  ) {
-    return 0;
-  }
-
-  if (
-    text.startsWith("Primary:") ||
-    text.startsWith("Secondary:") ||
-    text.startsWith("Melee:") ||
-    text === "CLIENT Cyte" ||
-    text === "Jade" ||
-    text === "Nidus Prime"
-  ) {
-    return 2;
-  }
-
-  return 1;
 }
 
 function buildSidebar(outline) {
@@ -140,13 +83,13 @@ function buildSidebar(outline) {
 
   outline.forEach((item) => {
     const link = document.createElement("a");
-    link.href = item.href;
+    link.href = `#${item.id}`;
     link.textContent = item.text;
     link.className = `depth-${item.depth}`;
 
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      const target = document.querySelector(item.href);
+      const target = document.getElementById(item.id);
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "start" });
       }
@@ -160,8 +103,8 @@ function setupSectionObserver() {
   const links = Array.from(document.querySelectorAll("#sidebar a"));
   const targets = links
     .map((link) => {
-      const selector = link.getAttribute("href");
-      const target = document.querySelector(selector);
+      const id = link.getAttribute("href")?.slice(1);
+      const target = document.getElementById(id);
       if (!target) return null;
       return { link, target };
     })
@@ -202,20 +145,16 @@ function setupImages() {
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightboxImg");
 
-  lightbox.replaceWith(lightbox.cloneNode(true));
-  const freshLightbox = document.getElementById("lightbox");
-  const freshLightboxImg = document.getElementById("lightboxImg");
-
   document.querySelectorAll("#content img").forEach((img) => {
     img.addEventListener("click", () => {
-      freshLightboxImg.src = img.src;
-      freshLightbox.hidden = false;
+      lightboxImg.src = img.src;
+      lightbox.hidden = false;
     });
   });
 
-  freshLightbox.addEventListener("click", () => {
-    freshLightbox.hidden = true;
-    freshLightboxImg.removeAttribute("src");
+  lightbox.addEventListener("click", () => {
+    lightbox.hidden = true;
+    lightboxImg.removeAttribute("src");
   });
 }
 

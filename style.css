@@ -125,10 +125,6 @@ a {
   font-weight: 700;
 }
 
-.sidebar .depth-0 { padding-left: 10px; }
-.sidebar .depth-1 { padding-left: 24px; }
-.sidebar .depth-2 { padding-left: 38px; }
-
 .main {
   min-width: 0;
 }
@@ -143,14 +139,8 @@ a {
   color: var(--muted);
 }
 
-/* Wrapper around injected export */
 .google-export {
   color: var(--text);
-}
-
-/* Make export content sane inside dark mode */
-.google-export a {
-  color: #7dcfff !important;
 }
 
 .google-export img {
@@ -167,56 +157,23 @@ a {
   overflow-x: auto;
 }
 
-.google-export td,
-.google-export th {
-  border-color: var(--border) !important;
+.google-export a {
+  color: #7dcfff;
 }
 
-/* Highlight remap so highlighted text stays readable */
-.google-export [style*="background-color: rgb(255, 242, 204)"],
-.google-export [style*="background-color:#fff2cc"] {
-  background-color: #5a501d !important;
-  color: #fff8d2 !important;
-}
-
-.google-export [style*="background-color: rgb(217, 234, 211)"],
-.google-export [style*="background-color:#d9ead3"] {
-  background-color: #1e4a34 !important;
-  color: #eefdf4 !important;
-}
-
-.google-export [style*="background-color: rgb(207, 226, 243)"],
-.google-export [style*="background-color:#cfe2f3"] {
-  background-color: #1d4166 !important;
-  color: #eef7ff !important;
-}
-
-.google-export [style*="background-color: rgb(244, 204, 204)"],
-.google-export [style*="background-color:#f4cccc"] {
-  background-color: #562727 !important;
-  color: #fff1f1 !important;
-}
-
-.google-export [style*="background-color: rgb(217, 210, 233)"],
-.google-export [style*="background-color:#d9d2e9"] {
-  background-color: #48345a !important;
-  color: #f5efff !important;
-}
-
-/* Make plain black text from export readable in dark mode */
-.google-export [style*="color: #000000"],
-.google-export [style*="color:#000000"],
-.google-export span,
 .google-export p,
 .google-export li,
 .google-export td,
+.google-export th,
+.google-export span,
+.google-export div,
 .google-export h1,
 .google-export h2,
 .google-export h3,
 .google-export h4,
 .google-export h5,
 .google-export h6 {
-  color: var(--text);
+  color: var(--text) !important;
 }
 
 mark.search-hit {
