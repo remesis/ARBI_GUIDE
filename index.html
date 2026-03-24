@@ -844,12 +844,12 @@
     });
 
     document.getElementById("fontIncreaseBtn").addEventListener("click", () => {
-      fontScale = Math.min(1.6, +(fontScale + 0.25).toFixed(2));
+      fontScale = Math.min(1.6, +(fontScale + 0.05).toFixed(2));
       applyFontScale();
     });
 
     document.getElementById("fontDecreaseBtn").addEventListener("click", () => {
-      fontScale = Math.max(0.7, +(fontScale - 0.25).toFixed(2));
+      fontScale = Math.max(0.7, +(fontScale - 0.05).toFixed(2));
       applyFontScale();
     });
 
