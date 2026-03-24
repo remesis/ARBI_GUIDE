@@ -60,6 +60,7 @@
       --active: rgba(114, 199, 255, 0.14);
       --shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
       --search-highlight: #4166f5;
+      --font-scale: 1;
     }
 
     * {
@@ -109,6 +110,39 @@
       height: 42px;
       object-fit: contain;
       flex: 0 0 auto;
+    }
+
+    .topbar-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .font-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .font-controls button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .font-controls button:hover {
+      background: var(--panel-2);
+    }
+
+    .font-label {
+      color: var(--text);
+      font-weight: 700;
+      font-size: 18px;
     }
 
     .search-wrap {
@@ -217,6 +251,24 @@
 
     .google-export {
       color: var(--text);
+      font-size: calc(1em * var(--font-scale));
+    }
+
+    .google-export h1 { font-size: calc(2em * var(--font-scale)); }
+    .google-export h2 { font-size: calc(1.5em * var(--font-scale)); }
+    .google-export h3 { font-size: calc(1.17em * var(--font-scale)); }
+    .google-export h4 { font-size: calc(1em * var(--font-scale)); }
+    .google-export h5 { font-size: calc(0.83em * var(--font-scale)); }
+    .google-export h6 { font-size: calc(0.67em * var(--font-scale)); }
+
+    .google-export a,
+    .google-export p,
+    .google-export li,
+    .google-export td,
+    .google-export th,
+    .google-export div,
+    .google-export span {
+      font-size: calc(1em * var(--font-scale));
     }
 
     .google-export a {
@@ -311,6 +363,14 @@
       .brand span {
         display: none;
       }
+
+      .topbar-controls {
+        gap: 10px;
+      }
+
+      .font-label {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
@@ -321,13 +381,21 @@
       <span>Warframe Arbitrations Guide</span>
     </a>
 
-    <div class="search-wrap">
-      <div class="search-box-wrap">
-        <input id="searchBox" type="text" placeholder="Search the guide">
-        <span id="searchCount" class="search-count"></span>
+    <div class="topbar-controls">
+      <div class="font-controls">
+        <button id="fontIncreaseBtn" type="button" aria-label="Increase font size">+</button>
+        <span class="font-label">Font</span>
+        <button id="fontDecreaseBtn" type="button" aria-label="Decrease font size">−</button>
       </div>
-      <button id="searchPrevBtn" type="button" aria-label="Previous result">↑</button>
-      <button id="searchNextBtn" type="button" aria-label="Next result">↓</button>
+
+      <div class="search-wrap">
+        <div class="search-box-wrap">
+          <input id="searchBox" type="text" placeholder="Search the guide">
+          <span id="searchCount" class="search-count"></span>
+        </div>
+        <button id="searchPrevBtn" type="button" aria-label="Previous result">↑</button>
+        <button id="searchNextBtn" type="button" aria-label="Next result">↓</button>
+      </div>
     </div>
   </header>
 
@@ -351,6 +419,7 @@
     let searchHits = [];
     let currentSearchIndex = -1;
     let observer = null;
+    let fontScale = 1;
 
     function slugify(text) {
       return text
@@ -359,6 +428,22 @@
         .replace(/[^\w\s-]/g, "")
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-");
+    }
+
+    function applyFontScale() {
+      document.documentElement.style.setProperty("--font-scale", String(fontScale));
+      localStorage.setItem("guideFontScale", String(fontScale));
+    }
+
+    function loadFontScale() {
+      const saved = localStorage.getItem("guideFontScale");
+      if (!saved) return;
+
+      const parsed = Number(saved);
+      if (!Number.isFinite(parsed)) return;
+
+      fontScale = Math.min(1.6, Math.max(0.7, parsed));
+      applyFontScale();
     }
 
     function getDepthFromText(text) {
@@ -387,6 +472,30 @@
       }
 
       return 1;
+    }
+
+    function rewriteModeSwitchLine() {
+      const anchors = Array.from(document.querySelectorAll(".google-export a"));
+      const darkUrls = [
+        "https://originalgeektaken.github.io/darkmode_arbi_guide/",
+        "https://originalgeektaken.github.io/darkmode_arbi_guide/".replace(/\/$/, "")
+      ];
+
+      anchors.forEach((a) => {
+        const href = (a.getAttribute("href") || "").trim();
+        if (!darkUrls.includes(href)) return;
+
+        a.href = "https://docs.google.com/document/d/14yAA4rv82MVjDJKasm70oL_peegCHPQioDeMGdvf4DM";
+        a.textContent = "HERE";
+
+        const container = a.closest("p, li, div") || a.parentElement;
+        if (!container) return;
+
+        const text = container.textContent.replace(/\s+/g, " ").trim();
+        if (/if you prefer dark mode, click here\.?/i.test(text)) {
+          container.innerHTML = `If you prefer google doc or LIGHT MODE, click <a href="https://docs.google.com/document/d/14yAA4rv82MVjDJKasm70oL_peegCHPQioDeMGdvf4DM">HERE</a>.`;
+        }
+      });
     }
 
     function extractOutlineLinks() {
@@ -590,25 +699,6 @@
       });
     }
 
-    function normalizeModeSwitchLinks() {
-      const anchors = Array.from(document.querySelectorAll('.google-export a'));
-      anchors.forEach((a) => {
-        const href = a.getAttribute("href") || "";
-        if (
-          href === "https://docs.google.com/document/d/14yAA4rv82MVjDJKasm70oL_peegCHPQioDeMGdvf4DM" ||
-          href === "https://originalgeektaken.github.io/darkmode_arbi_guide/" ||
-          href === "https://originalgeektaken.github.io/darkmode_arbi_guide/".replace(/\/$/, "")
-        ) {
-          a.removeAttribute("target");
-          a.removeAttribute("rel");
-          a.addEventListener("click", (event) => {
-            event.preventDefault();
-            window.location.assign(href);
-          });
-        }
-      });
-    }
-
     function updateSearchCount() {
       const el = document.getElementById("searchCount");
       if (!searchHits.length || currentSearchIndex < 0) {
@@ -777,14 +867,25 @@
       highlightSearch(value);
     });
 
+    document.getElementById("fontIncreaseBtn").addEventListener("click", () => {
+      fontScale = Math.min(1.6, +(fontScale + 0.1).toFixed(2));
+      applyFontScale();
+    });
+
+    document.getElementById("fontDecreaseBtn").addEventListener("click", () => {
+      fontScale = Math.max(0.7, +(fontScale - 0.1).toFixed(2));
+      applyFontScale();
+    });
+
+    rewriteModeSwitchLine();
     ensureHeadingIds();
-    normalizeModeSwitchLinks();
     const outline = extractOutlineLinks();
     buildSidebar(outline);
     stripInlineOutlineBlock();
     setupSectionObserver();
     setupImages();
     updateSearchCount();
+    loadFontScale();
   </script>
 </body>
 </html>
