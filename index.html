@@ -430,6 +430,11 @@
     let observer = null;
     let fontScale = 1;
 
+    const firedScrollMilestones = new Set();
+    const viewedSections = new Set();
+    let searchTrackTimer = null;
+    let lastTrackedSearch = "";
+
     function slugify(text) {
       return text
         .toLowerCase()
@@ -437,6 +442,11 @@
         .replace(/[^\w\s-]/g, "")
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-");
+    }
+
+    function trackEvent(name, params = {}) {
+      if (typeof window.gtag !== "function") return;
+      window.gtag("event", name, params);
     }
 
     function applyFontScale() {
@@ -631,6 +641,17 @@
             match.link.scrollIntoView({
               block: "nearest"
             });
+
+            const sectionName = match.link.textContent.trim();
+            if (sectionName && !viewedSections.has(sectionName)) {
+              viewedSections.add(sectionName);
+              trackEvent("section_view", {
+                section_name: sectionName,
+                section_id: match.target.id || "",
+                page_title: document.title,
+                page_location: window.location.href
+              });
+            }
           }
         },
         {
@@ -654,6 +675,17 @@
 
       links.forEach((link) => link.classList.remove("active"));
       best.link.classList.add("active");
+
+      const initialSectionName = best.link.textContent.trim();
+      if (initialSectionName && !viewedSections.has(initialSectionName)) {
+        viewedSections.add(initialSectionName);
+        trackEvent("section_view", {
+          section_name: initialSectionName,
+          section_id: best.target.id || "",
+          page_title: document.title,
+          page_location: window.location.href
+        });
+      }
     }
 
     function setupImages() {
@@ -666,6 +698,13 @@
       document.querySelectorAll("#content img").forEach((img) => {
         img.addEventListener("click", () => {
           if (!img.src) return;
+
+          trackEvent("image_expand", {
+            image_src: img.src,
+            page_title: document.title,
+            page_location: window.location.href
+          });
+
           lightboxImg.src = img.src;
           lightbox.hidden = false;
         });
@@ -681,6 +720,66 @@
           lightbox.hidden = true;
           lightboxImg.removeAttribute("src");
         }
+      });
+    }
+
+    function setupScrollTracking() {
+      function checkScrollDepth() {
+        const doc = document.documentElement;
+        const scrollTop = window.scrollY || doc.scrollTop || 0;
+        const viewport = window.innerHeight || doc.clientHeight || 0;
+        const fullHeight = Math.max(
+          doc.scrollHeight,
+          document.body.scrollHeight,
+          doc.offsetHeight,
+          document.body.offsetHeight,
+          doc.clientHeight
+        );
+
+        const percent = Math.min(
+          100,
+          Math.round(((scrollTop + viewport) / Math.max(fullHeight, 1)) * 100)
+        );
+
+        const milestones = [25, 50, 75, 100];
+
+        for (const milestone of milestones) {
+          if (percent >= milestone && !firedScrollMilestones.has(milestone)) {
+            firedScrollMilestones.add(milestone);
+            trackEvent("scroll_depth", {
+              percent_scrolled: milestone,
+              page_title: document.title,
+              page_location: window.location.href
+            });
+          }
+        }
+      }
+
+      window.addEventListener("scroll", checkScrollDepth, { passive: true });
+      window.addEventListener("load", checkScrollDepth);
+      checkScrollDepth();
+    }
+
+    function setupSearchTracking() {
+      const searchBox = document.getElementById("searchBox");
+      if (!searchBox) return;
+
+      searchBox.addEventListener("input", () => {
+        clearTimeout(searchTrackTimer);
+
+        searchTrackTimer = setTimeout(() => {
+          const query = searchBox.value.trim();
+          if (!query) return;
+          if (query === lastTrackedSearch) return;
+
+          lastTrackedSearch = query;
+
+          trackEvent("guide_search", {
+            search_term: query,
+            page_title: document.title,
+            page_location: window.location.href
+          });
+        }, 1200);
       });
     }
 
@@ -790,6 +889,14 @@
       updateSearchCount();
 
       const hit = searchHits[currentSearchIndex];
+
+      trackEvent("search_result_navigate", {
+        search_term: document.getElementById("searchBox").value.trim(),
+        result_index: currentSearchIndex + 1,
+        total_results: searchHits.length,
+        direction: direction > 0 ? "next" : "previous"
+      });
+
       hit.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
@@ -868,6 +975,8 @@
     stripInlineOutlineBlock();
     setupSectionObserver();
     setupImages();
+    setupScrollTracking();
+    setupSearchTracking();
     updateSearchCount();
     loadFontScale();
   </script>
