@@ -149,6 +149,11 @@
       gap: 2px;
     }
 
+    .control-buttons-horizontal {
+      flex-direction: row;
+      gap: 4px;
+    }
+
     .control-buttons button {
       width: 24px;
       height: 14px;
@@ -448,7 +453,7 @@
 
         <div class="control-group">
           <span class="control-label">Width</span>
-          <div class="control-buttons">
+          <div class="control-buttons control-buttons-horizontal">
             <button id="widthIncreaseBtn" type="button" aria-label="Increase guide width">&gt;</button>
             <button id="widthDecreaseBtn" type="button" aria-label="Decrease guide width">&lt;</button>
           </div>
