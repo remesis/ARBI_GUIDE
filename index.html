@@ -146,32 +146,27 @@
     .control-buttons {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 2px;
     }
 
     .control-buttons button {
-      padding: 10px 14px;
-      border-radius: 10px;
+      width: 24px;
+      height: 14px;
+      padding: 0;
+      border-radius: 6px;
       border: 1px solid var(--border);
       background: var(--panel);
       color: var(--text);
       cursor: pointer;
-      font-size: 20px;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
       line-height: 1;
+      font-family: inherit;
     }
 
     .control-buttons button:hover {
       background: var(--panel-2);
-    }
-
-    .control-buttons button {
-      width: 44px;
-      height: 28px;
-      padding: 0;
-      display: grid;
-      place-items: center;
-      font-size: 18px;
-      font-family: inherit;
     }
 
     .search-wrap {
