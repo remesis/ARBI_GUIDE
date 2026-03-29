@@ -735,6 +735,15 @@
 
       if (!marker) return;
 
+      function isEmptySpacer(el) {
+        if (!el) return false;
+        if (!["P", "DIV", "H1", "H2", "H3"].includes(el.tagName)) return false;
+        if (el.querySelector("a[href], img, video, table, hr")) return false;
+
+        const text = (el.textContent || "").replace(/\u00a0/g, " ").trim();
+        return text.length === 0;
+      }
+
       let node = marker;
       let removedCount = 0;
 
@@ -752,6 +761,12 @@
 
         node.remove();
         removedCount += 1;
+        node = next;
+      }
+
+      while (node && isEmptySpacer(node)) {
+        const next = node.nextElementSibling;
+        node.remove();
         node = next;
       }
     }
