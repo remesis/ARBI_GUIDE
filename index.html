@@ -662,15 +662,39 @@
       applyContentMaxWidth();
     }
 
-    function getDepthFromHeading(anchor) {
-      const heading = resolveTargetFromHref(anchor.getAttribute("href"));
-      if (!heading) return 1;
+    function groupIndentLevels(indents) {
+      const sorted = [...indents].sort((a, b) => a - b);
+      const groups = [];
 
-      const tagName = (heading.tagName || "").toUpperCase();
-      if (tagName === "H1") return 0;
-      if (tagName === "H2") return 1;
-      if (tagName === "H3") return 2;
-      return 1;
+      sorted.forEach((indent) => {
+        const last = groups[groups.length - 1];
+        if (!last || Math.abs(indent - last) > 8) {
+          groups.push(indent);
+        }
+      });
+
+      return groups;
+    }
+
+    function getDepthFromOutlineIndent(anchor, root, indentLevels) {
+      if (!anchor || !root || !indentLevels.length) return 1;
+
+      const indent = Math.round(
+        anchor.getBoundingClientRect().left - root.getBoundingClientRect().left
+      );
+
+      let closestIndex = 0;
+      let closestDistance = Math.abs(indent - indentLevels[0]);
+
+      for (let i = 1; i < indentLevels.length; i += 1) {
+        const distance = Math.abs(indent - indentLevels[i]);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = i;
+        }
+      }
+
+      return Math.min(closestIndex, 2);
     }
 
     function extractOutlineLinks() {
@@ -678,6 +702,7 @@
       const anchors = Array.from(root.querySelectorAll('a[href^="#h."]'));
       const outline = [];
       const seen = new Set();
+      const candidates = [];
 
       for (const a of anchors) {
         const href = a.getAttribute("href");
@@ -697,12 +722,28 @@
         }
 
         seen.add(href);
-        outline.push({
+        candidates.push({
+          anchor: a,
           href,
-          text,
-          depth: getDepthFromHeading(a)
+          text
         });
       }
+
+      const indentLevels = groupIndentLevels(
+        candidates.map((item) =>
+          Math.round(
+            item.anchor.getBoundingClientRect().left - root.getBoundingClientRect().left
+          )
+        )
+      );
+
+      candidates.forEach((item) => {
+        outline.push({
+          href: item.href,
+          text: item.text,
+          depth: getDepthFromOutlineIndent(item.anchor, root, indentLevels)
+        });
+      });
 
       return outline;
     }
