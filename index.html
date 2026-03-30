@@ -305,6 +305,26 @@
       overflow: auto;
       overscroll-behavior: contain;
       padding: 18px 14px 24px;
+      scrollbar-width: thin;
+      scrollbar-color: #3b4657 #121821;
+    }
+
+    .sidebar-links::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .sidebar-links::-webkit-scrollbar-track {
+      background: #121821;
+    }
+
+    .sidebar-links::-webkit-scrollbar-thumb {
+      background: #3b4657;
+      border-radius: 999px;
+      border: 2px solid #121821;
+    }
+
+    .sidebar-links::-webkit-scrollbar-thumb:hover {
+      background: #51607a;
     }
 
     .sidebar a {
