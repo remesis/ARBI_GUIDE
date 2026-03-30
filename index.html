@@ -1450,6 +1450,8 @@
       let pinchOriginY = 0;
       let touchMoved = false;
       let suppressClickClose = false;
+      let tapStartX = 0;
+      let tapStartY = 0;
 
       function clampScale(nextScale) {
         return Math.min(4, Math.max(1, nextScale));
@@ -1535,6 +1537,8 @@
           const points = Array.from(activePointers.values());
           if (points.length === 1) {
             touchMoved = false;
+            tapStartX = points[0].x;
+            tapStartY = points[0].y;
             resetPanOrigin(points[0]);
           } else if (points.length === 2) {
             pinchStartDistance = Math.max(1, getPointerDistance(points));
@@ -1621,6 +1625,24 @@
 
         lightbox.addEventListener("pointerup", releasePointer);
         lightbox.addEventListener("pointercancel", releasePointer);
+
+        lightbox.addEventListener("touchend", (event) => {
+          if (lightbox.hidden || !activeMedia) return;
+          if (event.touches.length || event.changedTouches.length !== 1) return;
+          if (activePointers.size) return;
+
+          const touch = event.changedTouches[0];
+          const moved =
+            touchMoved ||
+            Math.abs(touch.clientX - tapStartX) > 8 ||
+            Math.abs(touch.clientY - tapStartY) > 8;
+
+          if (!moved) {
+            event.preventDefault();
+            suppressClickClose = false;
+            closeLightbox();
+          }
+        }, { passive: false });
       }
 
       function markMobileResponsiveMedia() {
