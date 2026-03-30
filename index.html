@@ -75,7 +75,6 @@
 
     html {
       scroll-behavior: smooth;
-      overflow-x: hidden;
     }
 
     body {
@@ -83,7 +82,6 @@
       background: var(--bg);
       color: var(--text);
       font: 15px/1.55 Arial, Helvetica, sans-serif;
-      overflow-x: hidden;
     }
 
     a {
@@ -257,7 +255,6 @@
       display: grid;
       grid-template-columns: 300px minmax(0, 1fr);
       min-height: calc(100vh - 67px);
-      min-width: 0;
     }
 
     .sidebar {
@@ -391,7 +388,7 @@
     }
 
     .google-export .section-jump-flash {
-      animation: sectionJumpFlash 0.72s ease-out 2;
+      animation: sectionJumpFlash 1.2s ease-in-out 2;
     }
 
     @keyframes sectionJumpFlash {
@@ -400,22 +397,15 @@
         box-shadow: none;
       }
 
-      28% {
-        background: rgba(114, 199, 255, 0.3);
-        box-shadow: 0 0 0 4px rgba(114, 199, 255, 0.38);
+      30% {
+        background: rgba(114, 199, 255, 0.16);
+        box-shadow: 0 0 0 3px rgba(114, 199, 255, 0.2);
       }
 
-      52% {
+      55% {
         background: transparent;
         box-shadow: none;
       }
-    }
-
-    ::target-text {
-      background: rgba(114, 199, 255, 0.42);
-      color: #ffffff;
-      text-shadow: none;
-      border-radius: 3px;
     }
 
     mark.search-hit {
@@ -436,7 +426,6 @@
       background: rgba(0, 0, 0, 0.85);
       padding: 24px;
       cursor: zoom-out;
-      overscroll-behavior: contain;
     }
 
     .lightbox[hidden] {
@@ -445,40 +434,15 @@
 
     .lightbox img,
     .lightbox video {
-      width: auto;
       max-width: 94vw;
       max-height: 94vh;
       border-radius: 12px;
       box-shadow: var(--shadow);
-      transform-origin: center center;
-      transition: transform 140ms ease-out;
-      justify-self: center;
-      align-self: center;
-      box-sizing: border-box;
     }
 
     @media (max-width: 900px) {
-      .topbar {
-        gap: 10px;
-        padding: 10px 12px;
-        align-items: flex-start;
-      }
-
-      .brand {
-        flex: 0 0 auto;
-      }
-
       .layout {
         grid-template-columns: 1fr;
-      }
-
-      .main,
-      .content,
-      .topbar-controls,
-      .user-controls,
-      .search-wrap,
-      .search-box-wrap {
-        min-width: 0;
       }
 
       .sidebar {
@@ -502,72 +466,15 @@
       }
 
       .topbar-controls {
-        flex: 1 1 auto;
-        flex-wrap: wrap;
-        justify-content: flex-end;
         gap: 10px;
       }
 
       .user-controls {
-        flex: 1 1 auto;
-        flex-wrap: wrap;
-        justify-content: flex-end;
         gap: 10px;
-      }
-
-      .control-group {
-        gap: 6px;
       }
 
       .control-label {
         font-size: 16px;
-      }
-
-      .search-wrap {
-        width: 100%;
-        justify-content: flex-end;
-      }
-
-      .search-box-wrap {
-        flex: 1 1 0;
-      }
-
-      .search-wrap input {
-        width: 100%;
-        min-width: 0;
-      }
-
-      .google-export .media-mobile-fit {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        height: auto !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        overflow: visible !important;
-      }
-
-      .google-export .media-mobile-fit-item {
-        width: 100% !important;
-        max-width: 100% !important;
-        height: auto !important;
-        margin-left: 0 !important;
-      }
-
-      .google-export .media-mobile-fit + .media-mobile-fit {
-        margin-top: 12px !important;
-      }
-
-      .lightbox {
-        padding: 12px;
-        touch-action: none;
-      }
-
-      .lightbox img,
-      .lightbox video {
-        max-width: calc(100vw - 24px);
-        max-height: calc(100vh - 24px);
-        touch-action: none;
       }
     }
   </style>
@@ -1417,86 +1324,8 @@
       const lightbox = document.getElementById("lightbox");
       const lightboxImg = document.getElementById("lightboxImg");
       const lightboxVideo = document.getElementById("lightboxVideo");
-      let activeMedia = null;
-      let activePointers = new Map();
-      let translateX = 0;
-      let translateY = 0;
-      let scale = 1;
-      let panStartX = 0;
-      let panStartY = 0;
-      let panOriginX = 0;
-      let panOriginY = 0;
-      let pinchStartDistance = 0;
-      let pinchStartScale = 1;
-      let pinchStartMidX = 0;
-      let pinchStartMidY = 0;
-      let pinchOriginX = 0;
-      let pinchOriginY = 0;
-      let touchMoved = false;
-      let suppressClickClose = false;
-      let tapStartX = 0;
-      let tapStartY = 0;
-      let ignoreContentMediaClicksUntil = 0;
-
-      function clampScale(nextScale) {
-        return Math.min(4, Math.max(1, nextScale));
-      }
-
-      function getPointerDistance(points) {
-        const [a, b] = points;
-        return Math.hypot(b.x - a.x, b.y - a.y);
-      }
-
-      function getPointerMidpoint(points) {
-        const [a, b] = points;
-        return {
-          x: (a.x + b.x) / 2,
-          y: (a.y + b.y) / 2
-        };
-      }
-
-      function setActiveMedia(mediaEl) {
-        activeMedia = mediaEl;
-        translateX = 0;
-        translateY = 0;
-        scale = 1;
-        touchMoved = false;
-        suppressClickClose = false;
-        activePointers = new Map();
-        applyLightboxTransform();
-      }
-
-      function applyLightboxTransform() {
-        if (!activeMedia) return;
-        activeMedia.style.transform = `translate(${
-          Math.round(translateX)
-        }px, ${Math.round(translateY)}px) scale(${scale.toFixed(3)})`;
-      }
-
-      function resetLightboxGesture() {
-        if (activeMedia) {
-          activeMedia.style.transform = "";
-        }
-        activeMedia = null;
-        translateX = 0;
-        translateY = 0;
-        scale = 1;
-        activePointers = new Map();
-        touchMoved = false;
-        suppressClickClose = false;
-      }
-
-      function resetPanOrigin(pointer) {
-        panOriginX = translateX;
-        panOriginY = translateY;
-        panStartX = pointer.x;
-        panStartY = pointer.y;
-      }
-
-      function closeLightbox() {
-        ignoreContentMediaClicksUntil = Date.now() + 350;
-        document.body.style.overflow = "";
-        resetLightboxGesture();
+      
+      function resetLightbox() {
         lightbox.hidden = true;
         lightboxImg.hidden = true;
         lightboxImg.removeAttribute("src");
@@ -1507,154 +1336,10 @@
         lightboxVideo.load();
       }
 
-      function resetLightbox() {
-        closeLightbox();
-      }
-
-      function bindLightboxGestures() {
-        lightbox.addEventListener("pointerdown", (event) => {
-          if (event.pointerType !== "touch") return;
-          if (lightbox.hidden || !activeMedia) return;
-          event.preventDefault();
-          lightbox.setPointerCapture(event.pointerId);
-          activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-          suppressClickClose = true;
-
-          const points = Array.from(activePointers.values());
-          if (points.length === 1) {
-            touchMoved = false;
-            tapStartX = points[0].x;
-            tapStartY = points[0].y;
-            resetPanOrigin(points[0]);
-          } else if (points.length === 2) {
-            pinchStartDistance = Math.max(1, getPointerDistance(points));
-            pinchStartScale = scale;
-            const midpoint = getPointerMidpoint(points);
-            pinchStartMidX = midpoint.x;
-            pinchStartMidY = midpoint.y;
-            pinchOriginX = translateX;
-            pinchOriginY = translateY;
-          }
-        });
-
-        lightbox.addEventListener("pointermove", (event) => {
-          if (event.pointerType !== "touch") return;
-          if (!activePointers.has(event.pointerId)) return;
-          if (!activeMedia) return;
-
-          activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-          const points = Array.from(activePointers.values());
-
-          if (points.length >= 2) {
-            event.preventDefault();
-            const midpoint = getPointerMidpoint(points);
-            const nextScale = clampScale(
-              pinchStartScale * (getPointerDistance(points) / Math.max(1, pinchStartDistance))
-            );
-            scale = nextScale;
-            translateX = pinchOriginX + (midpoint.x - pinchStartMidX);
-            translateY = pinchOriginY + (midpoint.y - pinchStartMidY);
-            if (
-              Math.abs(translateX - pinchOriginX) > 4 ||
-              Math.abs(translateY - pinchOriginY) > 4 ||
-              Math.abs(scale - pinchStartScale) > 0.02
-            ) {
-              touchMoved = true;
-            }
-            applyLightboxTransform();
-            return;
-          }
-
-          if (points.length === 1 && scale > 1.001) {
-            event.preventDefault();
-            translateX = panOriginX + (points[0].x - panStartX);
-            translateY = panOriginY + (points[0].y - panStartY);
-            if (
-              Math.abs(translateX - panOriginX) > 4 ||
-              Math.abs(translateY - panOriginY) > 4
-            ) {
-              touchMoved = true;
-            }
-            applyLightboxTransform();
-          }
-        }, { passive: false });
-
-        function releasePointer(event) {
-          if (event.pointerType !== "touch") return;
-          activePointers.delete(event.pointerId);
-
-          const points = Array.from(activePointers.values());
-          if (!points.length) {
-            if (scale <= 1.001) {
-              scale = 1;
-              translateX = 0;
-              translateY = 0;
-              applyLightboxTransform();
-            }
-
-            if (!touchMoved) {
-              suppressClickClose = false;
-              closeLightbox();
-            } else {
-              window.setTimeout(() => {
-                suppressClickClose = false;
-              }, 0);
-            }
-
-            return;
-          }
-
-          if (points.length === 1) {
-            resetPanOrigin(points[0]);
-          }
-        }
-
-        lightbox.addEventListener("pointerup", releasePointer);
-        lightbox.addEventListener("pointercancel", releasePointer);
-
-        lightbox.addEventListener("touchend", (event) => {
-          if (lightbox.hidden || !activeMedia) return;
-          if (event.touches.length || event.changedTouches.length !== 1) return;
-          if (activePointers.size) return;
-
-          const touch = event.changedTouches[0];
-          const moved =
-            touchMoved ||
-            Math.abs(touch.clientX - tapStartX) > 8 ||
-            Math.abs(touch.clientY - tapStartY) > 8;
-
-          if (!moved) {
-            event.preventDefault();
-            event.stopPropagation();
-            suppressClickClose = false;
-            closeLightbox();
-          }
-        }, { passive: false });
-      }
-
-      function markMobileResponsiveMedia() {
-        document.querySelectorAll("#content img[data-guide-media='1'], #content video[data-guide-media='1']").forEach((media) => {
-          const wrapper = media.parentElement?.tagName === "SPAN" ? media.parentElement : null;
-          const wrapperWidth = wrapper ? Number.parseFloat(wrapper.style.width || "0") : 0;
-          const mediaWidth = Number.parseFloat(media.style.width || "0");
-          const measuredWidth = Math.max(wrapperWidth, mediaWidth);
-
-          if (measuredWidth < 280) return;
-
-          media.classList.add("media-mobile-fit-item");
-          if (wrapper) {
-            wrapper.classList.add("media-mobile-fit");
-          }
-        });
-      }
-
       resetLightbox();
-      markMobileResponsiveMedia();
-      bindLightboxGestures();
 
       document.querySelectorAll("#content img[data-guide-media='1']").forEach((img) => {
         img.addEventListener("click", async () => {
-          if (Date.now() < ignoreContentMediaClicksUntil) return;
           await loadMediaElement(img, "high");
           if (!img.src) return;
 
@@ -1668,15 +1353,12 @@
           lightboxVideo.hidden = true;
           lightboxImg.src = img.src;
           lightboxImg.hidden = false;
-          setActiveMedia(lightboxImg);
-          document.body.style.overflow = "hidden";
           lightbox.hidden = false;
         });
       });
 
       document.querySelectorAll("#content video[data-guide-media='1']").forEach((video) => {
         video.addEventListener("click", async () => {
-          if (Date.now() < ignoreContentMediaClicksUntil) return;
           await loadMediaElement(video, "high");
           const mp4Src = video.dataset.srcMp4;
           const webmSrc = video.dataset.srcWebm;
@@ -1708,21 +1390,15 @@
           }
 
           lightboxVideo.hidden = false;
-          setActiveMedia(lightboxVideo);
-          document.body.style.overflow = "hidden";
           lightbox.hidden = false;
           lightboxVideo.load();
           lightboxVideo.play().catch(() => {});
         });
       });
 
-      lightbox.addEventListener("click", (event) => {
-        if (lightbox.hidden) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (suppressClickClose) return;
+      lightbox.onclick = () => {
         resetLightbox();
-      });
+      };
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
