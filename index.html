@@ -258,13 +258,13 @@
       grid-template-columns: 300px minmax(0, 1fr);
       min-height: calc(100vh - 67px);
       min-width: 0;
+      align-items: start;
     }
 
     .sidebar {
-      position: fixed;
+      position: sticky;
       top: 67px;
-      left: 0;
-      width: 300px;
+      align-self: start;
       height: calc(100vh - 67px);
       overflow-y: auto;
       overflow-x: hidden;
@@ -272,8 +272,6 @@
       padding: 18px 14px 24px;
       background: var(--panel);
       border-right: 1px solid var(--border);
-      box-sizing: border-box;
-      z-index: 900;
     }
 
     .sidebar a {
