@@ -441,12 +441,16 @@
 
     .lightbox img,
     .lightbox video {
+      width: auto;
       max-width: 94vw;
       max-height: 94vh;
       border-radius: 12px;
       box-shadow: var(--shadow);
       transform-origin: center center;
       transition: transform 140ms ease-out;
+      justify-self: center;
+      align-self: center;
+      box-sizing: border-box;
     }
 
     @media (max-width: 900px) {
@@ -513,8 +517,8 @@
 
       .lightbox img,
       .lightbox video {
-        max-width: 100vw;
-        max-height: 100vh;
+        max-width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
         touch-action: none;
       }
     }
