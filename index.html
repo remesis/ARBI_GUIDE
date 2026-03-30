@@ -261,9 +261,10 @@
     }
 
     .sidebar {
-      position: sticky;
+      position: fixed;
       top: 67px;
-      align-self: start;
+      left: 0;
+      width: 300px;
       height: calc(100vh - 67px);
       overflow-y: auto;
       overflow-x: hidden;
@@ -271,6 +272,8 @@
       padding: 18px 14px 24px;
       background: var(--panel);
       border-right: 1px solid var(--border);
+      box-sizing: border-box;
+      z-index: 900;
     }
 
     .sidebar a {
