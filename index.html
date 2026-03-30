@@ -262,16 +262,16 @@
     }
 
     .sidebar-shell {
-      position: sticky;
-      top: 67px;
-      align-self: start;
-      height: calc(100vh - 67px);
+      min-width: 0;
       background: var(--panel);
       border-right: 1px solid var(--border);
     }
 
     .sidebar {
-      height: 100%;
+      position: sticky;
+      top: 67px;
+      align-self: start;
+      height: calc(100vh - 67px);
       overflow-y: auto;
       overflow-x: hidden;
       overscroll-behavior: contain;
