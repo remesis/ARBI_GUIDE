@@ -1525,8 +1525,8 @@
 
       function bindLightboxGestures() {
         lightbox.addEventListener("pointerdown", (event) => {
-          if (event.target !== lightbox && event.target !== activeMedia) return;
           if (event.pointerType !== "touch") return;
+          if (lightbox.hidden || !activeMedia) return;
           event.preventDefault();
           lightbox.setPointerCapture(event.pointerId);
           activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -1603,10 +1603,8 @@
             }
 
             if (!touchMoved) {
-              window.setTimeout(() => {
-                suppressClickClose = false;
-                closeLightbox();
-              }, 0);
+              suppressClickClose = false;
+              closeLightbox();
             } else {
               window.setTimeout(() => {
                 suppressClickClose = false;
@@ -1708,7 +1706,7 @@
       });
 
       lightbox.addEventListener("click", (event) => {
-        if (event.target !== lightbox && event.target !== activeMedia) return;
+        if (lightbox.hidden) return;
         if (suppressClickClose) return;
         resetLightbox();
       });
