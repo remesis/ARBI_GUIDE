@@ -1220,10 +1220,23 @@
       const hash = window.location.hash || "";
       if (!hash.startsWith("#")) return;
 
-      const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+      const target = resolveTargetFromHref(hash);
       if (!target) return;
 
       prioritizeMediaForHeading(target);
+    }
+
+    function scrollToHashTarget(behavior = "auto") {
+      const hash = window.location.hash || "";
+      if (!hash.startsWith("#")) return;
+
+      const target = resolveTargetFromHref(hash);
+      if (!target) return;
+
+      target.scrollIntoView({
+        behavior,
+        block: "start"
+      });
     }
 
     function startMediaLoading() {
@@ -1620,6 +1633,7 @@
     window.addEventListener("blur", stopWidthAdjust);
 
     window.addEventListener("hashchange", () => {
+      scrollToHashTarget("smooth");
       prioritizeMediaFromHash();
     });
 
@@ -1637,6 +1651,7 @@
     loadReadingLineHeight();
     loadContentMaxWidth();
     startMediaLoading();
+    scrollToHashTarget();
     prioritizeMediaFromHash();
   </script>
 </body>
