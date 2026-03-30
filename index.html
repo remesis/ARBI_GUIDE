@@ -1215,6 +1215,25 @@
       });
     }
 
+    function setActiveSidebarLink(links, link, target = null) {
+      if (!link) return;
+
+      links.forEach((item) => item.classList.remove("active"));
+      link.classList.add("active");
+      keepActiveSidebarLinkVisible(link);
+
+      const sectionName = link.textContent.trim();
+      if (sectionName && !viewedSections.has(sectionName)) {
+        viewedSections.add(sectionName);
+        trackEvent("section_view", {
+          section_name: sectionName,
+          section_id: target?.id || "",
+          page_title: document.title,
+          page_location: window.location.href
+        });
+      }
+    }
+
     function setupSectionObserver() {
       const links = Array.from(document.querySelectorAll("#sidebar a"));
 
@@ -1247,23 +1266,9 @@
 
           if (!bestEntry) return;
 
-          links.forEach((link) => link.classList.remove("active"));
-
           const match = targets.find((item) => item.target === bestEntry.target);
           if (match) {
-            match.link.classList.add("active");
-            keepActiveSidebarLinkVisible(match.link);
-
-            const sectionName = match.link.textContent.trim();
-            if (sectionName && !viewedSections.has(sectionName)) {
-              viewedSections.add(sectionName);
-              trackEvent("section_view", {
-                section_name: sectionName,
-                section_id: match.target.id || "",
-                page_title: document.title,
-                page_location: window.location.href
-              });
-            }
+            setActiveSidebarLink(links, match.link, match.target);
           }
         },
         {
@@ -1286,19 +1291,21 @@
         best = targets[0];
       }
 
-      links.forEach((link) => link.classList.remove("active"));
-      best.link.classList.add("active");
-      keepActiveSidebarLinkVisible(best.link);
+      setActiveSidebarLink(links, best.link, best.target);
 
-      const initialSectionName = best.link.textContent.trim();
-      if (initialSectionName && !viewedSections.has(initialSectionName)) {
-        viewedSections.add(initialSectionName);
-        trackEvent("section_view", {
-          section_name: initialSectionName,
-          section_id: best.target.id || "",
-          page_title: document.title,
-          page_location: window.location.href
-        });
+      const firstTarget = targets[0];
+      if (firstTarget) {
+        const syncTopSidebarState = () => {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+          const cutoff = Math.max(8, getHeadingScrollOffset() * 0.5);
+
+          if (scrollTop <= cutoff) {
+            setActiveSidebarLink(links, firstTarget.link, firstTarget.target);
+          }
+        };
+
+        window.addEventListener("scroll", syncTopSidebarState, { passive: true });
+        syncTopSidebarState();
       }
     }
 
