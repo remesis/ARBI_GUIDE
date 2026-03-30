@@ -326,6 +326,7 @@
     .sidebar .depth-0 { padding-left: 10px; }
     .sidebar .depth-1 { padding-left: 24px; }
     .sidebar .depth-2 { padding-left: 38px; }
+    .sidebar .depth-3 { padding-left: 52px; }
 
     .main {
       min-width: 0;
@@ -822,16 +823,25 @@
       const block = anchor?.closest("p, div, h1, h2, h3");
       if (!block) return 0;
 
-      if (block.classList.contains("c52") || block.classList.contains("c54")) {
-        return 2;
-      }
-
       if (
+        block.classList.contains("c10") ||
         block.classList.contains("c30") ||
         block.classList.contains("c35") ||
         block.classList.contains("c37")
       ) {
         return 1;
+      }
+
+      if (
+        block.classList.contains("c23") ||
+        block.classList.contains("c52") ||
+        block.classList.contains("c54")
+      ) {
+        return 2;
+      }
+
+      if (block.classList.contains("c34")) {
+        return 3;
       }
 
       return 0;
