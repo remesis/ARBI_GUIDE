@@ -1091,6 +1091,7 @@
           const target = resolveSidebarLinkTarget(link);
           if (target) {
             window.history.pushState(null, "", link.getAttribute("href"));
+            link.blur();
             prioritizeMediaForHeading(target);
             scrollToHeading(target, "smooth");
           }
