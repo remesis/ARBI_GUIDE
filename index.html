@@ -438,9 +438,16 @@
       max-height: 94vh;
       border-radius: 12px;
       box-shadow: var(--shadow);
+      touch-action: auto;
     }
 
     @media (max-width: 900px) {
+      html,
+      body {
+        max-width: 100%;
+        overflow-x: clip;
+      }
+
       .layout {
         grid-template-columns: 1fr;
       }
@@ -449,12 +456,42 @@
         display: none;
       }
 
+      .topbar {
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+
+      .brand {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
       .content {
         padding: 20px 16px 60px;
       }
 
+      .topbar-controls {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .search-wrap {
+        flex: 1 1 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+      }
+
+      .search-box-wrap {
+        flex: 1 1 100%;
+        min-width: 0;
+      }
+
       .search-wrap input {
-        width: 42vw;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
       }
 
       .brand span {
@@ -471,10 +508,40 @@
 
       .user-controls {
         gap: 10px;
+        flex-wrap: wrap;
       }
 
       .control-label {
         font-size: 16px;
+      }
+
+      .main,
+      .content,
+      .google-export,
+      .google-export .c36 {
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      .google-export .c36 {
+        width: 100% !important;
+        box-sizing: border-box;
+        padding: 20px 16px !important;
+      }
+
+      .google-export img,
+      .google-export video,
+      .google-export table {
+        max-width: 100% !important;
+      }
+
+      .google-export p,
+      .google-export li,
+      .google-export td,
+      .google-export th,
+      .google-export div,
+      .google-export span {
+        overflow-wrap: anywhere;
       }
     }
   </style>
@@ -1324,8 +1391,14 @@
       const lightbox = document.getElementById("lightbox");
       const lightboxImg = document.getElementById("lightboxImg");
       const lightboxVideo = document.getElementById("lightboxVideo");
+      let lightboxGestureActive = false;
+      let lightboxTouchMoved = false;
+      let lightboxTouchStartX = 0;
+      let lightboxTouchStartY = 0;
+      let lastLightboxCloseAt = 0;
       
       function resetLightbox() {
+        lastLightboxCloseAt = Date.now();
         lightbox.hidden = true;
         lightboxImg.hidden = true;
         lightboxImg.removeAttribute("src");
@@ -1334,12 +1407,15 @@
         lightboxVideo.removeAttribute("src");
         lightboxVideo.querySelectorAll("source").forEach((source) => source.remove());
         lightboxVideo.load();
+        lightboxGestureActive = false;
+        lightboxTouchMoved = false;
       }
 
       resetLightbox();
 
       document.querySelectorAll("#content img[data-guide-media='1']").forEach((img) => {
         img.addEventListener("click", async () => {
+          if (Date.now() - lastLightboxCloseAt < 450) return;
           await loadMediaElement(img, "high");
           if (!img.src) return;
 
@@ -1359,6 +1435,7 @@
 
       document.querySelectorAll("#content video[data-guide-media='1']").forEach((video) => {
         video.addEventListener("click", async () => {
+          if (Date.now() - lastLightboxCloseAt < 450) return;
           await loadMediaElement(video, "high");
           const mp4Src = video.dataset.srcMp4;
           const webmSrc = video.dataset.srcWebm;
@@ -1396,9 +1473,54 @@
         });
       });
 
-      lightbox.onclick = () => {
+      lightbox.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         resetLightbox();
-      };
+      }, true);
+
+      lightbox.addEventListener("touchstart", (event) => {
+        if (lightbox.hidden) return;
+        lightboxGestureActive = event.touches.length > 1;
+        lightboxTouchMoved = false;
+        if (event.touches.length === 1) {
+          lightboxTouchStartX = event.touches[0].clientX;
+          lightboxTouchStartY = event.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      lightbox.addEventListener("touchmove", (event) => {
+        if (lightbox.hidden) return;
+        if (event.touches.length > 1) {
+          lightboxGestureActive = true;
+          lightboxTouchMoved = true;
+          return;
+        }
+
+        if (event.touches.length === 1) {
+          const dx = Math.abs(event.touches[0].clientX - lightboxTouchStartX);
+          const dy = Math.abs(event.touches[0].clientY - lightboxTouchStartY);
+          if (dx > 10 || dy > 10) {
+            lightboxTouchMoved = true;
+          }
+        }
+      }, { passive: true });
+
+      lightbox.addEventListener("touchend", (event) => {
+        if (lightbox.hidden) return;
+        if (lightboxGestureActive) {
+          if (event.touches.length === 0) {
+            lightboxGestureActive = false;
+          }
+          return;
+        }
+
+        if (!lightboxTouchMoved && event.changedTouches.length === 1) {
+          event.preventDefault();
+          event.stopPropagation();
+          resetLightbox();
+        }
+      }, true);
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
