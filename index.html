@@ -261,12 +261,6 @@
       align-items: start;
     }
 
-    .sidebar-shell {
-      min-width: 0;
-      background: var(--panel);
-      border-right: 1px solid var(--border);
-    }
-
     .sidebar {
       position: sticky;
       top: 67px;
@@ -277,6 +271,8 @@
       overscroll-behavior: contain;
       padding: 18px 14px 24px;
       box-sizing: border-box;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
     }
 
     .sidebar a {
@@ -488,7 +484,7 @@
         min-width: 0;
       }
 
-      .sidebar-shell {
+      .sidebar {
         display: none;
       }
 
@@ -629,9 +625,7 @@
   </header>
 
   <div class="layout">
-    <aside class="sidebar-shell">
-      <div id="sidebar" class="sidebar"></div>
-    </aside>
+    <aside id="sidebar" class="sidebar"></aside>
 
     <main class="main">
       <article id="content" class="content">
