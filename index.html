@@ -261,17 +261,22 @@
       align-items: start;
     }
 
-    .sidebar {
+    .sidebar-shell {
       position: sticky;
       top: 67px;
       align-self: start;
       height: calc(100vh - 67px);
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+    }
+
+    .sidebar {
+      height: 100%;
       overflow-y: auto;
       overflow-x: hidden;
       overscroll-behavior: contain;
       padding: 18px 14px 24px;
-      background: var(--panel);
-      border-right: 1px solid var(--border);
+      box-sizing: border-box;
     }
 
     .sidebar a {
@@ -483,7 +488,7 @@
         min-width: 0;
       }
 
-      .sidebar {
+      .sidebar-shell {
         display: none;
       }
 
@@ -624,7 +629,9 @@
   </header>
 
   <div class="layout">
-    <aside id="sidebar" class="sidebar"></aside>
+    <aside class="sidebar-shell">
+      <div id="sidebar" class="sidebar"></div>
+    </aside>
 
     <main class="main">
       <article id="content" class="content">
