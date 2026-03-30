@@ -75,6 +75,7 @@
 
     html {
       scroll-behavior: smooth;
+      overflow-x: hidden;
     }
 
     body {
@@ -82,6 +83,7 @@
       background: var(--bg);
       color: var(--text);
       font: 15px/1.55 Arial, Helvetica, sans-serif;
+      overflow-x: hidden;
     }
 
     a {
@@ -255,6 +257,7 @@
       display: grid;
       grid-template-columns: 300px minmax(0, 1fr);
       min-height: calc(100vh - 67px);
+      min-width: 0;
     }
 
     .sidebar {
@@ -454,8 +457,27 @@
     }
 
     @media (max-width: 900px) {
+      .topbar {
+        gap: 10px;
+        padding: 10px 12px;
+        align-items: flex-start;
+      }
+
+      .brand {
+        flex: 0 0 auto;
+      }
+
       .layout {
         grid-template-columns: 1fr;
+      }
+
+      .main,
+      .content,
+      .topbar-controls,
+      .user-controls,
+      .search-wrap,
+      .search-box-wrap {
+        min-width: 0;
       }
 
       .sidebar {
@@ -479,15 +501,39 @@
       }
 
       .topbar-controls {
+        flex: 1 1 auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
         gap: 10px;
       }
 
       .user-controls {
+        flex: 1 1 auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
         gap: 10px;
+      }
+
+      .control-group {
+        gap: 6px;
       }
 
       .control-label {
         font-size: 16px;
+      }
+
+      .search-wrap {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .search-box-wrap {
+        flex: 1 1 0;
+      }
+
+      .search-wrap input {
+        width: 100%;
+        min-width: 0;
       }
 
       .google-export .media-mobile-fit {
