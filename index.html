@@ -1025,25 +1025,6 @@
       }
     }
 
-    function keepSidebarLinkVisible(link) {
-      const sidebar = document.getElementById("sidebar");
-      if (!sidebar || !link) return;
-
-      const sidebarRect = sidebar.getBoundingClientRect();
-      const linkRect = link.getBoundingClientRect();
-      const topPadding = 12;
-      const bottomPadding = 12;
-
-      if (linkRect.top < sidebarRect.top + topPadding) {
-        sidebar.scrollTop -= (sidebarRect.top + topPadding - linkRect.top);
-        return;
-      }
-
-      if (linkRect.bottom > sidebarRect.bottom - bottomPadding) {
-        sidebar.scrollTop += (linkRect.bottom - (sidebarRect.bottom - bottomPadding));
-      }
-    }
-
     function setupSidebarScrollLock() {
       const sidebar = document.getElementById("sidebar");
       if (!sidebar) return;
@@ -1128,7 +1109,9 @@
           const match = targets.find((item) => item.target === bestEntry.target);
           if (match) {
             match.link.classList.add("active");
-            keepSidebarLinkVisible(match.link);
+            match.link.scrollIntoView({
+              block: "nearest"
+            });
 
             const sectionName = match.link.textContent.trim();
             if (sectionName && !viewedSections.has(sectionName)) {
