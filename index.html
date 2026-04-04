@@ -738,6 +738,38 @@
       document.documentElement.style.setProperty("--topbar-offset", `${topbarHeight}px`);
     }
 
+    function setExternalLinksToOpenInNewTab() {
+      const root = document.querySelector(".google-export");
+      if (!root) return;
+
+      root.querySelectorAll("a[href]").forEach((link) => {
+        const href = link.getAttribute("href")?.trim();
+        if (!href || href.startsWith("#")) return;
+
+        let url;
+        try {
+          url = new URL(href, window.location.href);
+        } catch (_err) {
+          return;
+        }
+
+        if (!/^https?:$/i.test(url.protocol)) return;
+        if (url.origin === window.location.origin) return;
+
+        link.target = "_blank";
+
+        const relValues = new Set(
+          (link.getAttribute("rel") || "")
+            .split(/\s+/)
+            .map((value) => value.trim().toLowerCase())
+            .filter(Boolean)
+        );
+        relValues.add("noopener");
+        relValues.add("noreferrer");
+        link.setAttribute("rel", Array.from(relValues).join(" "));
+      });
+    }
+
     function trackEvent(name, params = {}) {
       if (typeof window.gtag !== "function") return;
       window.gtag("event", name, params);
@@ -2177,6 +2209,7 @@
     });
 
     syncTopbarOffset();
+    setExternalLinksToOpenInNewTab();
     ensureHeadingIds();
     const outline = extractOutlineLinks();
     buildSidebar(outline);
