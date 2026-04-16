@@ -2526,10 +2526,8 @@
     });
 
     (function showMediaHintToast() {
-      if (localStorage.getItem("guideMediaHintSeen")) return;
       const toast = document.getElementById("mediaHintToast");
       if (!toast) return;
-      localStorage.setItem("guideMediaHintSeen", "1");
       toast.hidden = false;
       setTimeout(() => {
         toast.classList.add("fade-out");
