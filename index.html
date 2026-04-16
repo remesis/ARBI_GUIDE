@@ -719,39 +719,6 @@
       font-size: 36px;
     }
 
-    @keyframes sidebar-void-pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
-    }
-
-    .sidebar-glow {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 50% 45%, rgba(114, 199, 255, 0.055) 0%, transparent 68%);
-      pointer-events: none;
-      animation: sidebar-void-pulse 4s ease-in-out infinite;
-    }
-
-    .void-edge-glow-left,
-    .void-edge-glow-right {
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      width: 280px;
-      pointer-events: none;
-      z-index: 1;
-      animation: sidebar-void-pulse 4s ease-in-out infinite;
-    }
-
-    .void-edge-glow-left {
-      left: 0;
-      background: radial-gradient(ellipse at left center, rgba(114, 199, 255, 0.08) 0%, transparent 100%);
-    }
-
-    .void-edge-glow-right {
-      right: 0;
-      background: radial-gradient(ellipse at right center, rgba(114, 199, 255, 0.08) 0%, transparent 100%);
-    }
 
     @keyframes guide-shimmer {
       0% { background-position: 200% 0; }
@@ -885,13 +852,10 @@
   </div>
 
   <div id="mobileSidebarBackdrop" class="mobile-sidebar-backdrop" hidden></div>
-  <div class="void-edge-glow-left" aria-hidden="true"></div>
-  <div class="void-edge-glow-right" aria-hidden="true"></div>
 
   <div class="layout">
     <aside id="sidebar" class="sidebar">
-      <div class="sidebar-glow" aria-hidden="true"></div>
-      <div class="sidebar-updated">Last updated: 2026-04-16</div>
+<div class="sidebar-updated">Last updated: 2026-04-16</div>
       <div id="sidebarLinks" class="sidebar-links"></div>
     </aside>
 
