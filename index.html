@@ -710,9 +710,18 @@
     .easter-egg-toast {
       bottom: auto;
       right: auto;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+    }
+
+    .easter-egg-toast .media-hint-toast-inner {
+      font-size: 28px;
+      max-width: 440px;
+      padding: 22px 28px;
+      gap: 16px;
+      line-height: 1.4;
+    }
+
+    .easter-egg-toast .media-hint-toast-icon {
+      font-size: 44px;
     }
 
     @keyframes sidebar-void-pulse {
@@ -2563,6 +2572,10 @@
       toast.setAttribute("aria-live", "polite");
       toast.innerHTML = '<div class="media-hint-toast-inner"><span class="media-hint-toast-icon">' + icon + '</span>' + message + '</div>';
       document.body.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.style.left = Math.round((window.innerWidth - toast.offsetWidth) / 2) + "px";
+        toast.style.top = Math.round((window.innerHeight - toast.offsetHeight) / 2) + "px";
+      });
       setTimeout(() => {
         toast.classList.add("fade-out");
         setTimeout(() => toast.remove(), 600);
