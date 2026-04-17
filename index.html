@@ -720,6 +720,21 @@
     }
 
 
+    .particle-canvas {
+      position: fixed;
+      top: 0;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .particle-canvas-left { left: 0; }
+    .particle-canvas-right { right: 0; }
+
+    @media (max-width: 900px) {
+      .particle-canvas { display: none; }
+    }
+
     @keyframes guide-shimmer {
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
@@ -852,6 +867,8 @@
   </div>
 
   <div id="mobileSidebarBackdrop" class="mobile-sidebar-backdrop" hidden></div>
+  <canvas id="particleLeft" class="particle-canvas particle-canvas-left" aria-hidden="true"></canvas>
+  <canvas id="particleRight" class="particle-canvas particle-canvas-right" aria-hidden="true"></canvas>
 
   <div class="layout">
     <aside id="sidebar" class="sidebar">
@@ -2477,7 +2494,7 @@
       fontIncreaseCount += 1;
       if (fontIncreaseCount === 5) {
         fontIncreaseCount = 0;
-        showEasterEggToast("&#129299;", "Surely you can spot all the arbitration drones now!");
+        showEasterEggToast("&#129299;", "Brother, you might need glasses...");
       }
     });
 
@@ -2564,7 +2581,7 @@
       if (bottomToastFired) return;
       if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 80) {
         bottomToastFired = true;
-        showEasterEggToast("&#127881;", "Congratulations, you read the entire guide! And you paid your cat tax!");
+        showEasterEggToast("&#127881;", "Congratulations, you read the entire guide! Also, cat tax!");
       }
     }, { passive: true });
 
@@ -2576,6 +2593,81 @@
         toast.classList.add("fade-out");
         setTimeout(() => { toast.hidden = true; }, 500);
       }, 5000);
+    })();
+
+    (function initParticles() {
+      if (window.innerWidth <= 900) return;
+      const STRIP_W = 180;
+      const COUNT = 18;
+      const MAX_DIST = 120;
+      const COLOR = "114, 199, 255";
+      const canvases = [
+        document.getElementById("particleLeft"),
+        document.getElementById("particleRight")
+      ];
+      let H = window.innerHeight;
+      canvases.forEach(c => { c.width = STRIP_W; c.height = H; });
+
+      function mkParticle() {
+        return {
+          x: Math.random() * STRIP_W,
+          y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.28,
+          vy: (Math.random() - 0.5) * 0.28,
+          r: Math.random() * 1.4 + 0.5
+        };
+      }
+
+      const groups = [
+        Array.from({length: COUNT}, mkParticle),
+        Array.from({length: COUNT}, mkParticle)
+      ];
+
+      let lastTs = 0;
+      function frame(ts) {
+        if (ts - lastTs < 33) { requestAnimationFrame(frame); return; }
+        lastTs = ts;
+        canvases.forEach((canvas, ci) => {
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, STRIP_W, H);
+          const pts = groups[ci];
+          pts.forEach(p => {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0 || p.x > STRIP_W) p.vx *= -1;
+            if (p.y < 0 || p.y > H) p.vy *= -1;
+            p.x = Math.max(0, Math.min(STRIP_W, p.x));
+            p.y = Math.max(0, Math.min(H, p.y));
+          });
+          for (let i = 0; i < pts.length; i++) {
+            for (let j = i + 1; j < pts.length; j++) {
+              const dx = pts[i].x - pts[j].x;
+              const dy = pts[i].y - pts[j].y;
+              const d = Math.sqrt(dx * dx + dy * dy);
+              if (d < MAX_DIST) {
+                ctx.beginPath();
+                ctx.moveTo(pts[i].x, pts[i].y);
+                ctx.lineTo(pts[j].x, pts[j].y);
+                ctx.strokeStyle = `rgba(${COLOR}, ${((1 - d / MAX_DIST) * 0.25).toFixed(3)})`;
+                ctx.lineWidth = 0.6;
+                ctx.stroke();
+              }
+            }
+          }
+          pts.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${COLOR}, 0.55)`;
+            ctx.fill();
+          });
+        });
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+
+      window.addEventListener("resize", () => {
+        H = window.innerHeight;
+        canvases.forEach(c => { c.height = H; });
+      }, { passive: true });
     })();
 
     syncTopbarOffset();
