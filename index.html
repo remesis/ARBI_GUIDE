@@ -526,6 +526,59 @@
       }
     }
 
+    .google-export hr {
+      position: relative;
+      border: none;
+      height: 20px;
+      margin: 2.5em auto;
+      overflow: visible;
+      background: none;
+    }
+
+    .google-export hr::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      transform: translateY(-50%);
+      background:
+        radial-gradient(ellipse at center, rgba(114,199,255,0.55) 0%, rgba(114,199,255,0.15) 35%, transparent 70%) center / 3% 6px no-repeat,
+        linear-gradient(90deg, transparent 0%, var(--border) 12%, var(--border) 88%, transparent 100%) center / 100% 1px no-repeat;
+      animation: hrGlow 4.2s ease-in-out infinite;
+    }
+
+    .google-export hr::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 8px;
+      height: 8px;
+      transform: translate(-50%, -50%) rotate(45deg);
+      background: var(--accent);
+      box-shadow: 0 0 5px 2px rgba(114,199,255,0.45);
+      animation: hrDiamond 4.2s ease-in-out infinite;
+    }
+
+    @keyframes hrGlow {
+      0%   { background-size: 3% 6px,  100% 1px; animation-timing-function: linear; }
+      12%  { background-size: 3% 6px,  100% 1px; animation-timing-function: ease-out; }
+      52%  { background-size: 88% 6px, 100% 1px; animation-timing-function: ease-in; }
+      84%  { background-size: 3% 6px,  100% 1px; animation-timing-function: linear; }
+      100% { background-size: 3% 6px,  100% 1px; }
+    }
+
+    @keyframes hrDiamond {
+      0%   { box-shadow: 0 0 5px 2px rgba(114,199,255,0.45); }
+      12%  { box-shadow: 0 0 13px 4px rgba(114,199,255,0.95); }
+      52%  { box-shadow: 0 0 4px 1px rgba(114,199,255,0.3); }
+      80%  { box-shadow: 0 0 9px 3px rgba(114,199,255,0.7); }
+      90%  { box-shadow: 0 0 5px 2px rgba(114,199,255,0.45); }
+      100% { box-shadow: 0 0 5px 2px rgba(114,199,255,0.45); }
+    }
+
     mark.search-hit {
       background: #4166f5 !important;
       color: #ffffff !important;
@@ -872,7 +925,7 @@
 
   <div class="layout">
     <aside id="sidebar" class="sidebar">
-<div class="sidebar-updated">Last updated: 2026-04-16</div>
+<div class="sidebar-updated">Last updated: 2026-04-17</div>
       <div id="sidebarLinks" class="sidebar-links"></div>
     </aside>
 
