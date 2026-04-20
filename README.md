@@ -4,15 +4,19 @@ A dark-mode web guide covering Arbitrations strategy, builds, Kuva farming, and 
 
 # [arbi.guide](https://arbi.guide/)
 
-**Author:** Geek (`@.edc` on Discord) — [Arbitration Goons community](https://discord.gg/Arbitrations)
+**Author:** Geek (`@.edc` on Discord) - [Arbitration Goons community](https://discord.gg/Arbitrations)
 
 ## What's in this repo
 
+<<<<<<< HEAD
 This repository is the deployed site — everything here is what gets served at `arbi.guide`, hosted on Cloudflare Pages.
+=======
+This repository is the deployed site - everything here is what gets served at `arbi.guide`, hosted via Cloudflare Pages.
+>>>>>>> 27358f236d5896de8f97045f7be940a1cfdf1538
 
 | File / Folder | Description |
 |---|---|
-| `index.html` | The complete guide — a single self-contained page |
+| `index.html` | The complete guide - a single self-contained page |
 | `.media_cache/v1/` | Converted media assets (WebP images, MP4 videos) referenced by `index.html` |
 | `logo.png` | Site favicon and brand logo |
 | `sitemap.xml` | Sitemap for search engine indexing |
@@ -20,15 +24,16 @@ This repository is the deployed site — everything here is what gets served at 
 
 ## Features
 
-- Full dark-mode design
+- Full darkmode design
 - Sticky sidebar with section navigation and copy-link buttons
-- Lazy-loaded images and videos with shimmer placeholders
-- Full-text search with keyboard shortcut (`/`)
-- Lightbox for full-resolution image and video viewing
-- Font size, line spacing, and content width controls (saved to localStorage)
-- Mobile-responsive layout with slide-in sidebar and scroll progress bar
+- Lazy loaded images and videos with priority tiers and shimmer placeholders
+- Guide search with keyboard shortcut (`/`) and (`esc`)
+- Expandable lightbox for full resolution image and video viewing
+- User controls for font size, spacing, and content width (saved to localStorage)
+- Responsive mobile layout with slide in sidebar and scroll progress bar
 - Particle animation in desktop margins
+- Easter eggs :3
 
 ## License
 
-Site content © the guide authors. HTML/CSS/JS shell is MIT licensed — see [LICENSE](LICENSE).
+Site content © the guide authors. HTML/CSS/JS shell is MIT licensed - see [LICENSE](LICENSE).
