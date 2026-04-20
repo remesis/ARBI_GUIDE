@@ -3010,7 +3010,7 @@
       var wrapper = document.createElement("div");
       wrapper.style.cssText = "position:fixed;z-index:2500;width:320px;border-radius:10px;overflow:hidden;cursor:pointer;user-select:none;box-shadow:0 0 30px rgba(0,0,0,0.85),0 0 14px rgba(114,199,255,0.18);";
       var video = document.createElement("video");
-      video.src = "./Oiiai.cat.mp4";
+      video.src = "./.media_cache/v1/videos/Oiiai.cat.mp4";
       video.autoplay = true;
       video.loop = false;
       video.muted = false;
@@ -3024,9 +3024,9 @@
       var volSlider = document.getElementById("dvdVolumeSlider");
       video.volume = volSlider ? parseFloat(volSlider.value) : 0.5;
 
-      var W = 320;
+      var W = 480;
       var x = Math.max(10, Math.floor(Math.random() * (window.innerWidth - W - 20)));
-      var y = Math.max(10, Math.floor(Math.random() * (window.innerHeight - 220)));
+      var y = Math.max(10, Math.floor(Math.random() * (window.innerHeight - 320)));
       var vx = (2.4 + Math.random() * 0.8) * (Math.random() < 0.5 ? 1 : -1);
       var vy = (2.0 + Math.random() * 0.8) * (Math.random() < 0.5 ? 1 : -1);
       var isFullscreen = false;
@@ -3060,12 +3060,16 @@
         if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
         wrapper.style.cssText = "position:fixed;z-index:4000;top:0;left:0;width:100vw;height:100vh;border-radius:0;overflow:hidden;cursor:pointer;user-select:none;transition:all 0.3s ease;";
         video.style.cssText = "display:block;width:100%;height:100%;object-fit:contain;background:#000;pointer-events:none;";
+        var vol = document.getElementById("dvdVolumeControl");
+        if (vol) vol.style.zIndex = "4500";
       }
 
       function exitFullscreen() {
         isFullscreen = false;
         video.style.cssText = "display:block;width:100%;height:auto;background:#000;pointer-events:none;";
         wrapper.style.cssText = "position:fixed;z-index:2500;width:" + W + "px;border-radius:10px;overflow:hidden;cursor:pointer;user-select:none;box-shadow:0 0 30px rgba(0,0,0,0.85),0 0 14px rgba(114,199,255,0.18);left:" + x + "px;top:" + y + "px;";
+        var vol = document.getElementById("dvdVolumeControl");
+        if (vol) vol.style.zIndex = "2100";
         startBounce();
       }
 
