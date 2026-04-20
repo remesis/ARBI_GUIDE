@@ -8,7 +8,7 @@ A dark-mode web guide covering Arbitrations strategy, builds, Kuva farming, and 
 
 ## What's in this repo
 
-This repository is the deployed site — everything here is what gets served at `arbi.guide`, hosted on GitHub Pages with Cloudflare for the custom domain.
+This repository is the deployed site — everything here is what gets served at `arbi.guide`, hosted on Cloudflare Pages.
 
 | File / Folder | Description |
 |---|---|
