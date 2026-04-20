@@ -22,12 +22,13 @@ This repository is the deployed site - everything here is what gets served at `a
 
 - Full darkmode design
 - Sticky sidebar with section navigation and copy-link buttons
-- Lazy-loaded images and videos with shimmer placeholders
-- Full-text search with keyboard shortcut (`/`)
-- Lightbox for full resolution image and video viewing
-- Font size, line spacing, and content width controls (saved to localStorage)
-- Mobile-responsive layout with slide in sidebar and scroll progress bar
+- Lazy loaded images and videos with priority tiers and shimmer placeholders
+- Guide search with keyboard shortcut (`/`) and (`esc`)
+- Expandable lightbox for full resolution image and video viewing
+- User controls for font size, spacing, and content width (saved to localStorage)
+- Responsive mobile layout with slide in sidebar and scroll progress bar
 - Particle animation in desktop margins
+- Easter eggs :3
 
 ## License
 
