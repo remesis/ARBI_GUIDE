@@ -3007,6 +3007,7 @@
     }
 
     function launchDvdPlayer() {
+      var W = 480;
       var wrapper = document.createElement("div");
       wrapper.style.cssText = "position:fixed;z-index:2500;width:" + W + "px;border-radius:10px;overflow:hidden;cursor:pointer;user-select:none;box-shadow:0 0 30px rgba(0,0,0,0.85),0 0 14px rgba(114,199,255,0.18);";
       var video = document.createElement("video");
@@ -3023,8 +3024,6 @@
 
       var volSlider = document.getElementById("dvdVolumeSlider");
       video.volume = volSlider ? parseFloat(volSlider.value) : 0.5;
-
-      var W = 480;
       var x = Math.max(10, Math.floor(Math.random() * (window.innerWidth - W - 20)));
       var y = Math.max(10, Math.floor(Math.random() * (window.innerHeight - 320)));
       var vx = (2.4 + Math.random() * 0.8) * (Math.random() < 0.5 ? 1 : -1);
