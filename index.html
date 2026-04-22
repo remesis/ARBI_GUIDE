@@ -1086,7 +1086,7 @@
 
   <div class="layout">
     <aside id="sidebar" class="sidebar">
-<div class="sidebar-updated">Last updated: 2026-04-21</div>
+<div class="sidebar-updated">Last updated: 2026-04-22</div>
       <div id="sidebarLinks" class="sidebar-links"></div>
     </aside>
 
@@ -3063,6 +3063,9 @@
               particleAlphaMult = 2;
               particleCount = 100;
               document.body.classList.add("gold-mode");
+              trackEvent("konami_gold_mode");
+            } else {
+              trackEvent("konami_repeat");
             }
             showEventToast("&#127918;", "コ ナ ミ コ マ ン ド", 10000);
           }
@@ -3147,6 +3150,7 @@
         container.appendChild(wrap);
       }
       showEventToast("&#128121;", "GREMLIN INFESTATION", 5000);
+      trackEvent("gremlin_activated");
       _gremlinTimer = setTimeout(deactivateGremlinMode, 10000);
     }
 
