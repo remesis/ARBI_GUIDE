@@ -3116,13 +3116,19 @@
         _gremlinRestores.push({
           kind: "img", el: img,
           src: img.src, dataSrc: img.dataset.src, loaded: img.dataset.mediaLoaded,
-          styleWidth: img.style.width, styleHeight: img.style.height
+          styleWidth: img.style.width, styleHeight: img.style.height,
+          styleDisplay: img.style.display, styleMargin: img.style.margin,
+          attrWidth: img.getAttribute("width"), attrHeight: img.getAttribute("height")
         });
         img.src = src;
         img.dataset.src = src;
         img.dataset.mediaLoaded = "1";
+        img.setAttribute("width", "300");
+        img.removeAttribute("height");
         img.style.width = SIZE;
         img.style.height = "auto";
+        img.style.display = "block";
+        img.style.margin = "0 auto";
       });
       document.querySelectorAll("#content video[data-guide-media]").forEach(function(video) {
         video.pause();
@@ -3130,7 +3136,7 @@
         overlay.className = "gremlin-video-overlay";
         overlay.src = src;
         overlay.setAttribute("aria-hidden", "true");
-        overlay.style.cssText = "width:" + SIZE + ";display:block;height:auto;";
+        overlay.style.cssText = "width:" + SIZE + ";height:auto;display:block;margin:0 auto;";
         video.insertAdjacentElement("afterend", overlay);
         video.style.display = "none";
         _gremlinRestores.push({ kind: "video", el: video, overlay: overlay });
@@ -3152,6 +3158,12 @@
           r.el.dataset.src = r.dataSrc;
           r.el.style.width = r.styleWidth;
           r.el.style.height = r.styleHeight;
+          r.el.style.display = r.styleDisplay;
+          r.el.style.margin = r.styleMargin;
+          if (r.attrWidth !== null) r.el.setAttribute("width", r.attrWidth);
+          else r.el.removeAttribute("width");
+          if (r.attrHeight !== null) r.el.setAttribute("height", r.attrHeight);
+          else r.el.removeAttribute("height");
           if (r.loaded !== undefined && r.loaded !== "") {
             r.el.dataset.mediaLoaded = r.loaded;
           } else {
