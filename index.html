@@ -2713,6 +2713,7 @@
         return;
       }
       highlightSearch(value);
+      if (value.toLowerCase() === "gremlin") activateGremlinMode();
     });
 
     document.getElementById("fontIncreaseBtn").addEventListener("click", () => {
@@ -3073,6 +3074,8 @@
 
     var _seqFired = false;
     var dvdPlayerEl = null;
+    var _gremlinTimer = null;
+    var _gremlinRestores = [];
 
     function showDvdVolumeControl() {
       var prev = document.getElementById("dvdVolumeControl");
@@ -3102,6 +3105,54 @@
       if (!ctrl) return;
       ctrl.classList.add("fade-out");
       setTimeout(function() { if (ctrl.parentNode) ctrl.remove(); }, 700);
+    }
+
+    function activateGremlinMode() {
+      if (_gremlinTimer !== null) return;
+      var src = "./.media_cache/v1/images/gremlin.webp";
+      document.querySelectorAll("#content img[data-guide-media]").forEach(function(img) {
+        _gremlinRestores.push({
+          kind: "img", el: img,
+          src: img.src, dataSrc: img.dataset.src, loaded: img.dataset.mediaLoaded
+        });
+        img.src = src;
+        img.dataset.src = src;
+        img.dataset.mediaLoaded = "1";
+      });
+      document.querySelectorAll("#content video[data-guide-media]").forEach(function(video) {
+        video.pause();
+        var overlay = document.createElement("img");
+        overlay.className = "gremlin-video-overlay";
+        overlay.src = src;
+        overlay.setAttribute("aria-hidden", "true");
+        overlay.style.cssText = "width:100%;display:block;";
+        video.insertAdjacentElement("afterend", overlay);
+        video.style.display = "none";
+        _gremlinRestores.push({ kind: "video", el: video, overlay: overlay });
+      });
+      showEventToast("&#128121;", "GREMLIN INFESTATION (60s)", 5000);
+      _gremlinTimer = setTimeout(deactivateGremlinMode, 60000);
+    }
+
+    function deactivateGremlinMode() {
+      clearTimeout(_gremlinTimer);
+      _gremlinTimer = null;
+      _gremlinRestores.forEach(function(r) {
+        if (r.kind === "video") {
+          r.overlay.remove();
+          r.el.style.display = "";
+          if (r.el.dataset.mediaLoaded) r.el.play().catch(function() {});
+        } else {
+          r.el.src = r.src;
+          r.el.dataset.src = r.dataSrc;
+          if (r.loaded !== undefined && r.loaded !== "") {
+            r.el.dataset.mediaLoaded = r.loaded;
+          } else {
+            delete r.el.dataset.mediaLoaded;
+          }
+        }
+      });
+      _gremlinRestores = [];
     }
 
     function showTransmissionToast() {
