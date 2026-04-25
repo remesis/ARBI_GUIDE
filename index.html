@@ -1611,6 +1611,37 @@
       return Math.max(16, Math.round(topbarHeight + getMobileProgressHeight() + 8));
     }
 
+    function getScrollRoot() {
+      return document.scrollingElement || document.documentElement;
+    }
+
+    function getCurrentScrollTop() {
+      const root = getScrollRoot();
+      return window.scrollY || root?.scrollTop || 0;
+    }
+
+    function getMaxDocumentScrollTop() {
+      const root = getScrollRoot();
+      const viewport = window.innerHeight || root?.clientHeight || 0;
+      const fullHeight = root?.scrollHeight || document.body.scrollHeight || viewport;
+      return Math.max(0, fullHeight - viewport);
+    }
+
+    function getTargetScrollTop(target) {
+      if (!target) return 0;
+
+      const currentTop = getCurrentScrollTop();
+      const top = currentTop + target.getBoundingClientRect().top - getHeadingScrollOffset();
+      return Math.max(0, Math.min(getMaxDocumentScrollTop(), Math.round(top)));
+    }
+
+    function isTargetLanded(target) {
+      if (!target) return false;
+
+      const tolerance = Math.max(10, Math.round((window.innerHeight || 0) * 0.015));
+      return Math.abs(getCurrentScrollTop() - getTargetScrollTop(target)) <= tolerance;
+    }
+
     function withInstantScroll(callback) {
       const html = document.documentElement;
       const body = document.body;
@@ -1677,10 +1708,9 @@
     function scrollToHeading(target, behavior = "smooth", shouldFlash = true) {
       if (!target) return;
 
-      const currentTop = window.scrollY;
-      const top = currentTop + target.getBoundingClientRect().top - getHeadingScrollOffset();
-      const distance = Math.abs(top - currentTop);
-      const scrollTop = Math.max(0, Math.round(top));
+      const currentTop = getCurrentScrollTop();
+      const scrollTop = getTargetScrollTop(target);
+      const distance = Math.abs(scrollTop - currentTop);
 
       if (behavior === "instant") {
         jumpToDocumentY(scrollTop);
@@ -1812,6 +1842,7 @@
     let sidebarRevealFrame = null;
     let scrollSpySuppressedUntil = 0;
     let initialScrollCorrectionToken = 0;
+    let initialLandingFlashDone = false;
 
     function suppressSectionObserver(durationMs = 500) {
       scrollSpySuppressedUntil = Math.max(
@@ -2216,20 +2247,28 @@
       return resolveTargetFromHref(hash);
     }
 
-    function scrollToHashTarget(behavior = "auto", shouldFlash = true) {
+    function scrollToHashTarget(behavior = "auto", shouldFlash = true, force = false) {
       const target = getCurrentHashTarget();
       if (!target) return false;
 
-      scrollToHeading(target, behavior === "auto" ? "instant" : behavior, shouldFlash);
+      if (force || !isTargetLanded(target)) {
+        scrollToHeading(target, behavior === "auto" ? "instant" : behavior, shouldFlash);
+      }
       setActiveSidebarTarget(target);
       return true;
     }
 
     function correctInitialLanding() {
       if (window.location.hash?.startsWith("#")) {
-        suppressSectionObserver(500);
-        const landed = scrollToHashTarget("instant");
-        if (landed) prioritizeMediaFromHash();
+        const target = getCurrentHashTarget();
+        if (!target) return false;
+
+        suppressSectionObserver(700);
+        const landed = scrollToHashTarget("instant", !initialLandingFlashDone);
+        if (landed) {
+          initialLandingFlashDone = true;
+          prioritizeMediaForHeading(target);
+        }
         return landed;
       }
 
@@ -2240,22 +2279,51 @@
 
     function scheduleInitialLandingCorrection() {
       const token = ++initialScrollCorrectionToken;
+      initialLandingFlashDone = false;
       const run = () => {
         if (token !== initialScrollCorrectionToken) return;
         correctInitialLanding();
       };
       const retryDelays = window.location.hash?.startsWith("#")
-        ? [50, 150, 400, 900, 1600]
+        ? [25, 75, 150, 300, 600, 1000, 1800, 3000, 5000, 8000]
         : [50, 150];
 
       run();
       requestAnimationFrame(run);
       retryDelays.forEach((delay) => window.setTimeout(run, delay));
+      armInitialLandingUserCancel(token, (retryDelays[retryDelays.length - 1] || 0) + 750);
 
-      window.addEventListener("load", () => {
+      const runAfterLoad = () => {
         requestAnimationFrame(run);
         window.setTimeout(run, 250);
-      }, { once: true });
+      };
+
+      if (document.readyState === "complete") {
+        runAfterLoad();
+      } else {
+        window.addEventListener("load", runAfterLoad, { once: true });
+      }
+    }
+
+    function armInitialLandingUserCancel(token, durationMs) {
+      const events = ["wheel", "touchstart", "pointerdown", "keydown"];
+      const options = { once: true, passive: true, capture: true };
+      const cleanup = () => {
+        events.forEach((eventName) => {
+          window.removeEventListener(eventName, cancel, options);
+        });
+      };
+      const cancel = () => {
+        if (token === initialScrollCorrectionToken) {
+          cancelInitialLandingCorrection();
+        }
+        cleanup();
+      };
+
+      events.forEach((eventName) => {
+        window.addEventListener(eventName, cancel, options);
+      });
+      window.setTimeout(cleanup, durationMs);
     }
 
     function cancelInitialLandingCorrection() {
@@ -2960,9 +3028,10 @@
     window.addEventListener("hashchange", () => {
       cancelInitialLandingCorrection();
       suppressSectionObserver(500);
-      scrollToHashTarget("smooth");
+      scrollToHashTarget("smooth", true, true);
       prioritizeMediaFromHash();
       closeMobileSidebar();
+      window.setTimeout(scheduleInitialLandingCorrection, 350);
     });
 
     window.addEventListener("resize", () => {
