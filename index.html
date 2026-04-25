@@ -1086,7 +1086,7 @@
 
   <div class="layout">
     <aside id="sidebar" class="sidebar">
-<div class="sidebar-updated">Last updated: 2026-04-22</div>
+<div class="sidebar-updated">Last updated: 2026-04-24</div>
       <div id="sidebarLinks" class="sidebar-links"></div>
     </aside>
 
@@ -1158,7 +1158,7 @@
 
     function makeReadableHash(text) {
       const normalized = normalizeHeadingText(text);
-      return normalized ? `#${encodeURIComponent(normalized)}` : "#";
+      return normalized ? "#" + normalized.replace(/ /g, "_") : "#";
     }
 
     function getTopbarHeight() {
@@ -1515,6 +1515,7 @@
       if (!href || !href.startsWith("#")) return null;
       const rawId = href.slice(1);
       const decodedId = decodeURIComponent(rawId);
+      const spacedId = decodedId.replace(/_/g, " ").trim();
 
       return (
         document.getElementById(rawId) ||
@@ -1523,8 +1524,11 @@
           const headingText = normalizeHeadingText(heading.textContent);
           return (
             headingText === decodedId ||
+            headingText === spacedId ||
             slugify(headingText) === slugify(decodedId) ||
-            heading.id === slugify(decodedId)
+            slugify(headingText) === slugify(spacedId) ||
+            heading.id === slugify(decodedId) ||
+            heading.id === slugify(spacedId)
           );
         }) ||
         null
