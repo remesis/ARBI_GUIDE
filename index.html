@@ -1480,11 +1480,17 @@
       const resolveDepth = createOutlineDepthResolver(candidates);
 
       candidates.forEach((item) => {
+        const target = ensureReadableAliasForTarget(
+          resolveTargetFromHref(item.href) || findTextAnchorTarget(item.text),
+          item.text
+        );
+
         outline.push({
           href: item.href,
           sidebarHref: makeReadableHash(item.text),
           text: item.text,
-          depth: resolveDepth(item.anchor)
+          depth: resolveDepth(item.anchor),
+          targetId: target?.id || ""
         });
       });
 
@@ -1547,6 +1553,67 @@
       return el;
     }
 
+    function ensureElementId(el, fallbackId = "section") {
+      if (!el) return "";
+
+      let id = el.id?.trim();
+      if (id && document.getElementById(id) === el) return id;
+
+      const base = slugify(fallbackId) || "section";
+      id = base;
+      let index = 2;
+      while (document.getElementById(id)) {
+        id = `${base}-${index}`;
+        index += 1;
+      }
+
+      el.id = id;
+      return id;
+    }
+
+    function getTextAfterAnchor(anchor) {
+      if (!anchor?.parentNode) return "";
+
+      const parts = [];
+      let node = anchor.nextSibling;
+      while (node) {
+        parts.push(node.textContent || "");
+        node = node.nextSibling;
+      }
+
+      return normalizeHeadingText(parts.join(" "));
+    }
+
+    function findTextAnchorTarget(text) {
+      const normalized = normalizeHeadingText(text);
+      const root = document.querySelector(".google-export");
+      if (!normalized || !root) return null;
+
+      for (const anchor of root.querySelectorAll("a[id]")) {
+        if (anchor.closest(".inline-outline-source")) continue;
+
+        const container = anchor.closest("h1, h2, h3, h4, h5, h6, p, li, div");
+        if (!container) continue;
+
+        const containerText = normalizeHeadingText(container.textContent);
+        const afterAnchorText = getTextAfterAnchor(anchor);
+
+        if (containerText === normalized || afterAnchorText === normalized) {
+          return container;
+        }
+      }
+
+      return null;
+    }
+
+    function ensureReadableAliasForTarget(target, text) {
+      if (!target) return null;
+
+      ensureElementId(target, text);
+      ensureHeadingAlias(target, makeReadableHashId(text));
+      return target;
+    }
+
     function getGuideTopTarget() {
       const root = document.querySelector(".google-export");
       if (!root) return null;
@@ -1584,6 +1651,12 @@
         );
       });
       if (byText) return resolveHeadingAlias(byText);
+
+      const byTextAnchor = ensureReadableAliasForTarget(
+        findTextAnchorTarget(spacedId) || findTextAnchorTarget(decodedId),
+        spacedId || decodedId
+      );
+      if (byTextAnchor) return byTextAnchor;
 
       for (const link of document.querySelectorAll("#sidebar a[data-target-id]")) {
         if (link.getAttribute("href") === href) {
