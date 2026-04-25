@@ -2091,15 +2091,7 @@
       const target = resolveTargetFromHref(hash);
       if (!target) return;
 
-      if (behavior === "auto") {
-        // CSS scroll-behavior: smooth would animate the jump instead of landing instantly.
-        // Override it for the initial page-load scroll, then restore.
-        document.documentElement.style.scrollBehavior = "auto";
-        scrollToHeading(target, "auto", false);
-        document.documentElement.style.scrollBehavior = "";
-      } else {
-        scrollToHeading(target, behavior);
-      }
+      scrollToHeading(target, behavior);
     }
 
     function startMediaLoading() {
@@ -3033,8 +3025,14 @@
     loadContentMaxWidth();
     normalizeMobileInlineMedia();
     startMediaLoading();
-    scrollToHashTarget();
-    prioritizeMediaFromHash();
+
+    history.scrollRestoration = "manual";
+    window.addEventListener("load", function() {
+      requestAnimationFrame(function() {
+        scrollToHashTarget();
+        prioritizeMediaFromHash();
+      });
+    }, { once: true });
 
     (function setupHeadingGlitch() {
       var _gc = "!@#$%?|▒▓█▄▀■~^&*<>";
