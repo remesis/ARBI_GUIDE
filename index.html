@@ -647,6 +647,12 @@
       -webkit-user-drag: none;
     }
 
+    .mobile-menu-btn,
+    .mobile-topbar-actions,
+    #mobileSearchBar {
+      display: none;
+    }
+
     @media (max-width: 900px) {
       html,
       body {
@@ -792,17 +798,124 @@
         display: none;
       }
 
-      .topbar::after {
-        content: '';
-        position: absolute;
-        bottom: 2px;
-        left: 2px;
-        width: 0;
-        height: 0;
-        border-left: 5px solid transparent;
-        border-right: 5px solid transparent;
-        border-top: 6px solid rgba(167, 177, 190, 0.4);
-        pointer-events: none;
+      .search-wrap {
+        display: none;
+      }
+
+      .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 6px;
+        flex: 0 0 auto;
+        line-height: 1;
+      }
+
+      .mobile-menu-btn:active {
+        color: var(--text);
+        background: var(--panel-2);
+      }
+
+      .mobile-topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 0 0 auto;
+      }
+
+      .mobile-viewer-topbar {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--muted);
+        flex-shrink: 0;
+      }
+
+      .mobile-search-nav {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 6px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 13px;
+        line-height: 1;
+      }
+
+      body.mobile-search-active .mobile-search-nav {
+        display: flex;
+      }
+
+      .mobile-search-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 6px;
+        line-height: 1;
+      }
+
+      .mobile-search-toggle:active,
+      body.mobile-search-active .mobile-search-toggle {
+        color: var(--accent);
+      }
+
+      #mobileSearchBar {
+        position: sticky;
+        top: var(--topbar-offset);
+        z-index: 998;
+        background: var(--panel);
+        border-bottom: 1px solid var(--border);
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #mobileSearchBar[hidden] {
+        display: none !important;
+      }
+
+      #mobileSearchBar input {
+        flex: 1;
+        min-width: 0;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 7px 10px;
+        font-size: 14px;
+        outline: none;
+      }
+
+      #mobileSearchBar input:focus {
+        border-color: var(--accent);
+      }
+
+      .mobile-search-count {
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+        flex-shrink: 0;
+        min-width: 3.5ch;
+        text-align: right;
+      }
+
+      body.mobile-search-active .mobile-progress {
+        display: none;
       }
     }
 
@@ -1079,6 +1192,8 @@
       <span>Warframe Arbitrations Guide</span>
     </a>
 
+    <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Open navigation menu"><svg width="20" height="14" viewBox="0 0 20 14" fill="currentColor" aria-hidden="true"><rect width="20" height="2" rx="1" y="0"/><rect width="20" height="2" rx="1" y="6"/><rect width="20" height="2" rx="1" y="12"/></svg></button>
+
     <div class="topbar-controls">
       <div class="user-controls">
         <button id="resetControlsBtn" class="reset-button" type="button" aria-label="Reset display controls">&#8634;</button>
@@ -1116,8 +1231,20 @@
         <button id="searchPrevBtn" type="button" aria-label="Previous result">↑</button>
         <button id="searchNextBtn" type="button" aria-label="Next result">↓</button>
       </div>
+
+      <div class="mobile-topbar-actions">
+        <span id="mobileTopbarViewer" class="mobile-viewer-topbar" hidden><svg width="14" height="10" viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 8S4.5 1 11 1s10 7 10 7-3.5 7-10 7S1 8 1 8z"/><circle cx="11" cy="8" r="3"/></svg><span id="mobileTopbarViewerNum"></span></span>
+        <button id="mobileSearchPrevBtn" class="mobile-search-nav" type="button" aria-label="Previous result">↑</button>
+        <button id="mobileSearchNextBtn" class="mobile-search-nav" type="button" aria-label="Next result">↓</button>
+        <button id="mobileSearchToggle" class="mobile-search-toggle" type="button" aria-label="Search"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5"/><line x1="11.5" y1="11.5" x2="16" y2="16"/></svg></button>
+      </div>
     </div>
   </header>
+
+  <div id="mobileSearchBar" class="mobile-search-bar" hidden>
+    <input id="mobileSearchBox" type="text" placeholder="Search the guide" autocomplete="off">
+    <span id="mobileSearchCount" class="mobile-search-count"></span>
+  </div>
 
   <div id="mobileProgress" class="mobile-progress" aria-hidden="true">
     <div id="mobileProgressBar" class="mobile-progress-bar"></div>
@@ -2844,6 +2971,7 @@
     function setupMobileSidebar() {
       const brandLink = document.getElementById("brandLink");
       const backdrop = document.getElementById("mobileSidebarBackdrop");
+      const menuBtn = document.getElementById("mobileMenuBtn");
       if (!brandLink || !backdrop) return;
 
       brandLink.addEventListener("click", (event) => {
@@ -2851,6 +2979,12 @@
         event.preventDefault();
         toggleMobileSidebar();
       });
+
+      if (menuBtn) {
+        menuBtn.addEventListener("click", () => {
+          toggleMobileSidebar();
+        });
+      }
 
       backdrop.addEventListener("click", () => {
         closeMobileSidebar();
@@ -2861,6 +2995,77 @@
           closeMobileSidebar();
         }
       });
+    }
+
+    function openMobileSearch() {
+      if (!isMobileLayout()) return;
+      document.body.classList.add("mobile-search-active");
+      const bar = document.getElementById("mobileSearchBar");
+      if (bar) bar.hidden = false;
+      const box = document.getElementById("mobileSearchBox");
+      if (box) { box.focus(); box.select(); }
+    }
+
+    function closeMobileSearch() {
+      document.body.classList.remove("mobile-search-active");
+      const bar = document.getElementById("mobileSearchBar");
+      if (bar) bar.hidden = true;
+      const mobileBox = document.getElementById("mobileSearchBox");
+      if (mobileBox) mobileBox.value = "";
+      const desktopBox = document.getElementById("searchBox");
+      if (desktopBox) desktopBox.value = "";
+      clearSearchHighlights();
+    }
+
+    function setupMobileSearch() {
+      const toggle = document.getElementById("mobileSearchToggle");
+      const mobileBox = document.getElementById("mobileSearchBox");
+      const mobilePrev = document.getElementById("mobileSearchPrevBtn");
+      const mobileNext = document.getElementById("mobileSearchNextBtn");
+      if (!toggle || !mobileBox) return;
+
+      toggle.addEventListener("click", () => {
+        if (document.body.classList.contains("mobile-search-active")) {
+          closeMobileSearch();
+        } else {
+          openMobileSearch();
+        }
+      });
+
+      mobileBox.addEventListener("input", () => {
+        const desktopBox = document.getElementById("searchBox");
+        if (desktopBox) {
+          desktopBox.value = mobileBox.value;
+          desktopBox.dispatchEvent(new Event("input", { bubbles: false }));
+        }
+      });
+
+      mobileBox.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          const term = mobileBox.value.trim();
+          if (!term) return;
+          if (searchHits.length === 0) {
+            highlightSearch(term);
+            if (searchHits.length) searchHits[currentSearchIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+          } else {
+            goToSearchHit(1);
+          }
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeMobileSearch();
+        }
+      });
+
+      if (mobilePrev) {
+        mobilePrev.addEventListener("click", () => { goToSearchHit(-1); });
+        bindPressedState(mobilePrev);
+      }
+      if (mobileNext) {
+        mobileNext.addEventListener("click", () => { goToSearchHit(1); });
+        bindPressedState(mobileNext);
+      }
     }
 
     function setupSearchTracking() {
@@ -2888,11 +3093,12 @@
 
     function updateSearchCount() {
       const el = document.getElementById("searchCount");
-      if (!searchHits.length || currentSearchIndex < 0) {
-        el.textContent = "";
-        return;
-      }
-      el.textContent = `${currentSearchIndex + 1} of ${searchHits.length}`;
+      const mobileEl = document.getElementById("mobileSearchCount");
+      const text = (!searchHits.length || currentSearchIndex < 0)
+        ? ""
+        : `${currentSearchIndex + 1} of ${searchHits.length}`;
+      el.textContent = text;
+      if (mobileEl) mobileEl.textContent = text;
     }
 
     function clearSearchHighlights() {
@@ -3124,10 +3330,11 @@
       const active = document.activeElement;
       if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
       event.preventDefault();
-      const box = document.getElementById("searchBox");
-      if (box) {
-        box.focus();
-        box.select();
+      if (isMobileLayout()) {
+        openMobileSearch();
+      } else {
+        const box = document.getElementById("searchBox");
+        if (box) { box.focus(); box.select(); }
       }
     });
 
@@ -3144,6 +3351,7 @@
       syncTopbarOffset();
       normalizeMobileInlineMedia();
       closeMobileSidebar();
+      if (!isMobileLayout()) closeMobileSearch();
       window.dispatchEvent(new Event("scroll"));
     });
 
@@ -3360,6 +3568,7 @@
     buildSidebar(outline);
     setupSidebarScrollLock();
     setupMobileSidebar();
+    setupMobileSearch();
     setupSectionObserver();
     setupImages();
     setupScrollTracking();
@@ -3680,6 +3889,8 @@
       if (!WORKER_URL) return;
       var numEl = document.getElementById("viewerCountNum");
       var wrapEl = document.getElementById("viewerCount");
+      var mobileNumEl = document.getElementById("mobileTopbarViewerNum");
+      var mobileWrapEl = document.getElementById("mobileTopbarViewer");
       if (!numEl || !wrapEl) return;
       var sid = sessionStorage.getItem("arbi_sid");
       if (!sid) {
@@ -3689,6 +3900,8 @@
       function setCount(n) {
         numEl.textContent = n;
         wrapEl.hidden = false;
+        if (mobileNumEl) mobileNumEl.textContent = n;
+        if (mobileWrapEl) mobileWrapEl.hidden = false;
       }
       function beat() {
         fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sid: sid }) })
