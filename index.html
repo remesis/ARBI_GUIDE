@@ -2850,7 +2850,7 @@
       function applyLightboxTransform() {
         if (!activeLightboxMedia) return;
         activeLightboxMedia.style.transform =
-          `translate(-50%, -50%) translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${lightboxScale})`;
+          `translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${lightboxScale})`;
       }
 
       function resetLightboxTransform() {
@@ -3036,12 +3036,11 @@
             }
           }
 
-          if (lightboxGestureActive || event.touches.length > 0) {
+          if (lightboxGestureActive || lightboxScale > 1) {
             event.preventDefault();
             event.stopPropagation();
           }
         }, true);
-
       });
 
       lightbox.addEventListener("click", (event) => {
