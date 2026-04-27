@@ -638,36 +638,25 @@
       position: fixed;
       inset: 0;
       z-index: 2000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: grid;
+      place-items: center;
       background: rgba(0, 0, 0, 0.85);
       padding: 24px;
       cursor: zoom-out;
       overscroll-behavior: contain;
     }
 
-    /* Hidden must beat the base lightbox grid display after JS toggles the attribute. */
     .lightbox[hidden] {
       display: none !important;
     }
 
     .lightbox img,
     .lightbox video {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      display: block;
-      margin: 0;
-      width: auto;
-      height: auto;
       max-width: 94vw;
       max-height: 94vh;
       border-radius: 12px;
       box-shadow: var(--shadow);
-      object-fit: contain;
-      touch-action: none;
-      transform: translate(-50%, -50%);
+      touch-action: auto;
       transform-origin: center center;
       will-change: transform;
       user-select: none;
@@ -829,21 +818,6 @@
 
       .media-hint-toast:not(.event-toast):not(.transmission-toast) {
         display: none;
-      }
-
-      .lightbox {
-        padding: 16px;
-        height: 100vh;
-        height: 100dvh;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .lightbox img,
-      .lightbox video {
-        max-width: calc(100vw - 32px);
-        max-height: calc(100vh - 32px);
-        max-height: calc(100dvh - 32px);
       }
 
       .search-wrap {
@@ -2850,7 +2824,7 @@
       function applyLightboxTransform() {
         if (!activeLightboxMedia) return;
         activeLightboxMedia.style.transform =
-          `translate(-50%, -50%) translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${lightboxScale})`;
+          `translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${lightboxScale})`;
       }
 
       function resetLightboxTransform() {
