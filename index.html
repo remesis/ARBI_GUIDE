@@ -654,14 +654,20 @@
 
     .lightbox img,
     .lightbox video {
+      position: absolute;
+      left: 50%;
+      top: 50%;
       display: block;
       margin: 0;
+      width: auto;
+      height: auto;
       max-width: 94vw;
       max-height: 94vh;
       border-radius: 12px;
       box-shadow: var(--shadow);
       object-fit: contain;
       touch-action: auto;
+      transform: translate(-50%, -50%);
       transform-origin: center center;
       will-change: transform;
       user-select: none;
@@ -2844,7 +2850,7 @@
       function applyLightboxTransform() {
         if (!activeLightboxMedia) return;
         activeLightboxMedia.style.transform =
-          `translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${lightboxScale})`;
+          `translate(calc(-50% + ${lightboxTranslateX}px), calc(-50% + ${lightboxTranslateY}px)) scale(${lightboxScale})`;
       }
 
       function resetLightboxTransform() {
