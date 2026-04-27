@@ -638,9 +638,8 @@
       position: fixed;
       inset: 0;
       z-index: 2000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: grid;
+      place-items: center;
       background: rgba(0, 0, 0, 0.85);
       padding: 24px;
       cursor: zoom-out;
@@ -654,20 +653,11 @@
 
     .lightbox img,
     .lightbox video {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      display: block;
-      margin: 0;
-      width: auto;
-      height: auto;
       max-width: 94vw;
       max-height: 94vh;
       border-radius: 12px;
       box-shadow: var(--shadow);
-      object-fit: contain;
-      touch-action: none;
-      transform: translate(-50%, -50%);
+      touch-action: auto;
       transform-origin: center center;
       will-change: transform;
       user-select: none;
@@ -827,23 +817,8 @@
         display: none !important;
       }
 
-      .media-hint-toast:not(.event-toast):not(.transmission-toast) {
+      .media-hint-toast:not(.event-toast) {
         display: none;
-      }
-
-      .lightbox {
-        padding: 16px;
-        height: 100vh;
-        height: 100dvh;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .lightbox img,
-      .lightbox video {
-        max-width: calc(100vw - 32px);
-        max-height: calc(100vh - 32px);
-        max-height: calc(100dvh - 32px);
       }
 
       .search-wrap {
@@ -1072,10 +1047,7 @@
     }
 
     /* Transmission toast reuses the media-hint shell, so these override the shared row layout. */
-    .transmission-toast {
-      pointer-events: auto !important;
-      z-index: 2200;
-    }
+    .transmission-toast { pointer-events: auto !important; }
     .transmission-toast-inner {
       flex-direction: column !important;
       align-items: flex-start !important;
@@ -1133,27 +1105,6 @@
     .dvd-volume-slider::-moz-range-thumb {
       width: 18px; height: 18px; border-radius: 50%; background: #72c7ff;
       box-shadow: 0 0 10px #72c7ff; cursor: pointer; border: none;
-    }
-
-    @media (max-width: 900px) {
-      .transmission-toast {
-        left: 16px;
-        right: 16px;
-        bottom: calc(104px + env(safe-area-inset-bottom, 0px));
-      }
-      .transmission-toast-inner {
-        width: 100%;
-        max-width: none;
-        box-sizing: border-box;
-      }
-      .dvd-volume-control {
-        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-        max-width: calc(100vw - 32px);
-        padding: 10px 18px;
-      }
-      .dvd-volume-slider {
-        width: min(150px, 42vw);
-      }
     }
 
     @keyframes dvd-ring-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -2850,7 +2801,7 @@
       function applyLightboxTransform() {
         if (!activeLightboxMedia) return;
         activeLightboxMedia.style.transform =
-          `translate(-50%, -50%) translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${lightboxScale})`;
+          `translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${lightboxScale})`;
       }
 
       function resetLightboxTransform() {
@@ -3036,12 +2987,11 @@
             }
           }
 
-          if (lightboxGestureActive || event.touches.length > 0) {
+          if (lightboxGestureActive || lightboxScale > 1) {
             event.preventDefault();
             event.stopPropagation();
           }
         }, true);
-
       });
 
       lightbox.addEventListener("click", (event) => {
