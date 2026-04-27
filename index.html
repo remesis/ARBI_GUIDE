@@ -735,6 +735,15 @@
       -webkit-box-decoration-break: clone;
     }
 
+    /* Active search hit (the one keyboard nav is centered on). Outline + small offset
+       keeps it visually distinct from other matches in view without shifting layout
+       (outline is drawn outside the box and ignored by line-wrap, unlike border). */
+    mark.search-hit.search-hit-current {
+      outline: 1px solid #ff3b30;
+      outline-offset: 1px;
+      box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.35);
+    }
+
     .lightbox {
       position: fixed;
       inset: 0;
@@ -3395,7 +3404,8 @@
             highlightSearch(term);
             if (searchHits.length) searchHits[currentSearchIndex].scrollIntoView({ behavior: "smooth", block: "center" });
           } else {
-            goToSearchHit(1);
+            // Shift+Enter steps backward through hits, Enter steps forward.
+            goToSearchHit(event.shiftKey ? -1 : 1);
           }
         }
         if (event.key === "Escape") {
@@ -3442,6 +3452,17 @@
         : `${currentSearchIndex + 1} of ${searchHits.length}`;
       if (el) el.textContent = text;
       if (mobileEl) mobileEl.textContent = text;
+    }
+
+    // Distinguishes the active hit (red outline) from other matches in view.
+    // Idempotent: clears the class from any prior mark before applying it.
+    function markCurrentSearchHit() {
+      document.querySelectorAll("mark.search-hit.search-hit-current").forEach((m) => {
+        m.classList.remove("search-hit-current");
+      });
+      if (currentSearchIndex >= 0 && searchHits[currentSearchIndex]) {
+        searchHits[currentSearchIndex].classList.add("search-hit-current");
+      }
     }
 
     function clearSearchHighlights() {
@@ -3517,6 +3538,7 @@
         currentSearchIndex = -1;
       }
 
+      markCurrentSearchHit();
       updateSearchCount();
     }
 
@@ -3545,6 +3567,7 @@
       }
 
       currentSearchIndex = (currentSearchIndex + direction + searchHits.length) % searchHits.length;
+      markCurrentSearchHit();
       updateSearchCount();
 
       const hit = searchHits[currentSearchIndex];
@@ -3588,7 +3611,9 @@
       searchBox.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           event.preventDefault();
-          handleSearchNavigation(1);
+          // Shift+Enter steps backward through hits, Enter steps forward —
+          // matches browser native find (Ctrl+F) behavior.
+          handleSearchNavigation(event.shiftKey ? -1 : 1);
         }
 
         if (event.key === "Escape") {
