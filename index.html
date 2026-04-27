@@ -638,8 +638,9 @@
       position: fixed;
       inset: 0;
       z-index: 2000;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: rgba(0, 0, 0, 0.85);
       padding: 24px;
       cursor: zoom-out;
@@ -654,7 +655,7 @@
     .lightbox img,
     .lightbox video {
       display: block;
-      margin: auto;
+      margin: 0;
       max-width: 94vw;
       max-height: 94vh;
       border-radius: 12px;
@@ -826,6 +827,10 @@
 
       .lightbox {
         padding: 16px;
+        height: 100vh;
+        height: 100dvh;
+        align-items: center;
+        justify-content: center;
       }
 
       .lightbox img,
