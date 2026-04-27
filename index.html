@@ -4151,12 +4151,25 @@
       toast.appendChild(inner);
       document.body.appendChild(toast);
 
+      // Disable both buttons on first activation so a fast double-click on Yes
+      // (or Yes-then-No, or No-then-Yes) cannot queue a second startTransmission().
+      // Without this guard two videos can appear simultaneously — observed once intermittently.
+      var transmissionResolved = false;
+      function lockTransmissionButtons() {
+        transmissionResolved = true;
+        yesBtn.disabled = true;
+        noBtn.disabled = true;
+      }
       yesBtn.addEventListener("click", function() {
+        if (transmissionResolved) return;
+        lockTransmissionButtons();
         emitGuideEvent("sequence:accepted");
         toast.classList.add("fade-out");
         setTimeout(function() { if (toast.parentNode) toast.remove(); startTransmission(); }, 650);
       });
       noBtn.addEventListener("click", function() {
+        if (transmissionResolved) return;
+        lockTransmissionButtons();
         emitGuideEvent("sequence:declined");
         toast.classList.add("fade-out");
         setTimeout(function() { if (toast.parentNode) toast.remove(); hideDvdVolumeControl(); }, 650);
@@ -4164,6 +4177,9 @@
     }
 
     function startTransmission() {
+      // Idempotency guard: a sequence may only be in flight once. Catches any path
+      // (button double-click, future re-entry) that would otherwise spawn duplicate UI.
+      if (document.querySelector(".dvd-loading-overlay") || document.querySelector(".dvd-player-shell")) return;
       var overlay = document.createElement("div");
       overlay.className = "dvd-loading-overlay";
       var oInner = document.createElement("div");
@@ -4184,6 +4200,9 @@
     }
 
     function launchDvdPlayer() {
+      // Idempotency guard: only one bouncing player at a time. Final defense
+      // alongside the button-lock and startTransmission guards above.
+      if (document.querySelector(".dvd-player-shell")) return;
       const playerWidth = 480;
       var wrapper = document.createElement("div");
       wrapper.className = "dvd-player-shell";
