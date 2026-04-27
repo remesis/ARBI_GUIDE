@@ -653,10 +653,13 @@
 
     .lightbox img,
     .lightbox video {
+      display: block;
+      margin: auto;
       max-width: 94vw;
       max-height: 94vh;
       border-radius: 12px;
       box-shadow: var(--shadow);
+      object-fit: contain;
       touch-action: auto;
       transform-origin: center center;
       will-change: transform;
@@ -819,6 +822,17 @@
 
       .media-hint-toast:not(.event-toast):not(.transmission-toast) {
         display: none;
+      }
+
+      .lightbox {
+        padding: 16px;
+      }
+
+      .lightbox img,
+      .lightbox video {
+        max-width: calc(100vw - 32px);
+        max-height: calc(100vh - 32px);
+        max-height: calc(100dvh - 32px);
       }
 
       .search-wrap {
@@ -1047,7 +1061,10 @@
     }
 
     /* Transmission toast reuses the media-hint shell, so these override the shared row layout. */
-    .transmission-toast { pointer-events: auto !important; }
+    .transmission-toast {
+      pointer-events: auto !important;
+      z-index: 2200;
+    }
     .transmission-toast-inner {
       flex-direction: column !important;
       align-items: flex-start !important;
@@ -1105,6 +1122,27 @@
     .dvd-volume-slider::-moz-range-thumb {
       width: 18px; height: 18px; border-radius: 50%; background: #72c7ff;
       box-shadow: 0 0 10px #72c7ff; cursor: pointer; border: none;
+    }
+
+    @media (max-width: 900px) {
+      .transmission-toast {
+        left: 16px;
+        right: 16px;
+        bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+      }
+      .transmission-toast-inner {
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+      }
+      .dvd-volume-control {
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        max-width: calc(100vw - 32px);
+        padding: 10px 18px;
+      }
+      .dvd-volume-slider {
+        width: min(150px, 42vw);
+      }
     }
 
     @keyframes dvd-ring-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
