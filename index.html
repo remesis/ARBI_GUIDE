@@ -651,6 +651,16 @@
       scroll-margin-top: 96px;
     }
 
+    /* Empty-heading alias: where collapse_empty_headings() rewrote a Google
+       Docs anchor-only <h2>. The original heading provided visual breathing
+       room around the surrounding paragraphs; we restore that as ~one
+       paragraph margin so adjacent content doesn't end up touching.
+       Scoped via data-empty-heading="1" so JS-injected aliases (which sit
+       before real headings) are unaffected. */
+    .google-export .heading-anchor-alias[data-empty-heading="1"] {
+      margin: 1em 0;
+    }
+
     /* Inline outline source anchors are build artifacts and must stay hidden from the rendered guide. */
     .inline-outline-source {
       display: none !important;
