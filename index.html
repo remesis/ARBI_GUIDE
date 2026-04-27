@@ -2268,7 +2268,11 @@
           }
         };
 
-        link.addEventListener("mouseleave", resetCopyButton);
+        link.addEventListener("mouseleave", () => {
+          // Drop focus so :focus-within releases and the chain icon hides.
+          if (document.activeElement === copyBtn) copyBtn.blur();
+          resetCopyButton();
+        });
         copyBtn.addEventListener("blur", resetCopyButton);
 
         link.appendChild(copyBtn);
