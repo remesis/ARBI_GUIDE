@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0d10">
   <meta name="color-scheme" content="dark">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://arbi-presence.7llewellyn.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://cloudflareinsights.com https://arbi-presence.7llewellyn.workers.dev; base-uri 'self'; form-action 'self'">
   <title>Warframe Arbi Guide - Best Kuva Farm, Builds, Strategy, Community</title>
   <script>
     // Wrap so a CSP/parse failure cannot abort head parsing.
@@ -3394,6 +3394,8 @@
           event.preventDefault();
           const term = mobileBox.value.trim();
           if (!term) return;
+          // Apply any pending debounced highlight first so we never act on stale hits.
+          flushPendingSearch();
           if (searchHits.length === 0) {
             highlightSearch(term);
             if (searchHits.length) searchHits[currentSearchIndex].scrollIntoView({ behavior: "smooth", block: "center" });
@@ -3536,6 +3538,41 @@
       updateSearchCount();
     }
 
+    // Debounce wrapper for highlightSearch — walking the entire #content tree
+    // and rebuilding <mark> wrappers on every keystroke is the dominant INP
+    // contributor on a doc this long. 150ms feels live for normal typing yet
+    // coalesces fast bursts. Navigation entry points (Enter, prev/next) call
+    // flushPendingSearch first so the latest term is applied before navigating.
+    const SEARCH_HIGHLIGHT_DEBOUNCE_MS = 150;
+    let searchHighlightTimer = null;
+    let pendingSearchTerm = null;
+
+    function scheduleSearchHighlight(value) {
+      pendingSearchTerm = value;
+      if (searchHighlightTimer !== null) clearTimeout(searchHighlightTimer);
+      searchHighlightTimer = setTimeout(flushPendingSearch, SEARCH_HIGHLIGHT_DEBOUNCE_MS);
+    }
+
+    function flushPendingSearch() {
+      if (searchHighlightTimer !== null) {
+        clearTimeout(searchHighlightTimer);
+        searchHighlightTimer = null;
+      }
+      if (pendingSearchTerm !== null) {
+        const term = pendingSearchTerm;
+        pendingSearchTerm = null;
+        highlightSearch(term);
+      }
+    }
+
+    function cancelPendingSearch() {
+      if (searchHighlightTimer !== null) {
+        clearTimeout(searchHighlightTimer);
+        searchHighlightTimer = null;
+      }
+      pendingSearchTerm = null;
+    }
+
     const searchBox = document.getElementById("searchBox");
     const searchPrevBtn = document.getElementById("searchPrevBtn");
     const searchNextBtn = document.getElementById("searchNextBtn");
@@ -3545,6 +3582,10 @@
     }
 
     function goToSearchHit(direction) {
+      // Apply any pending debounced highlight before navigating so we never step
+      // through stale `searchHits` from a previous query.
+      flushPendingSearch();
+
       const term = getSearchTerm();
       if (!term) {
         clearSearchHighlights();
@@ -3577,6 +3618,7 @@
     }
 
     function handleSearchNavigation(direction) {
+      flushPendingSearch();
       const term = getSearchTerm();
       if (!term) return;
 
@@ -3612,6 +3654,7 @@
 
         if (event.key === "Escape") {
           event.preventDefault();
+          cancelPendingSearch();
           searchBox.value = "";
           clearSearchHighlights();
           searchBox.blur();
@@ -3621,10 +3664,12 @@
       searchBox.addEventListener("input", () => {
         const value = getSearchTerm();
         if (!value) {
+          // Clearing feels instant — kill any in-flight debounce, drop highlights now.
+          cancelPendingSearch();
           clearSearchHighlights();
           return;
         }
-        highlightSearch(value);
+        scheduleSearchHighlight(value);
         if (value.toLowerCase() === "gremlin") activateGremlinMode();
       });
     }
