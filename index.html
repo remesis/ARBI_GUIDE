@@ -2246,11 +2246,26 @@
       return Math.max(0, Math.min(getMaxDocumentScrollTop(), Math.round(top)));
     }
 
-    function isTargetLanded(target) {
-      if (!target) return false;
-
+    function getLandingState(target) {
+      // Single batched layout-read pass for the scroll-target geometry. Used
+      // by scrollToHashTarget (and indirectly scrollToHeading via the
+      // optional precomputed state arg) so the landed-check and scroll math
+      // don't re-query layout in the same retry. Halves the per-retry read
+      // count and — combined with the early-cancel logic in
+      // scheduleInitialLandingCorrection — eliminates the read-after-write
+      // reflow cycle Lighthouse flagged at served lines 3815/3890 (~168 ms
+      // accumulated forced reflow on hash landings).
+      if (!target) return null;
       const tolerance = Math.max(10, Math.round((window.innerHeight || 0) * 0.015));
-      return Math.abs(getCurrentScrollTop() - getTargetScrollTop(target)) <= tolerance;
+      const currentTop = getCurrentScrollTop();
+      const targetTop = getTargetScrollTop(target);
+      const delta = targetTop - currentTop;
+      return {
+        currentTop,
+        targetTop,
+        distance: Math.abs(delta),
+        landed: Math.abs(delta) <= tolerance
+      };
     }
 
     function jumpToDocumentY(top) {
@@ -2295,25 +2310,27 @@
       target.dataset.flashTimerId = String(timerId);
     }
 
-    function scrollToHeading(target, behavior = "smooth", shouldFlash = true) {
+    function scrollToHeading(target, behavior = "smooth", shouldFlash = true, precomputedState = null) {
       if (!target) return;
 
-      const currentTop = getCurrentScrollTop();
-      const scrollTop = getTargetScrollTop(target);
-      const distance = Math.abs(scrollTop - currentTop);
+      // Reuse the caller's batched read when available (scrollToHashTarget
+      // passes its already-computed state). Standalone callers (sidebar
+      // click) take the slow path and read fresh.
+      const state = precomputedState || getLandingState(target);
+      if (!state) return;
 
       if (behavior === "instant") {
-        jumpToDocumentY(scrollTop);
+        jumpToDocumentY(state.targetTop);
       } else {
         window.scrollTo({
-          top: scrollTop,
+          top: state.targetTop,
           behavior
         });
       }
 
       if (shouldFlash) {
         const flashDelay = behavior === "smooth"
-          ? Math.min(700, Math.max(180, distance * 0.45))
+          ? Math.min(700, Math.max(180, state.distance * 0.45))
           : 0;
         scheduleHeadingFlash(target, flashDelay);
       }
@@ -2865,13 +2882,20 @@
 
     function scrollToHashTarget(behavior = "auto", shouldFlash = true, force = false) {
       const target = getCurrentHashTarget();
-      if (!target) return false;
+      if (!target) return null;
 
-      if (force || !isTargetLanded(target)) {
-        scrollToHeading(target, behavior === "auto" ? "instant" : behavior, shouldFlash);
+      // Read once, decide once, scroll once. The boolean return distinguishes
+      // "we had to scroll" from "we were already there" so the retry
+      // scheduler can stop firing once layout has stabilized — that's what
+      // kills the 168 ms accumulated reflow cost on hash landings.
+      const state = getLandingState(target);
+      if (!state) return null;
+
+      if (force || !state.landed) {
+        scrollToHeading(target, behavior === "auto" ? "instant" : behavior, shouldFlash, state);
       }
       setActiveSidebarTarget(target);
-      return true;
+      return state.landed ? "landed" : "scrolled";
     }
 
     function correctInitialLanding() {
@@ -2880,12 +2904,18 @@
         if (!target) return false;
 
         suppressSectionObserver(700);
-        const landed = scrollToHashTarget("instant", !initialLandingFlashDone);
-        if (landed) {
+        const result = scrollToHashTarget("instant", !initialLandingFlashDone);
+        if (result) {
           initialLandingFlashDone = true;
           prioritizeMediaForHeading(target);
         }
-        return landed;
+        // Return value signals "stable" to scheduleInitialLandingCorrection —
+        // true when no scroll was needed this pass (page didn't shift since
+        // last retry), so the schedule can self-cancel. If layout shifts on
+        // a later retry, scrollToHashTarget returns "scrolled" and the
+        // schedule keeps running. Both initial-landing and post-load passes
+        // use the same signal.
+        return result === "landed";
       }
 
       suppressSectionObserver(250);
@@ -2898,7 +2928,13 @@
       initialLandingFlashDone = false;
       const run = () => {
         if (token !== initialScrollCorrectionToken) return;
-        correctInitialLanding();
+        if (correctInitialLanding()) {
+          // Layout has stabilized (we were already at the target this pass —
+          // no scroll needed). Cancel the rest of the retry schedule so
+          // future timers/rAFs are no-ops. Stops the per-retry forced-reflow
+          // chain that drove the 168 ms cost Lighthouse flagged.
+          cancelInitialLandingCorrection();
+        }
       };
       // Hash landings can shift late as media/layout resolves; retry up to 8s, while no-hash top resets only need a short settle window.
       const retryDelays = window.location.hash?.startsWith("#")
