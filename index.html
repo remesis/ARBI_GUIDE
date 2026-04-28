@@ -323,32 +323,6 @@
       font-weight: 700;
       line-height: 1;
       font-family: inherit;
-      position: relative;
-    }
-
-    /* Extend the click hitbox vertically past each visual button without
-       changing the rendered shape. Up arrow (:first-child = Increase) grows
-       upward, down arrow (:last-child = Decrease) grows downward — they
-       never overlap each other so the 2px column gap stays a real dead
-       zone (prevents misclicks between the pair). Lateral footprint is
-       kept inside the button's own 38px width, so the hitbox never
-       intrudes on the adjacent label or sibling control group.
-       Brings each target from 38×20 → 38×34, satisfying Lighthouse's
-       24×24-px touch-target audit on desktop. */
-    .control-buttons button::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 14px;
-    }
-
-    .control-buttons button:first-child::before {
-      top: -14px;
-    }
-
-    .control-buttons button:last-child::before {
-      bottom: -14px;
     }
 
     .control-buttons button:hover {
