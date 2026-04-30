@@ -82,7 +82,7 @@
     "description": "Complete Warframe Arbitrations guide covering Vitus Essence farming for Kuva, frame and weapon builds, drop tables, tilesets, enemy scaling, and optimal strategies for defense, interception, and mirror defense missions.",
     "image": "https://arbi.guide/logo.png",
     "datePublished": "2024-01-01",
-    "dateModified": "2026-04-29",
+    "dateModified": "2026-04-30",
     "inLanguage": "en",
     "isAccessibleForFree": true,
     "author": {
@@ -605,34 +605,37 @@
       color: #72c7ff !important;
     }
 
-    /* Subtle shimmer sweep on the Discord invite link in the guide intro —
-       gentle attention-grabber, not a strobe. Narrow white band travels across
-       a mostly-solid blue gradient on a long cycle. Targets the marker class
-       added by `tag_discord_invite_link()` (build script) so it cannot apply
-       to other discord links the doc may grow later. Global
-       prefers-reduced-motion rule (~line 1789) flattens it for sensitive users. */
+    /* Continuous shimmer on the Discord invite link in the guide intro.
+       Implemented as a small tile (`background-size: 130px 100%`) of mostly
+       hyperlink-blue with a narrow white peak, repeated horizontally so multiple
+       shine bands are always visible across the text — no dead spots. Animation
+       shifts background-position by exactly one tile width per cycle (linear,
+       12s) for a seamless, slow flow. Targets the marker class added by
+       `tag_discord_invite_link()` (build script) so it cannot apply to other
+       discord links the doc may grow later. Reduced-motion override below
+       (~line 1842) strips the whole effect. */
     .google-export a.discord-invite-link {
       background-image: linear-gradient(
         100deg,
         #72c7ff 0%,
-        #72c7ff 42%,
+        #72c7ff 45%,
         #ffffff 50%,
-        #72c7ff 58%,
+        #72c7ff 55%,
         #72c7ff 100%
       );
-      background-size: 300% 100%;
-      background-repeat: no-repeat;
+      background-size: 130px 100%;
+      background-repeat: repeat;
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
       color: transparent !important;
       text-decoration-color: #72c7ff;
-      animation: discord-link-shimmer 5s ease-in-out infinite;
+      animation: discord-link-shimmer 12s linear infinite;
     }
 
     @keyframes discord-link-shimmer {
-      0%   { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+      from { background-position: 0 0; }
+      to   { background-position: 130px 0; }
     }
 
     .google-export img,
@@ -1529,7 +1532,7 @@
 
   <div class="layout">
     <aside id="sidebar" class="sidebar">
-<div class="sidebar-updated"><span>Last updated: 2026-04-29</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
+<div class="sidebar-updated"><span>Last updated: 2026-04-30</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
       <div id="sidebarLinks" class="sidebar-links"></div>
     </aside>
 
