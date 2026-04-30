@@ -608,8 +608,11 @@
     /* Continuous shimmer on the Discord invite link in the guide intro.
        A small 90px tile (`background-size: 90px 100%`) holds a smooth
        blue→white→blue gradient with no plateau, repeated horizontally so the
-       link reads as a flowing wave of ~3 soft highlights at any moment — no
-       hard band edges. Animation shifts background-position by exactly one
+       link reads as a flowing wave of ~3 soft highlights at any moment. Blue
+       holds out to ~35% / back from ~65% with smooth 15%-wide transitions to
+       a single white peak at 50% — narrows the bright zone without
+       reintroducing the hard-band feel of the rejected 45%/50%/55% version.
+       Animation shifts background-position by exactly one
        tile width per cycle (linear, 2.5s) for a seamless loop. Targets the
        marker class added by `tag_discord_invite_link()` (build script) so it
        cannot apply to other discord links the doc may grow later.
@@ -618,7 +621,9 @@
       background-image: linear-gradient(
         100deg,
         #72c7ff 0%,
+        #72c7ff 35%,
         #ffffff 50%,
+        #72c7ff 65%,
         #72c7ff 100%
       );
       background-size: 90px 100%;
