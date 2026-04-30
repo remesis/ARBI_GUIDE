@@ -610,9 +610,11 @@
        blue→white→blue gradient with no plateau, repeated horizontally so the
        link reads as a flowing wave of ~3 soft highlights at any moment. Blue
        holds out to ~20% / back from ~80% with smooth 30%-wide transitions to
-       a single white peak at 50% — calibrated bright zone, neither too wide
-       (rejected 0/50/100 version) nor too narrow (rejected 35/50/65 version)
-       nor band-like (rejected 45/50/55 version).
+       a pale-blue peak (`#d6eeff`) at 50% — calibrated bright zone, neither
+       too wide (rejected 0/50/100 version) nor too narrow (rejected 35/50/65
+       version) nor band-like (rejected 45/50/55 version). Peak is a lightened
+       hyperlink blue rather than pure white so the shimmer reads as the link
+       brightening, not a separate white highlight passing over it.
        Animation shifts background-position by exactly one
        tile width per cycle (linear, 2.5s) for a seamless loop. Targets the
        marker class added by `tag_discord_invite_link()` (build script) so it
@@ -623,7 +625,7 @@
         100deg,
         #72c7ff 0%,
         #72c7ff 20%,
-        #ffffff 50%,
+        #d6eeff 50%,
         #72c7ff 80%,
         #72c7ff 100%
       );
