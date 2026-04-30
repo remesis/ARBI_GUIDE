@@ -15,10 +15,7 @@
     } catch (e) { /* no-op */ }
   </script>
   <script>
-    // Easter-egg console banner — first breadcrumb of the chain. Anyone who
-    // opens DevTools sees this; the rest of the chain is gated behind hints
-    // it drops. Wrapped in try/catch so a console-shim or polyfill cannot
-    // abort head parsing.
+    // Q29uc29sZSBiYW5uZXIgLS0gZmlyc3QgY2hhaW4gYnJlYWRjcnVtYi4gQW55b25lIHdobyBvcGVucyBEZXZUb29scyBzZWVzIHRoaXM7IHRoZSByZXN0IG9mIHRoZSBjaGFpbiBpcyBnYXRlZCBiZWhpbmQgaGludHMgaXQgZHJvcHMuIFdyYXBwZWQgaW4gdHJ5L2NhdGNoIHNvIGEgY29uc29sZS1zaGltIG9yIHBvbHlmaWxsIGNhbm5vdCBhYm9ydCBoZWFkIHBhcnNpbmcu
     try {
       console.log(
         "%c\n" +
@@ -237,8 +234,7 @@
 
     /* Respect users with vestibular sensitivity / migraine triggers.
        Animations are flattened to ~instant; spin/scan/fall overlays are hidden;
-       JS easter eggs (gremlin, Konami gold, glitch, transmission/cat sequence)
-       early-return on the same media query so they never run. */
+       JS animation effects early-return on the same media query so they never run. */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -1808,10 +1804,10 @@
         });
       });
 
-      onGuideEvent("easter:konami-gold", () => { trackEvent("konami_gold_mode"); });
-      onGuideEvent("easter:konami-repeat", () => { trackEvent("konami_repeat"); });
-      onGuideEvent("easter:gremlin-activated", () => { trackEvent("gremlin_activated"); });
-      onGuideEvent("easter:void-completed", () => { trackEvent("void_chain_completed"); });
+      onGuideEvent("_e1", () => { trackEvent("konami_gold_mode"); });
+      onGuideEvent("_e2", () => { trackEvent("konami_repeat"); });
+      onGuideEvent("_e3", () => { trackEvent("gremlin_activated"); });
+      onGuideEvent("_e4", () => { trackEvent("void_chain_completed"); });
       onGuideEvent("sequence:found", () => { trackEvent("seq_found"); });
       onGuideEvent("sequence:accepted", () => { trackEvent("seq_accepted"); });
       onGuideEvent("sequence:declined", () => { trackEvent("seq_declined"); });
@@ -4215,9 +4211,9 @@
               particleAlphaMult = 2;
               particleCount = 100;
               document.body.classList.add("gold-mode");
-              emitGuideEvent("easter:konami-gold");
+              emitGuideEvent("_e1");
             } else if (particleGoldFired) {
-              emitGuideEvent("easter:konami-repeat");
+              emitGuideEvent("_e2");
             }
             showEventToast(String.fromCodePoint(0x1F3AE), "コ ナ ミ コ マ ン ド", 10000);
           }
@@ -4283,7 +4279,7 @@
 
     function activateGremlinMode() {
       if (_gremlinTimer !== null) return;
-      // Reduced-motion: gremlin rain is the most motion-heavy easter egg; do nothing.
+      // Reduced-motion: this overlay is the most motion-heavy effect; do nothing.
       if (prefersReducedMotion()) return;
       var src = "./.media_cache/v1/images/gremlin.webp";
       var styleEl = document.createElement("style");
@@ -4323,7 +4319,7 @@
         container.appendChild(wrap);
       }
       showEventToast(String.fromCodePoint(0x1F47F), "GREMLIN INFESTATION", 5000);
-      emitGuideEvent("easter:gremlin-activated");
+      emitGuideEvent("_e3");
       _gremlinTimer = setTimeout(deactivateGremlinMode, 10000);
     }
 
@@ -4338,25 +4334,6 @@
       if (s) s.remove();
     }
 
-    // ---------------------------------------------------------------
-    // Void.check / Void.activate — terminal layer of the easter-egg chain.
-    //
-    // The secret is NOT in this source. Void.check starts disarmed
-    // (closure variable null) and returns false for any input. To arm
-    // it, the visitor must call Void.activate(<pow_nonce>) where the
-    // nonce is what they brute-forced during step 6 on /Orokin_Vault/.
-    // The worker re-verifies the PoW server-side and returns the secret
-    // only on success. Once armed, Void.check works as a real timing-
-    // channel comparator (per-char busy-wait + early return).
-    //
-    // Source-reader bypass: blocked. The function body has no secret
-    // material. Calling Void.check(...) without prior activation returns
-    // false. Calling Void.activate("guess") fails the server-side PoW
-    // check.
-    //
-    // Exposed as window.Void (capitalized) because `void` is a reserved
-    // unary operator and `void.x` is a parse error.
-    // ---------------------------------------------------------------
     function _voidShowReward(_secret) {
       var _mark = "(unmarked — return to /Lua/ first)";
       var _m = document.cookie.match(/(?:^|;\s*)tenno_mark=([^;]+)/);
@@ -4404,21 +4381,21 @@
       _box.appendChild(_close);
       _ov.appendChild(_box);
       document.body.appendChild(_ov);
-      try { emitGuideEvent("easter:void-completed"); } catch (e) {}
+      try { emitGuideEvent("_e4"); } catch (e) {}
     }
 
+    // Vm9pZC5jaGVjayAvIFZvaWQuYWN0aXZhdGUgLS0gdGVybWluYWwgY2hhaW4gbGF5ZXIgKHN0ZXAgNykuIFNlY3JldCBpcyBOT1QgaW4gdGhpcyBzb3VyY2UuIFZvaWQuY2hlY2sgc3RhcnRzIGRpc2FybWVkIChjbG9zdXJlIF9zID0gbnVsbCkgYW5kIHJldHVybnMgZmFsc2UgZm9yIGFueSBpbnB1dC4gVG8gYXJtIGl0IHRoZSB2aXNpdG9yIGNhbGxzIFZvaWQuYWN0aXZhdGUoPHBvd19ub25jZT4pIHdoZXJlIHRoZSBub25jZSBpcyB3aGF0IHRoZXkgYnJ1dGUtZm9yY2VkIGR1cmluZyBzdGVwIDYgb24gL09yb2tpbl9WYXVsdC8uIFRoZSB3b3JrZXIgcmUtdmVyaWZpZXMgdGhlIFBvVyBzZXJ2ZXItc2lkZSBhbmQgcmV0dXJucyB0aGUgc2VjcmV0IG9ubHkgb24gc3VjY2Vzcy4gT25jZSBhcm1lZCwgVm9pZC5jaGVjayB3b3JrcyBhcyBhIHJlYWwgdGltaW5nLWNoYW5uZWwgY29tcGFyYXRvciAocGVyLWNoYXIgYnVzeS13YWl0ICsgZWFybHkgcmV0dXJuKS4gU291cmNlLXJlYWRlciBieXBhc3M6IGJsb2NrZWQuIFRoZSBmdW5jdGlvbiBib2R5IGhhcyBubyBzZWNyZXQgbWF0ZXJpYWwuIENhbGxpbmcgVm9pZC5jaGVjayguLi4pIHdpdGhvdXQgcHJpb3IgYWN0aXZhdGlvbiByZXR1cm5zIGZhbHNlLiBDYWxsaW5nIFZvaWQuYWN0aXZhdGUoImd1ZXNzIikgZmFpbHMgdGhlIHNlcnZlci1zaWRlIFBvVyBjaGVjay4gRXhwb3NlZCBhcyB3aW5kb3cuVm9pZCAoY2FwaXRhbGl6ZWQpIGJlY2F1c2UgYHZvaWRgIGlzIGEgcmVzZXJ2ZWQgdW5hcnkgb3BlcmF0b3IgYW5kIGB2b2lkLnhgIGlzIGEgcGFyc2UgZXJyb3Iu
     window.Void = (function() {
-      var _s = null;  // secret — populated by activate(), never appears in source
+      var _s = null;
       return {
         check: function(_input) {
           if (_s === null) return false;
           if (typeof _input !== "string") return false;
           if (_input.length !== _s.length) return false;
+          // UGVyLWNoYXIgYnVzeS13YWl0IC0tIG1ha2VzIHRoZSBjb21wYXJpc29uIG1lYXN1cmFibGUgdmlhIHBlcmZvcm1hbmNlLm5vdygpIGFjcm9zcyBtYW55IHNhbXBsZXMuIH4wLjRtcyBwZXIgY2hhci4gRWFybHkgcmV0dXJuIG9uIG1pc21hdGNoIGlzIHdoYXQgbGVha3Mgb25lIGNoYXJhY3RlciBwZXIgcm91bmQu
           for (var _i = 0; _i < _s.length; _i++) {
-            // Per-char busy-wait — makes the comparison measurable via
-            // performance.now() across many samples. ~0.4ms per char.
             var _t = performance.now() + 0.4;
-            while (performance.now() < _t) { /* spin */ }
+            while (performance.now() < _t) { }
             if (_input.charCodeAt(_i) !== _s.charCodeAt(_i)) return false;
           }
           _voidShowReward(_s);

@@ -93,7 +93,7 @@
       function buildInput(challenge, nonce) {
         var buf = new Uint8Array(challenge.length + 8);
         buf.set(challenge, 0);
-        // big-endian uint64 — must match setup_v2_payload.py's nonce.to_bytes(8, "big")
+        // big-endian uint64 — must match setup_v2_payload.py's nonce.to_bytes(8, "big").
         // Use Math instead of BigInt for compatibility; nonces won't exceed 2^53.
         var hi = Math.floor(nonce / 0x100000000);
         var lo = nonce >>> 0;
