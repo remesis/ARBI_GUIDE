@@ -610,7 +610,7 @@
        blue→white→blue gradient with no plateau, repeated horizontally so the
        link reads as a flowing wave of ~3 soft highlights at any moment — no
        hard band edges. Animation shifts background-position by exactly one
-       tile width per cycle (linear, 6s) for a seamless loop. Targets the
+       tile width per cycle (linear, 2.5s) for a seamless loop. Targets the
        marker class added by `tag_discord_invite_link()` (build script) so it
        cannot apply to other discord links the doc may grow later.
        Reduced-motion override below (~line 1842) strips the whole effect. */
@@ -628,7 +628,7 @@
       -webkit-text-fill-color: transparent;
       color: transparent !important;
       text-decoration-color: #72c7ff;
-      animation: discord-link-shimmer 6s linear infinite;
+      animation: discord-link-shimmer 2.5s linear infinite;
     }
 
     @keyframes discord-link-shimmer {
