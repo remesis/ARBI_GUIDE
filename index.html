@@ -4339,14 +4339,23 @@
     }
 
     // ---------------------------------------------------------------
-    // Void.check — terminal layer of the easter-egg chain.
-    // The hidden secret is base64'd here so source readers see opaque
-    // text rather than the literal passphrase. The intended discovery
-    // path is the timing channel (per-char busy-wait + early return),
-    // which leaks chars one at a time via performance.now() sampling.
-    // Calling Void.check(<recovered string>) === true triggers the
-    // reward overlay. Exposed as window.Void (capitalized) because
-    // `void` is a reserved unary operator and `void.x` is a parse error.
+    // Void.check / Void.activate — terminal layer of the easter-egg chain.
+    //
+    // The secret is NOT in this source. Void.check starts disarmed
+    // (closure variable null) and returns false for any input. To arm
+    // it, the visitor must call Void.activate(<pow_nonce>) where the
+    // nonce is what they brute-forced during step 6 on /Orokin_Vault/.
+    // The worker re-verifies the PoW server-side and returns the secret
+    // only on success. Once armed, Void.check works as a real timing-
+    // channel comparator (per-char busy-wait + early return).
+    //
+    // Source-reader bypass: blocked. The function body has no secret
+    // material. Calling Void.check(...) without prior activation returns
+    // false. Calling Void.activate("guess") fails the server-side PoW
+    // check.
+    //
+    // Exposed as window.Void (capitalized) because `void` is a reserved
+    // unary operator and `void.x` is a parse error.
     // ---------------------------------------------------------------
     function _voidShowReward(_secret) {
       var _mark = "(unmarked — return to /Lua/ first)";
@@ -4398,26 +4407,53 @@
       try { emitGuideEvent("easter:void-completed"); } catch (e) {}
     }
 
-    window.Void = {
-      check: function(_input) {
-        if (typeof _input !== "string") return false;
-        var _s = atob(
-          "T2J0dXNlLCBydWJiZXIgZ29vc2UsIGdyZWVuIG1vb3NlLCBndWF2YSBqdWljZQpHaWFu" +
-          "dCBzbmFrZSwgYmlydGhkYXkgY2FrZSwgbGFyZ2UgZnJpZXMsIGNob2NvbGF0ZSBzaGFr" +
-          "ZQ=="
-        );
-        if (_input.length !== _s.length) return false;
-        for (var _i = 0; _i < _s.length; _i++) {
-          // Per-char busy-wait — makes the comparison measurable via
-          // performance.now() across many samples. ~0.4ms per char.
-          var _t = performance.now() + 0.4;
-          while (performance.now() < _t) { /* spin */ }
-          if (_input.charCodeAt(_i) !== _s.charCodeAt(_i)) return false;
+    window.Void = (function() {
+      var _s = null;  // secret — populated by activate(), never appears in source
+      return {
+        check: function(_input) {
+          if (_s === null) return false;
+          if (typeof _input !== "string") return false;
+          if (_input.length !== _s.length) return false;
+          for (var _i = 0; _i < _s.length; _i++) {
+            // Per-char busy-wait — makes the comparison measurable via
+            // performance.now() across many samples. ~0.4ms per char.
+            var _t = performance.now() + 0.4;
+            while (performance.now() < _t) { /* spin */ }
+            if (_input.charCodeAt(_i) !== _s.charCodeAt(_i)) return false;
+          }
+          _voidShowReward(_s);
+          return true;
+        },
+        activate: function(_nonce) {
+          if (typeof _nonce !== "number" || !isFinite(_nonce) || _nonce < 0) {
+            return Promise.reject(new Error("nonce must be a non-negative number"));
+          }
+          return fetch("/Orokin_Vault/api/void-activate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nonce: _nonce }),
+          }).then(function(r) { return r.json(); }).then(function(_d) {
+            if (_d && _d.ok && typeof _d.secret === "string") {
+              _s = _d.secret;
+              try {
+                console.log(
+                  "%c" + (_d.msg || "[Step 7/7] Void.check is armed."),
+                  "color:#FFD228;font-family:ui-monospace,monospace;"
+                );
+              } catch (e) {}
+              return true;
+            }
+            try {
+              console.warn(
+                "%cVoid.activate rejected: " + (_d && _d.msg || "unknown"),
+                "color:#c14545;font-family:ui-monospace,monospace;"
+              );
+            } catch (e) {}
+            return false;
+          });
         }
-        _voidShowReward(_s);
-        return true;
-      }
-    };
+      };
+    })();
 
     function showTransmissionToast() {
       var prev = document.getElementById("transmissionToast");

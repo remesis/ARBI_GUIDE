@@ -62,6 +62,8 @@
     <div id="reveal" class="reveal" hidden>
       <div class="reveal-title">STEP 6 COMPLETE &mdash; STEP 7 / 7 AWAITS</div>
       <div class="reveal-body" id="revealBody"></div>
+      <div class="reveal-body" id="activateInstr" style="margin-top:18px;"></div>
+      <pre id="activateLine" style="background:#000;border:1px solid #FFD228;color:#FFD228;padding:12px;margin-top:10px;white-space:pre-wrap;user-select:all;font-size:13px;" hidden></pre>
     </div>
   </div>
   <script>
@@ -166,6 +168,15 @@
         var plaintext = await decryptPayload(solution.key, challenge.iv, challenge.ciphertext);
         revealEl.hidden = false;
         document.getElementById("revealBody").textContent = plaintext;
+
+        // Step 7 hand-off: the secret is server-side now. Visitor must call
+        // Void.activate(<their PoW nonce>) on the main site to arm Void.check.
+        document.getElementById("activateInstr").textContent =
+          "To arm Void.check on the main site, open the console at https://arbi.guide/ and run:";
+        var activateLine = document.getElementById("activateLine");
+        activateLine.hidden = false;
+        activateLine.textContent = "Void.activate(" + solution.nonce + ")";
+
         document.getElementById("powHint").textContent = "nonce found: " + solution.nonce + " -- payload decrypted.";
       }
 
