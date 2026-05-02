@@ -1,0 +1,24 @@
+# arbi.guide -- security policy
+#
+# In scope: legitimate security issues affecting the site or its
+# Cloudflare Workers -- auth bypass, crypto weaknesses, XSS, CSRF,
+# code execution, server misconfiguration, secret exposure.
+#
+# Out of scope:
+# - Intentional design quirks. Some site features use unusual response
+#   headers, custom URLs, or visible per-session identifiers by design.
+#   If something looks weird but consistent and self-contained, it is
+#   likely deliberate. Ask before filing a report if unsure.
+# - Session identifiers in cookies. The site sets per-visitor session
+#   cookies containing a randomly-generated UUID. The UUID is freshly
+#   generated for each browser on first contact and is not derived
+#   from any user information. It is used only by the site's own
+#   features and is not shared with third parties. There are no user
+#   accounts and no payment flow.
+# - Reports based purely on scanner output without a concrete exploit
+#   path (e.g. "missing header X", "cookie max-age N seconds").
+
+Contact: mailto:7llewellyn@gmail.com
+Expires: 2027-05-02T00:00:00Z
+Preferred-Languages: en
+Canonical: https://arbi.guide/.well-known/security.txt
