@@ -19,6 +19,6 @@
 #   path (e.g. "missing header X", "cookie max-age N seconds").
 
 Contact: mailto:7llewellyn@gmail.com
-Expires: 2027-06-22T00:00:00Z
+Expires: 2027-06-25T00:00:00Z
 Preferred-Languages: en
 Canonical: https://arbi.guide/.well-known/security.txt
