@@ -236,6 +236,12 @@
       width: 100%; display: block; border-radius: 10px;
       background: #06080d; cursor: grab; touch-action: none;
     }
+    .canvas-shell { position: relative; }
+    .viewer-watermark {
+      position: absolute; right: 12px; bottom: 10px; z-index: 4;
+      width: min(30%, 420px); height: auto; pointer-events: none;
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+    }
     #glcanvas:active { cursor: grabbing; }
     body.fps-active #glcanvas { cursor: none; }
 
@@ -467,7 +473,10 @@
         <p class="asset-disclaimer"><em>Tileset depictions are derived only from local user accessible Warframe game data. Warframe and all related assets are the property of Digital Extremes. This is a non commercial fan made project, not affiliated with or endorsed by Digital Extremes.</em></p>
 
         <section class="card viewport" id="viewport">
-          <canvas id="glcanvas"></canvas>
+          <div class="canvas-shell">
+            <canvas id="glcanvas"></canvas>
+            <img class="viewer-watermark" src="/3d_tilesets/watermark.png" alt="" aria-hidden="true">
+          </div>
           <div id="loadOverlay"><div id="loadMsg">Select a map to begin.</div><div id="loadBar"><i></i></div><div id="loadPct"></div></div>
           <div id="fpsExit">Press <kbd>F</kbd> to toggle camera</div>
           <div id="crosshair"></div>
@@ -1554,8 +1563,8 @@ async function loadGroup(gid) {
   chipsEl.innerHTML = (entry && entry.nodes && entry.nodes.length)
     ? entry.nodes.map(function (n) {
         var sub = [n.planet, n.mission, n.faction].filter(Boolean).join(" · ");
-        return "<span><b>" + esc(n.name) + "</b>" + (sub ? " " + esc(sub) : "") + "</span>";
-      }).join("")
+        return "<span><b>" + esc(n.name) + "</b>" + (sub ? " - " + esc(sub) : "") + "</span>";
+      }).join('<span aria-hidden="true"> | </span>')
     : "";
 
   if (!entry || !entry.mesh) {
