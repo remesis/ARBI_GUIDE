@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d10">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://arbi-presence.7llewellyn.workers.dev; base-uri 'self'; form-action 'self'">
+  <link rel="preconnect" href="https://arbi-presence.7llewellyn.workers.dev" crossorigin>
+  <title>Munio | 3D Tileset | Warframe Arbitrations Guide</title>
+  <meta name="description" content="Explore the Munio arbitration arena in 3D, with enemy spawn points and camp positions marked.">
+  <link rel="canonical" href="https://arbi.guide/3d_tilesets/munio">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Munio | 3D Tileset | Warframe Arbitrations Guide">
+  <meta property="og:description" content="Explore the Munio arbitration arena in 3D, with enemy spawn points and camp positions marked.">
+  <meta property="og:url" content="https://arbi.guide/3d_tilesets/munio">
+  <meta property="og:image" content="https://arbi.guide/logo.png">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="apple-touch-icon" href="/logo.png">
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: #121821;
+      --panel-2: #19212c;
+      --border: #273242;
+      --text: #e9eef5;
+      --muted: #a7b1be;
+      --accent: #72c7ff;
+      --active: rgba(114, 199, 255, 0.14);
+      --shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+      --gold: #ffd75e;
+      --topbar-offset: 59px;
+      /* Shared with the guide, and persisted under the same localStorage keys
+         so a reader's display settings carry across both pages. */
+      --font-scale: 1;
+      --reading-line-height: 1.55;
+      --content-max-width: 1200px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.55 Arial, Helvetica, sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    a { color: var(--accent); }
+
+    .skip-link {
+      position: absolute; left: -9999px; top: 0; z-index: 2000;
+      background: var(--panel); color: var(--text);
+      padding: 10px 16px; border: 1px solid var(--border); border-radius: 0 0 10px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    /* ---------------- topbar ---------------- */
+    .topbar {
+      position: sticky; top: 0; z-index: 1000;
+      display: flex; gap: 16px; align-items: center; justify-content: space-between;
+      padding: 8px 16px;
+      background: rgba(11, 13, 16, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--text); text-decoration: none; font-weight: 700;
+    }
+    .brand-logo { width: 42px; height: 42px; object-fit: contain; flex: 0 0 auto; }
+
+    /* Mirror of the guide's cross-link. `margin-right: auto` keeps it hugging
+       the brand because .topbar is space-between. */
+    .guide-tab-link {
+      color: var(--muted); text-decoration: none;
+      font-size: 13.5px; font-weight: 700;
+      padding: 6px 10px; border: 0; border-radius: 8px; background: transparent;
+      white-space: nowrap; flex: 0 0 auto; margin-right: auto;
+      transition: color 0.15s ease, background 0.15s ease;
+    }
+    .guide-tab-link:hover, .guide-tab-link:focus-visible {
+      color: var(--accent); background: var(--panel-2);
+    }
+
+    /* ---- topbar controls, matching the guide 1:1 ---- */
+    .topbar-controls { display: flex; align-items: center; gap: 16px; }
+    .user-controls { display: flex; align-items: center; gap: 18px; }
+    .reset-button {
+      border: 0; background: transparent; color: var(--muted); padding: 0;
+      font: inherit; font-size: 20px; line-height: 1; cursor: pointer;
+    }
+    .reset-button:hover { color: var(--text); }
+    .control-group { display: flex; align-items: center; gap: 10px; }
+    .control-label { color: var(--text); font-weight: 700; font-size: 18px; }
+    .control-buttons { display: flex; flex-direction: column; gap: 2px; }
+    .control-buttons button {
+      width: 38px; height: 20px; padding: 0; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--panel); color: var(--text);
+      cursor: pointer; display: grid; place-items: center;
+      font-size: 13px; font-weight: 700; line-height: 1; font-family: inherit;
+    }
+    .control-buttons button:hover { background: var(--panel-2); }
+    .control-buttons button:active, .control-buttons button.is-pressed,
+    .search-wrap button:active, .search-wrap button.is-pressed {
+      background: rgba(65, 102, 245, 0.24); border-color: #4166f5; color: #9dc0ff;
+    }
+    .search-wrap { display: flex; align-items: center; gap: 8px; }
+    .search-box-wrap { position: relative; display: flex; align-items: center; }
+    .search-wrap input {
+      width: min(420px, 50vw); padding: 10px 78px 10px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--panel); color: var(--text);
+      outline: none;
+    }
+    .search-count {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 12px; line-height: 1; color: var(--muted);
+      pointer-events: none; user-select: none; white-space: nowrap;
+    }
+    .search-count:empty { display: none; }
+    .search-wrap button {
+      padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--panel); color: var(--text); cursor: pointer;
+    }
+    .search-wrap button:hover { background: var(--panel-2); }
+    mark.ts-hit { background: rgba(65, 102, 245, 0.38); color: var(--text); border-radius: 3px; }
+    mark.ts-hit.current { background: var(--accent); color: #06080d; }
+
+    /* ---------------- layout ---------------- */
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      min-height: calc(100vh - var(--topbar-offset));
+    }
+
+    .sidebar {
+      position: sticky; top: var(--topbar-offset);
+      height: calc(100vh - var(--topbar-offset));
+      overflow: hidden; display: flex; flex-direction: column;
+      background: var(--panel); border-right: 1px solid var(--border);
+    }
+    /* Matches the main guide's .sidebar-updated row exactly. */
+    .sidebar-head {
+      padding: 5px 14px 6px; color: var(--muted); font-size: 15px;
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .viewer-count {
+      display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+      font-size: 13px; visibility: hidden;
+    }
+    /* Reserve a 2-digit slot so the count's first paint does not shift the row. */
+    #viewerCountNum { display: inline-block; min-width: 2ch; text-align: right; }
+    .viewer-count.is-ready { visibility: visible; }
+    .sidebar-links {
+      flex: 1 1 auto; overflow: auto; overscroll-behavior: contain;
+      padding: 18px 14px 24px;
+      scrollbar-width: thin; scrollbar-color: #3b4657 #121821;
+    }
+    .sidebar-links::-webkit-scrollbar { width: 10px; }
+    .sidebar-links::-webkit-scrollbar-track { background: #121821; }
+    .sidebar-links::-webkit-scrollbar-thumb {
+      background: #3b4657; border-radius: 999px; border: 2px solid #121821;
+    }
+    .sidebar-links::-webkit-scrollbar-thumb:hover { background: #51607a; }
+    .sidebar a {
+      display: block; color: var(--muted); text-decoration: none;
+      padding: 7px 30px 7px 10px; border-radius: 10px; margin-bottom: 4px;
+      transition: 0.15s ease; cursor: pointer; position: relative;
+    }
+    .sidebar a:hover { background: var(--panel-2); color: var(--text); }
+    .sidebar a.active {
+      background: var(--active); color: #e9eef5; font-weight: 700;
+    }
+    .sidebar-copy-link {
+      display: flex; position: absolute; right: 4px; top: 0; bottom: 0;
+      align-items: center; justify-content: center;
+      color: var(--muted); background: transparent; border: 0; padding: 0 6px;
+      cursor: pointer;
+      /* Suppress iOS Safari/Edge default <button> chrome. */
+      -webkit-appearance: none; appearance: none;
+      font-family: inherit; font-size: inherit;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s ease, color 0.15s ease;
+    }
+    .sidebar a:hover .sidebar-copy-link,
+    .sidebar a:focus-within .sidebar-copy-link { opacity: 1; pointer-events: auto; }
+    .sidebar-copy-link:hover { color: var(--text); }
+    .sidebar-copy-link.copied { color: var(--accent); opacity: 1; pointer-events: auto; }
+
+    .main { min-width: 0; padding: 28px 28px 80px; }
+    .wrap {
+      width: min(100%, var(--content-max-width)); margin: 0 auto;
+      color: var(--text);
+      font-size: calc(1em * var(--font-scale));
+      line-height: var(--reading-line-height);
+    }
+
+    /* ---------------- page heading ----------------
+       Match the main guide's open document flow: left-aligned white headings,
+       normal body colour, and no decorative container around the metadata. */
+    .ts-title {
+      color: var(--text); text-align: left; font-size: 2em; font-weight: 700;
+      margin: 0 0 0.2em; letter-spacing: normal;
+    }
+    .ts-sub {
+      text-align: left; color: var(--text); font-size: 1em;
+      margin: 0 0 0.45em;
+    }
+    .ts-sub b { color: var(--text); font-weight: 700; }
+
+    .card {
+      background: transparent; border: 0; border-radius: 0; box-shadow: none;
+    }
+
+    /* Static chips: every node in a group shares one arena, so these are
+       informational, not a switcher. Keep them as plain inline metadata rather
+       than pills so the heading reads like the main guide. */
+    .node-chips {
+      display: flex; flex-wrap: wrap; gap: 6px 12px;
+      justify-content: flex-start; margin: 0 0 0.8em;
+      color: var(--muted); font-size: 0.875em;
+    }
+    .node-chips span {
+      background: transparent; color: var(--muted); border: 0;
+      border-radius: 0; padding: 0; font-size: inherit;
+    }
+    .node-chips span b { color: var(--text); font-weight: 700; }
+
+    /* ---------------- 3D viewport ---------------- */
+    .viewport { position: relative; padding: 0; margin-bottom: 28px; }
+    .asset-disclaimer { margin: 0 0 12px; color: var(--muted); }
+    #glcanvas {
+      width: 100%; display: block; border-radius: 10px;
+      background: #06080d; cursor: grab; touch-action: none;
+    }
+    #glcanvas:active { cursor: grabbing; }
+    body.fps-active #glcanvas { cursor: none; }
+
+    #loadOverlay {
+      position: absolute; inset: 0; z-index: 8;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+      background: rgba(6, 8, 13, 0.88); border-radius: 10px;
+      color: var(--muted); font-size: 14px; text-align: center; padding: 20px;
+    }
+    #loadBar { width: 260px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden; }
+    #loadBar i { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg,#72c7ff 0%,#4166f5 100%); transition: width 0.15s; }
+    #loadPct { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+    .load-err { color: #ff9a9a; }
+
+    #fpsExit {
+      position: absolute; left: 50%; top: 22px; transform: translateX(-50%); z-index: 7;
+      background: rgba(8, 12, 20, 0.9); border: 1px solid var(--gold);
+      color: var(--gold); border-radius: 999px; padding: 8px 20px;
+      font-size: 14px; font-weight: 700; letter-spacing: 0.04em;
+      display: none; pointer-events: none; white-space: nowrap;
+    }
+    body.fps-active #fpsExit { display: block; }
+    #fpsExit kbd {
+      background: rgba(255, 215, 94, 0.16); border: 1px solid var(--gold);
+      border-radius: 5px; padding: 1px 7px; font: inherit; font-size: 13px;
+    }
+
+    #crosshair {
+      position: absolute; z-index: 5; width: 16px; height: 16px; margin: -8px 0 0 -8px;
+      display: none; pointer-events: none;
+    }
+    body.fps-active #crosshair { display: block; }
+    #crosshair::before, #crosshair::after {
+      content: ""; position: absolute; background: rgba(255,255,255,0.85); border-radius: 1px;
+    }
+    #crosshair::before { left: 7px; top: 0; width: 2px; height: 16px; }
+    #crosshair::after { left: 0; top: 7px; width: 16px; height: 2px; }
+
+    #dpiHud {
+      position: absolute; left: 18px; z-index: 6; display: none;
+      pointer-events: none; border-radius: 7px; padding: 5px 9px;
+      background: rgba(8, 12, 20, 0.82); color: #cfe8ff;
+      font-size: 12.5px; font-variant-numeric: tabular-nums;
+    }
+    body.fps-active #dpiHud { display: block; }
+    #dpiHud b { color: var(--text); }
+
+    #hoverTip {
+      position: fixed; z-index: 1200; pointer-events: none; display: none;
+      background: rgba(10, 14, 22, 0.96); border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 9px; padding: 7px 10px; font-size: 12.5px; color: var(--text);
+      max-width: 260px;
+    }
+
+    /* ---------------- controls bar ---------------- */
+    .ctl-bar {
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+      padding: 10px 4px 2px; font-size: 13px; color: var(--muted);
+    }
+    .ctl-bar button {
+      background: var(--panel-2); color: var(--accent); border: 1px solid var(--border);
+      border-radius: 9px; padding: 6px 14px; cursor: pointer; font-size: 13px; font-family: inherit;
+      transition: 0.15s ease;
+    }
+    .ctl-bar button:hover { background: #222d3c; color: var(--text); }
+    .ctl-bar button.primary { border-color: var(--accent); color: var(--text); background: var(--active); font-weight: 700; }
+    /* Static label: the button is a toggle, so both halves are always shown and
+       the exit half is colour-coded rather than swapped in on state change. */
+    .fps-exit-word { color: #ff7a7a; }
+    .ctl-bar label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+    .ctl-bar input[type=range] { vertical-align: middle; width: 130px; accent-color: var(--accent); }
+    .legend-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; vertical-align: -1px; margin-right: 4px; }
+    #floorLegend { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    /* ---------------- instructions ---------------- */
+    .ts-help { padding: 0; margin: 0 0 36px; }
+    .ts-help h2 {
+      margin: 0.83em 0 0.4em; font-size: 1.5em; color: var(--text);
+    }
+    /* Exactly four columns on desktop, stepping down rather than reflowing to
+       an odd count. */
+    .help-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 26px; }
+    @media (max-width: 1100px) { .help-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px)  { .help-cols { grid-template-columns: 1fr; } }
+    .help-cols div {
+      color: var(--text); font-size: 1em;
+      line-height: var(--reading-line-height);
+    }
+    .help-cols b { color: var(--text); }
+    kbd {
+      background: var(--panel-2); border: 1px solid var(--border); border-bottom-width: 2px;
+      border-radius: 5px; padding: 1px 6px; font: inherit; font-size: 12px; color: var(--text);
+      white-space: nowrap;
+    }
+
+    /* ---------------- bottom guide section ---------------- */
+    .guide-sec { padding: 0; }
+    .guide-block h1, .guide-block h2, .guide-block h3,
+    .guide-block h4, .guide-block h5, .guide-block h6 {
+      color: var(--text);
+    }
+    .guide-block h3 {
+      margin: 1em 0; font-size: 1.17em;
+    }
+    .guide-block {
+      color: var(--text);
+      line-height: var(--reading-line-height);
+    }
+    .guide-block img, .guide-block video {
+      max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 12px 0;
+    }
+    .guide-block table { max-width: 100%; overflow-x: auto; display: block; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar {
+        position: static; height: auto; max-height: 260px;
+        border-right: 0; border-bottom: 1px solid var(--border);
+      }
+      .main { padding: 20px 16px 60px; }
+      .ts-title { font-size: 1.75em; }
+      .brand span { display: none; }
+      /* Same call the guide makes: the control cluster and search do not fit a
+         phone topbar, so they are desktop-only. */
+      .user-controls, .search-wrap { display: none; }
+      .guide-tab-link { padding: 6px 8px; font-size: 12.5px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#viewport">Skip to the 3D viewer</a>
+
+  <svg style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false"><defs>
+    <symbol id="icon-eye" viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8S4.5 1 11 1s10 7 10 7-3.5 7-10 7S1 8 1 8z"/><circle cx="11" cy="8" r="3"/></symbol>
+    <symbol id="icon-chain" viewBox="0 0 24 24" fill="currentColor"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></symbol>
+    <symbol id="icon-clipboard" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></symbol>
+  </defs></svg>
+
+  <header class="topbar">
+    <a
+      id="brandLink"
+      class="brand"
+      href="https://discord.gg/Arbitrations"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img src="/logo.webp" alt="Arbitrations Logo" class="brand-logo" width="42" height="42" decoding="async" fetchpriority="high">
+      <span>Warframe Arbitrations Guide</span>
+    </a>
+    <a class="guide-tab-link" href="/">Return to Guide</a>
+
+    <div class="topbar-controls">
+      <div class="user-controls">
+        <button id="resetControlsBtn" class="reset-button" type="button" aria-label="Reset display controls">&#8634;</button>
+        <div class="control-group">
+          <span class="control-label">Font</span>
+          <div class="control-buttons">
+            <button id="fontIncreaseBtn" type="button" aria-label="Increase font size">&#708;</button>
+            <button id="fontDecreaseBtn" type="button" aria-label="Decrease font size">&#709;</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <span class="control-label">Spacing</span>
+          <div class="control-buttons">
+            <button id="spacingIncreaseBtn" type="button" aria-label="Increase text spacing">&#708;</button>
+            <button id="spacingDecreaseBtn" type="button" aria-label="Decrease text spacing">&#709;</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <span class="control-label">Width</span>
+          <div class="control-buttons">
+            <button id="widthIncreaseBtn" type="button" aria-label="Increase content width">&#708;</button>
+            <button id="widthDecreaseBtn" type="button" aria-label="Decrease content width">&#709;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="search-wrap">
+        <div class="search-box-wrap">
+          <input id="searchBox" type="text" placeholder="Search tilesets" autocomplete="off">
+          <span id="searchCount" class="search-count"></span>
+        </div>
+        <button id="searchPrevBtn" type="button" aria-label="Previous result">&#8593;</button>
+        <button id="searchNextBtn" type="button" aria-label="Next result">&#8595;</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-head"><span>Last updated: 2026-07-26</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
+      <nav class="sidebar-links" id="sidebarLinks" aria-label="Tileset list">
+        <a href="/3d_tilesets/callisto+sinai+io" data-group="callisto+sinai+io"><span class="sidebar-label">Callisto, Sinai, Io</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/umbriel+stephano" data-group="umbriel+stephano"><span class="sidebar-label">Umbriel, Stephano</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/cytherean+xini+gulliver" data-group="cytherean+xini+gulliver"><span class="sidebar-label">Cytherean, Xini, Gulliver</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/alator+kadesh+spear" data-group="alator+kadesh+spear"><span class="sidebar-label">Alator, Kadesh, Spear</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/tyana_pass" data-group="tyana_pass"><span class="sidebar-label">Tyana Pass</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/munio" data-group="munio" class="active"><span class="sidebar-label">Munio</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/mithra+taranis+belenus" data-group="mithra+taranis+belenus"><span class="sidebar-label">Mithra, Taranis, Belenus</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/casta+seimeni+cinxia" data-group="casta+seimeni+cinxia"><span class="sidebar-label">Casta, Seimeni, Cinxia</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/hydron+helene+odin" data-group="hydron+helene+odin"><span class="sidebar-label">Hydron, Helene, Odin</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/sechura+tessera+outer_terminus" data-group="sechura+tessera+outer_terminus"><span class="sidebar-label">Sechura, Tessera, Outer Terminus</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/ose+paimon+larzac" data-group="ose+paimon+larzac"><span class="sidebar-label">Ose, Paimon, Larzac</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/rhea+lares+sangeru" data-group="rhea+lares+sangeru"><span class="sidebar-label">Rhea, Lares, Sangeru</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/akkad+kala-azar" data-group="akkad+kala-azar"><span class="sidebar-label">Akkad, Kala-Azar</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/coba+lith" data-group="coba+lith"><span class="sidebar-label">Coba, Lith</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/oestrus" data-group="oestrus"><span class="sidebar-label">Oestrus</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/gaia" data-group="gaia"><span class="sidebar-label">Gaia</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/hyf" data-group="hyf"><span class="sidebar-label">Hyf</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+        <a href="/3d_tilesets/stofler" data-group="stofler"><span class="sidebar-label">Stöfler</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="wrap">
+        <h1 class="ts-title" id="tsTitle">Munio</h1>
+        <div class="ts-sub" id="tsSub">Select a map from the list.</div>
+
+        <div class="node-chips" id="nodeChips"></div>
+
+        <p class="asset-disclaimer"><em>Tileset depictions are derived only from local user accessible Warframe game data. Warframe and all related assets are the property of Digital Extremes. This is a non commercial fan made project, not affiliated with or endorsed by Digital Extremes.</em></p>
+
+        <section class="card viewport" id="viewport">
+          <canvas id="glcanvas"></canvas>
+          <div id="loadOverlay"><div id="loadMsg">Select a map to begin.</div><div id="loadBar"><i></i></div><div id="loadPct"></div></div>
+          <div id="fpsExit">Press <kbd>F</kbd> to toggle camera</div>
+          <div id="crosshair"></div>
+          <div id="dpiHud">Mouse DPI <b id="dpiVal">100%</b></div>
+          <div class="ctl-bar">
+            <button id="fpsBtn" class="primary" type="button">Toggle first person [F]</button>
+            <button id="resetBtn" type="button">Reset camera</button>
+            <span>Ceiling <input type="range" id="clipRange" min="0" max="100" step="0.1" value="100" aria-label="Ceiling cutaway"> <b id="clipVal"></b></span>
+            <span id="floorLegend"></span>
+          </div>
+        </section>
+
+        <section class="card ts-help">
+          <h2>Controls</h2>
+          <div class="help-cols">
+            <div><b>First person:</b> press <kbd>F</kbd> or the button. <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move, <kbd>Space</kbd> to rise, <kbd>Ctrl</kbd> to descend, <kbd>Shift</kbd> to sprint. <kbd>Z</kbd> to lower <kbd>X</kbd> to increase mouse DPI.</div>
+            <div><b>Free camera:</b> left-drag to rotate, right-drag to pan, scroll to zoom. Aim the crosshair at a spawn marker to see its distance.</div>
+            <div><b>Spawn markers:</b> coloured dots are enemy spawn points, coloured by floor height. Size and opacity scale with frequency when recorded samples are available.</div>
+            <div><b>Ceiling cutaway:</b> drag the slider to peel away everything above a height, so you can see into a roofed arena. <kbd>Q</kbd> and <kbd>E</kbd> nudge it while flying.</div>
+          </div>
+        </section>
+
+        <section class="card guide-sec" id="guideSection">
+          <div id="guideBlocks">
+            <div class="guide-block" data-group="callisto+sinai+io" data-has-content="1" hidden><h3 class="c4 c33" id="h.vy6xs77lp9vq"><span class="c36">C</span><span class="c36">allisto, Sinai, Io</span></h3><p class="c8"><span class="c0">&#128315;There are 4 different starting tilesets to roll, look for the two short hallway one depicted below.</span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_lmuy1vhpgmy5-0 start"><li class="c2 li-bullet-0"><span class="c0">Every time someone loots the starting area past the big door at the top of the stairs, it breaks the rest of the spawns for a noticeable amount of time. So either do NOT loot the void section vitus at all, or only loot if the team all agrees to not loot unless there are 3 or more drops in there.</span></li></ul><p class="c6"><span class="c0"></span></p><p class="c7"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 545.40px;"><img alt="Callisto, Sinai, Io screenshot"   style="width: 432.00px; height: 545.40px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="545" src="/.media_cache/v1/images/188c97731df9ece6.webp" data-src="/.media_cache/v1/images/188c97731df9ece6.webp" decoding="async" loading="lazy"></span></p><p class="c7"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 672.00px; height: 188.16px;"><img alt="Callisto, Sinai, Io screenshot"   style="width: 672.00px; height: 188.16px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="672" height="188" src="/.media_cache/v1/images/bb9cdecdf5dc01e0.webp" data-src="/.media_cache/v1/images/bb9cdecdf5dc01e0.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="umbriel+stephano" data-has-content="1" hidden><h3 class="c4 c33" id="h.fwucq162acnv"><span class="c1">Umbriel, Stephano</span></h3><p class="c8"><span class="c0">&#128315;Roll for cave network tile for Umbriel, and the sealab tile for Stephano.</span></p><p class="c3"><span class="c0"></span></p><ul class="c15 lst-kix_8m41az7hjzhy-0 start"><li class="c2 c32 li-bullet-0"><span class="c0"></span></li></ul><p class="c3"><span class="c0"></span></p><p class="c7"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 421.20px;"><img alt="Umbriel, Stephano screenshot"   style="width: 432.00px; height: 421.20px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="421" src="/.media_cache/v1/images/88f796357d0d4bf8.webp" data-src="/.media_cache/v1/images/88f796357d0d4bf8.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="cytherean+xini+gulliver" data-has-content="1" hidden><h3 class="c4 c33" id="h.lwc8m2usajpv"><span class="c1">Cytherean, Xini, Gulliver</span></h3><p class="c26"><span class="c0">&#128315;</span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_3qlpxbhqiovn-0 start"><li class="c6 c35 c17 li-bullet-0"><span class="c0"></span></li></ul><h3 class="c16 c33" id="h.nu433t5k761k"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 465.48px;"><img alt="Cytherean, Xini, Gulliver screenshot"   style="width: 432.00px; height: 465.48px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="465" src="/.media_cache/v1/images/5ec34784702459c4.webp" data-src="/.media_cache/v1/images/5ec34784702459c4.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="alator+kadesh+spear" data-has-content="1" hidden><h3 class="c4 c33" id="h.15tomtv5uk89"><span class="c9 c36">Alator</span><span class="c1">, Kadesh, Spear</span></h3><p class="c8"><span>&#128315;</span><span class="c10 c9"><a class="c11" href="https://www.youtube.com/watch?v=2AxLdauS7JY">https://www.youtube.com/watch?v=2AxLdauS7JY</a></span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_7qh9y4t3bouo-0 start"><li class="c26 c17 c35 li-bullet-0"><span class="c9">More spawns than Cinxia, but majority of them are only reachable via Cyte, supporting dps</span><span>&nbsp;</span><span class="c0">Saryn will have to be more active and move around to help cover spawns.</span></li><li class="c26 c35 c17 li-bullet-0"><span class="c0">Camp location can be either C or D point, I recommend D point. </span></li><li class="c26 c35 c17 li-bullet-0"><span class="c9">Kadesh and Spear are the defense variants of this tile, Kadesh is infested and more manageable. Spear is grineer and they can overwhelm you very quickly, and defense </span><span class="c9">operative is</span><span class="c0">&nbsp;highly likely to die.</span></li></ul><p class="c6 c17"><span class="c0"></span></p><p class="c7"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 383.40px;"><img alt="Alator, Kadesh, Spear screenshot"   style="width: 432.00px; height: 383.40px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="383" src="/.media_cache/v1/images/0fa3854f4dea2646.webp" data-src="/.media_cache/v1/images/0fa3854f4dea2646.webp" decoding="async" loading="lazy"></span></p><p class="c7"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 624.00px; height: 332.80px;"><img alt="Alator, Kadesh, Spear screenshot"   style="width: 624.00px; height: 332.80px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="624" height="333" src="/.media_cache/v1/images/a07e89912b51fae8.webp" data-src="/.media_cache/v1/images/a07e89912b51fae8.webp" decoding="async" loading="lazy"></span></p><p class="c7"><span class="c9 c23">*Spear and Kadesh can roll 2 different starting rooms, look for this specific one so that you do not get the random spawn 130m away from the camp area. Alator does not have this issue.*</span></p></div>
+      <div class="guide-block" data-group="tyana_pass" data-has-content="1" hidden><h3 class="c4 c33" id="h.d7hevyyl0l8n"><span class="c1">Tyana Pass</span></h3><p class="c8"><span>&#128315;Mirror defense, first half same as </span><span class="c10"><a class="c11" href="#h.15tomtv5uk89">Alator</a></span><span class="c0">, other half is this corpus section. </span></p><p class="c3"><span class="c0"></span></p><ul class="c15 lst-kix_s32lj57tneor-0 start"><li class="c2 li-bullet-0"><span class="c0">Two spawns in the void area between tiles, best thing to do is drop a Kuva Zarr on call crewmate and make them hold position in the void platform between wave changes. </span></li><li class="c2 li-bullet-0"><span>Every time someone loots the void area, it breaks the rest of the spawns for a noticeable amount of time. So either do NOT loot the void section vitus at all, or only loot if the team all agrees to not loot unless there are 3 or more drops in there.</span></li></ul><h3 class="c16 c33" id="h.95gt1cgyle37"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 415.80px;"><img alt="Tyana Pass screenshot"   style="width: 432.00px; height: 415.80px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="416" src="/.media_cache/v1/images/2437381fda8e0408.webp" data-src="/.media_cache/v1/images/2437381fda8e0408.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="munio" data-has-content="1"><h3 class="c4 c33" id="h.c9q1v7uqyku8"><span class="c1">Munio</span></h3><p class="c8"><span class="c0">&#128315;Mirror defense</span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_gmutpuhs6fk7-0 start"><li class="c6 c35 c17 li-bullet-0"><span class="c0"></span></li></ul><p class="c6 c17"><span class="c0"></span></p><p class="c7"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 576.00px; height: 206.31px;"><img alt="Munio screenshot"   style="width: 576.00px; height: 206.31px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="576" height="206" src="/.media_cache/v1/images/aa500135da5b63c5.webp" data-src="/.media_cache/v1/images/aa500135da5b63c5.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="mithra+taranis+belenus" data-has-content="1" hidden><h3 class="c4 c33" id="h.iexxik355g3j"><span class="c1">Mithra, Taranis, Belenus</span></h3><p class="c8"><span class="c0">&#128315;words</span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_gmutpuhs6fk7-0"><li class="c6 c35 c17 li-bullet-0"><span class="c0"></span></li></ul><p class="c6"><span class="c0"></span></p><h3 class="c16 c33" id="h.kc2z4wqrossp"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 520.56px;"><img alt="Mithra, Taranis, Belenus screenshot"   style="width: 432.00px; height: 520.56px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="521" src="/.media_cache/v1/images/1988ccc0ad6a5794.webp" data-src="/.media_cache/v1/images/1988ccc0ad6a5794.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="casta+seimeni+cinxia" data-has-content="1" hidden><h3 class="c4 c33" id="h.l49p5y8san1o"><span class="c1">Casta, Seimeni, Cinxia</span></h3><p class="c8"><span>&#128315;</span><span class="c10 c9"><a class="c11" href="https://www.youtube.com/watch?v=FOCBQu6UPQU">https://www.youtube.com/watch?v=FOCBQu6UPQU</a></span></p><p class="c3"><span class="c0"></span></p><ul class="c15 lst-kix_dcrhvybnd0li-0 start"><li class="c37 c35 c17 li-bullet-0"><span class="c0">Plenty of spawn locations, all easily accessible from camp spot. Do not bother with Shyte here.</span></li><li class="c37 c35 c17 li-bullet-0"><span class="c0">There is a 50/50 chance the tile has rain each time you start the mission. </span></li></ul><p class="c37 c17 c32"><span class="c0"></span></p><p class="c34"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 407.16px;"><img alt="Casta, Seimeni, Cinxia screenshot"   style="width: 432.00px; height: 407.16px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="407" src="/.media_cache/v1/images/cd9cd7b0e8e2b3ab.webp" data-src="/.media_cache/v1/images/cd9cd7b0e8e2b3ab.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="hydron+helene+odin" data-has-content="1" hidden><h3 class="c4" id="h.mre46jsofs8e"><span class="c24 c30 c13">Hydron, Helene, Odin</span></h3><p class="c8"><span>&#128315;</span><span class="c10 c9"><a class="c11" href="https://www.youtube.com/watch?v=AL0in8XSot4">https://www.youtube.com/watch?v=AL0in8XSot4</a></span></p><p class="c3"><span class="c1"></span></p><ul class="c15 lst-kix_1rnbw74u1fj0-0 start"><li class="c37 c35 c17 li-bullet-0"><span class="c9">Very </span><span class="c9 c53">bottom spawn and top left spawn</span><span class="c9">&nbsp;are the only ones that are not able to be cleared easily from the camp spot and may require you to move a bit or go </span><span class="c9">loot</span><span class="c0">&nbsp;to clear them faster.</span></li><li class="c37 c35 c17 li-bullet-0"><span class="c0">Shyte meta is probably the easiest on this tileset, and makes it much more playable. All of the spawns are on roughly the same level/plane and are easy to get the hang of.</span></li></ul><p class="c37 c17 c32"><span class="c0"></span></p><p class="c34"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 405.00px;"><img alt="Hydron, Helene, Odin screenshot"   style="width: 432.00px; height: 405.00px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="405" src="/.media_cache/v1/images/461019156c0e0aa2.webp" data-src="/.media_cache/v1/images/461019156c0e0aa2.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="sechura+tessera+outer_terminus" data-has-content="1" hidden><h3 class="c4" id="h.igpko21z80bk"><span class="c24 c30 c13">Sechura, Tessera, Outer Terminus</span></h3><p class="c8"><span>&#128315;</span><span class="c10"><a class="c11" href="https://www.youtube.com/watch?v=Gj_VKXuPc6o">https://www.youtube.com/watch?v=Gj_VKXuPc6o</a></span><span>&nbsp;</span></p><p class="c3"><span class="c0"></span></p><ul class="c15 lst-kix_jjqxrun35a73-0 start"><li class="c37 c35 c17 li-bullet-0"><span class="c0">Be careful when looting inside the top area spawns, if the operative follows you in there, he&#39;s quite vulnerable in tight quarters and active spawns.</span></li><li class="c37 c35 c17 li-bullet-0"><span class="c9">The majority of spawns accessible, </span><span class="c9 c53">bottom right spawn</span><span class="c0">&nbsp;occasionally require somebody to go over there and clear it. Shyte comp works nicely here, but is not as easy as Hydron/Helene.</span></li><li class="c2 li-bullet-0"><span class="c0">A corpus ship flies by every other 5th wave and wastes about 30 seconds.</span></li></ul><p class="c32 c37"><span class="c0"></span></p><p class="c34"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 407.16px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 432.00px; height: 407.16px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="407" src="/.media_cache/v1/images/3c3e658c853f482c.webp" data-src="/.media_cache/v1/images/3c3e658c853f482c.webp" decoding="async" loading="lazy"></span></p><p class="c34"><span class="c0">Look for the below tile out of the 3 possible for this node:</span></p><p class="c34"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 624.00px; height: 334.88px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 624.00px; height: 334.88px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="624" height="335" src="/.media_cache/v1/images/b1764827d66014d1.webp" data-src="/.media_cache/v1/images/b1764827d66014d1.webp" decoding="async" loading="lazy"></span></p><p class="c34"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 336.00px; height: 180.32px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 336.00px; height: 180.32px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="336" height="180" src="/.media_cache/v1/images/be2869f0a0c84140.webp" data-src="/.media_cache/v1/images/be2869f0a0c84140.webp" decoding="async" loading="lazy"></span><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 336.00px; height: 180.32px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 336.00px; height: 180.32px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="336" height="180" src="/.media_cache/v1/images/24a9c7829e7599c1.webp" data-src="/.media_cache/v1/images/24a9c7829e7599c1.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="ose+paimon+larzac" data-has-content="1" hidden><h3 class="c4" id="h.bunb4yr3p50q"><span>Ose, </span><span class="c24 c30 c13">Paimon, Larzac</span></h3><p class="c8"><span>&#128315;</span><span class="c10"><a class="c11" href="https://www.youtube.com/watch?v=ErfZb69yjhQ">https://www.youtube.com/watch?v=ErfZb69yjhQ</a></span><span class="c0">&nbsp;</span></p><p class="c3"><span class="c0"></span></p><ul class="c15 lst-kix_5oig22it0nu8-0 start"><li class="c2 li-bullet-0"><span class="c0">Spawns are very spread out but still accessible for the most part. </span></li><li class="c2 li-bullet-0"><span class="c0">A corpus ship flies by every other 5th wave and wastes about 30 seconds.</span></li><li class="c2 li-bullet-0"><span class="c9 c53">Do your best to not neglect the left spawn</span><span class="c0">&nbsp;with the ice tunnel. Enemies coming out of here get a nice line of sight on the camp spot and can easily 1 shot the defense operative.</span></li></ul><p class="c3"><span class="c0"></span></p><p class="c34"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 333.72px;"><img alt="Ose, Paimon, Larzac screenshot"   style="width: 432.00px; height: 333.72px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="334" src="/.media_cache/v1/images/fa2e19ab6631e802.webp" data-src="/.media_cache/v1/images/fa2e19ab6631e802.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="rhea+lares+sangeru" data-has-content="1" hidden><h3 class="c4" id="h.gxsznornlujw"><span class="c24 c30 c13">Rhea, Lares, Sangeru</span></h3><p class="c8"><span class="c0">&#128315;Larezzzzzz</span></p><p class="c3"><span class="c0"></span></p><ul class="c15 lst-kix_ppmysgyobpx9-0 start"><li class="c2 li-bullet-0"><span class="c0">The bottom right spawn just stops working randomly, so there are effectively only 6 real spawns, and they are quite slow. Easy tile though.</span></li></ul><p class="c3 c17"><span class="c0"></span></p><p class="c7"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 374.76px;"><img alt="Rhea, Lares, Sangeru screenshot"   style="width: 432.00px; height: 374.76px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="375" src="/.media_cache/v1/images/66b10dd28f7d18ad.webp" data-src="/.media_cache/v1/images/66b10dd28f7d18ad.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="akkad+kala-azar" data-has-content="1" hidden><h3 class="c4" id="h.hjgobh3fwbi8"><span class="c24 c30 c13">Akkad, Kala-Azar</span></h3><p class="c8"><span class="c0">&#128315;Loot despawns really fast due to sheer number of drops from infested, loot quickly.</span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_gmutpuhs6fk7-0"><li class="c6 c35 c17 li-bullet-0"><span class="c0"></span></li></ul><p class="c3"><span class="c0"></span></p><h3 class="c16" id="h.gpifvgq7m4od"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 597.24px;"><img alt="Akkad, Kala-Azar screenshot"   style="width: 432.00px; height: 597.24px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="597" src="/.media_cache/v1/images/479d529623364bd5.webp" data-src="/.media_cache/v1/images/479d529623364bd5.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="coba+lith" data-has-content="1" hidden><h3 class="c4" id="h.e8m04g7assgd"><span class="c24 c30 c13">Coba, Lith</span></h3><p class="c8"><span class="c0">&#128315;words</span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_gmutpuhs6fk7-0"><li class="c6 c35 c17 li-bullet-0"><span class="c0"></span></li></ul><p class="c3"><span class="c0"></span></p><h3 class="c16" id="h.85vdxtvqvi8o"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 403.92px;"><img alt="Coba, Lith screenshot"   style="width: 432.00px; height: 403.92px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="404" src="/.media_cache/v1/images/6fac5e1e999b9483.webp" data-src="/.media_cache/v1/images/6fac5e1e999b9483.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="oestrus" data-has-content="1" hidden><h3 class="c4" id="h.gf7dg6b4ofbu"><span class="c24 c30 c13">Oestrus</span></h3><p class="c8"><span class="c0">&#128315;pain</span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_gmutpuhs6fk7-0"><li class="c6 c35 c17 li-bullet-0"><span class="c0"></span></li></ul><p class="c3"><span class="c0"></span></p><h3 class="c16" id="h.kx5gwx3rrp2s"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 447.12px;"><img alt="Oestrus screenshot"   style="width: 432.00px; height: 447.12px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="447" src="/.media_cache/v1/images/f6801f70da213813.webp" data-src="/.media_cache/v1/images/f6801f70da213813.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="gaia" data-has-content="1" hidden><h3 class="c4" id="h.ttkwqyd3nxml"><span class="c24 c30 c13">Gaia</span></h3><p class="c8"><span class="c0">&#128315;2 tiles to roll, open tile depicted below has better spawns than Iron Wake variant.</span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_gmutpuhs6fk7-0"><li class="c6 c35 c17 li-bullet-0"><span class="c0"></span></li></ul><p class="c3"><span class="c0"></span></p><h3 class="c16" id="h.xq629c5egp4g"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 483.84px;"><img alt="Gaia screenshot"   style="width: 432.00px; height: 483.84px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="484" src="/.media_cache/v1/images/9093735eb2dd9f78.webp" data-src="/.media_cache/v1/images/9093735eb2dd9f78.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="hyf" data-has-content="1" hidden><h3 class="c4" id="h.zcr5w3275bow"><span class="c24 c30 c13">Hyf</span></h3><p class="c8"><span>&#128315;</span><span class="c10"><a class="c11" href="https://www.youtube.com/watch?v=-HsabIutq14">https://www.youtube.com/watch?v=-HsabIutq14</a></span><span>, </span><span class="c10"><a class="c11" href="https://www.youtube.com/watch?v=oGZ3l39V16U">https://www.youtube.com/watch?v=oGZ3l39V16U</a></span></p><p class="c3"><span class="c1"></span></p><ul class="c15 lst-kix_f0d8y2bgi20r-0 start"><li class="c2 li-bullet-0"><span class="c0">When running with shyte, Supporting ogris dps needs to keep good uptime on napalm for the spawns they can reach to prevent getting easily overrun.</span></li><li class="c2 li-bullet-0"><span>For this tile I </span><span class="c12">strongly</span><span class="c0">&nbsp;recommend everyone place down atomicycles and specters to keep the doors open to allow for better accessibility and prevent enemies getting stuck.</span></li><li class="c2 li-bullet-0"><span class="c0">Do not place atomicycle or specter at the 2nd floor middle doorway, if it dies/expires it will cause a hard crash and clients will disconnect from the host.</span></li><li class="c2 li-bullet-0"><span class="c0">Be careful of the right side spawns, it&#39;s a short run for them to get to the operative.</span></li></ul><p class="c3"><span class="c1"></span></p><p class="c34"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 638.18px;"><img alt="Hyf screenshot"   style="width: 432.00px; height: 638.18px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="638" src="/.media_cache/v1/images/8a3d0a35149068a2.webp" data-src="/.media_cache/v1/images/8a3d0a35149068a2.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="stofler" data-has-content="1" hidden><h3 class="c4" id="h.bhig007iwnrs"><span class="c24 c30 c13">St&ouml;fler</span></h3><p class="c8"><span class="c0">&#128315;Terrain changes to this after 2 rounds, tile is massive pain to loot, and loot despawns very quickly.</span></p><p class="c6"><span class="c0"></span></p><ul class="c15 lst-kix_gmutpuhs6fk7-0"><li class="c6 c35 c17 li-bullet-0"><span class="c0"></span></li></ul><p class="c3"><span class="c0"></span></p><p class="c34"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 417.96px;"><img alt="St&amp;ouml;fler screenshot"   style="width: 432.00px; height: 417.96px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="418" src="/.media_cache/v1/images/28e47ee10daa301a.webp" data-src="/.media_cache/v1/images/28e47ee10daa301a.webp" decoding="async" loading="lazy"></span></p><hr><p class="c7"><span class="c9">&#128315;MadLad </span><span class="c9">@UMBRAL_MASH#8049</span><span class="c0">&#128315;</span></p><p class="c7"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 384.00px; height: 126.13px;"><img alt="St&amp;ouml;fler screenshot"   style="width: 384.00px; height: 126.13px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="384" height="126" src="/.media_cache/v1/images/62e5d6d5465aaa38.webp" data-src="/.media_cache/v1/images/62e5d6d5465aaa38.webp" decoding="async" loading="lazy"></span></p><p class="c7 c32"><span class="c0"></span></p><p class="c7"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 573.48px;"><img alt="St&amp;ouml;fler screenshot"   style="width: 432.00px; height: 573.48px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="573" src="/.media_cache/v1/images/7f78e6ea56b0706b.webp" data-src="/.media_cache/v1/images/7f78e6ea56b0706b.webp" decoding="async" loading="lazy"></span></p><p class="c7 c32"><span class="c0"></span></p></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="hoverTip" role="tooltip"></div>
+
+<script>
+"use strict";
+(function () {
+
+var GROUPS = [{"id": "callisto+sinai+io", "label": "Callisto, Sinai, Io", "mission": ""}, {"id": "umbriel+stephano", "label": "Umbriel, Stephano", "mission": ""}, {"id": "cytherean+xini+gulliver", "label": "Cytherean, Xini, Gulliver", "mission": ""}, {"id": "alator+kadesh+spear", "label": "Alator, Kadesh, Spear", "mission": ""}, {"id": "tyana_pass", "label": "Tyana Pass", "mission": "Mirror Defense"}, {"id": "munio", "label": "Munio", "mission": "Mirror Defense"}, {"id": "mithra+taranis+belenus", "label": "Mithra, Taranis, Belenus", "mission": ""}, {"id": "casta+seimeni+cinxia", "label": "Casta, Seimeni, Cinxia", "mission": ""}, {"id": "hydron+helene+odin", "label": "Hydron, Helene, Odin", "mission": ""}, {"id": "sechura+tessera+outer_terminus", "label": "Sechura, Tessera, Outer Terminus", "mission": ""}, {"id": "ose+paimon+larzac", "label": "Ose, Paimon, Larzac", "mission": ""}, {"id": "rhea+lares+sangeru", "label": "Rhea, Lares, Sangeru", "mission": ""}, {"id": "akkad+kala-azar", "label": "Akkad, Kala-Azar", "mission": ""}, {"id": "coba+lith", "label": "Coba, Lith", "mission": ""}, {"id": "oestrus", "label": "Oestrus", "mission": "Infested Salvage"}, {"id": "gaia", "label": "Gaia", "mission": ""}, {"id": "hyf", "label": "Hyf", "mission": ""}, {"id": "stofler", "label": "Stöfler", "mission": ""}];
+var URL_BASE = "/3d_tilesets/";          // "/3d_tilesets/"
+var ACTIVE_SLUG = "munio";    // slug this static copy was built for
+var DATA_BASE = URL_BASE + "data/";   // absolute: pages live one level deeper
+
+var byId = {};
+GROUPS.forEach(function (g) { byId[g.id] = g; });
+
+// ---------------------------------------------------------------- DOM refs
+var canvas    = document.getElementById("glcanvas");
+var loadOv    = document.getElementById("loadOverlay");
+var loadMsg   = document.getElementById("loadMsg");
+var loadBar   = document.querySelector("#loadBar i");
+var loadPct   = document.getElementById("loadPct");
+var titleEl   = document.getElementById("tsTitle");
+var subEl     = document.getElementById("tsSub");
+var chipsEl   = document.getElementById("nodeChips");
+var sideEl    = document.getElementById("sidebarLinks");
+var legendEl  = document.getElementById("floorLegend");
+var clipRange = document.getElementById("clipRange");
+var clipVal   = document.getElementById("clipVal");
+var fpsBtn    = document.getElementById("fpsBtn");
+var resetBtn  = document.getElementById("resetBtn");
+var crosshair = document.getElementById("crosshair");
+var dpiHud    = document.getElementById("dpiHud");
+var dpiVal    = document.getElementById("dpiVal");
+var tipEl     = document.getElementById("hoverTip");
+var guideSection = document.getElementById("guideSection");
+
+// ---------------------------------------------------------------- state
+var manifest = null;      // maps.json
+var current  = null;      // { group, nodeId, overlay, geo }
+var meshCache = new Map(); // meshId -> decoded geometry (LRU-ish, capped)
+var MESH_CACHE_MAX = 4;
+var loadToken = 0;        // guards against out-of-order map switches
+
+// ---------------------------------------------------------------- helpers
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+function showLoad(msg, isErr) {
+  loadOv.style.display = "flex";
+  loadMsg.className = isErr ? "load-err" : "";
+  loadMsg.textContent = msg;
+  loadBar.style.width = "0%";
+  loadPct.textContent = "";
+  loadBar.parentNode.style.visibility = isErr ? "hidden" : "visible";
+}
+function hideLoad() { loadOv.style.display = "none"; }
+
+// ---------------------------------------------------------------- WebGL init
+var gl = canvas.getContext("webgl2", { antialias: true, alpha: false });
+if (!gl) {
+  showLoad("This viewer needs WebGL2, which this browser or device does not support.", true);
+}
+
+function compile(type, src) {
+  var s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function link(vsSrc, fsSrc) {
+  var p = gl.createProgram();
+  gl.attachShader(p, compile(gl.VERTEX_SHADER, vsSrc));
+  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+
+var meshProg = null, markProg = null;
+var meshU = {}, markU = {};
+
+if (gl) {
+  meshProg = link(
+    "#version 300 es\n" +
+    "precision highp float;\n" +
+    "layout(location=0) in vec3 q;\n" +
+    "layout(location=1) in vec4 col;\n" +
+    "uniform mat4 mvp; uniform vec3 org; uniform float qscale; uniform float depthStep;\n" +
+    "out vec3 wp; out vec4 vcol;\n" +
+    "void main(){\n" +
+    "  wp = q * qscale + org;\n" +
+    "  float packedA = floor(col.a * 255.0 + 0.5);\n" +
+    "  float layerPriority = mod(packedA, 8.0);\n" +
+    "  vcol = vec4(col.rgb, floor(packedA / 8.0) * 8.0 / 255.0);\n" +
+    "  gl_Position = mvp * vec4(wp, 1.0);\n" +
+    "  gl_Position.z -= layerPriority * depthStep * gl_Position.w;\n" +
+    "}",
+
+    "#version 300 es\n" +
+    "precision highp float;\n" +
+    "in vec3 wp; in vec4 vcol;\n" +
+    "uniform float clipHi; uniform vec3 eyeP, fogC; uniform vec2 fogR;\n" +
+    "out vec4 o;\n" +
+    "void main(){\n" +
+    "  if (wp.y > clipHi) discard;\n" +
+    "  vec3 dx = dFdx(wp), dy = dFdy(wp);\n" +
+    "  vec3 n = normalize(cross(dx, dy));\n" +
+    "  float up = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);\n" +
+    "  vec3 hemi = mix(vec3(0.24,0.26,0.31), vec3(1.06,1.03,0.97), up);\n" +
+    "  float key = max(dot(n, normalize(vec3(0.45,0.75,0.42))), 0.0) * 0.5;\n" +
+    "  float fill = max(dot(n, normalize(vec3(-0.5,0.2,-0.6))), 0.0) * 0.18;\n" +
+    "  float ao = 0.54 + 0.46 * vcol.a;\n" +
+    "  vec3 c = vcol.rgb * (hemi * 0.76 + vec3(key + fill)) * ao;\n" +
+    // A restrained display curve lifts genuinely dark local albedo without
+    // adding white or flattening the authored material-family colours.
+    "  c = pow(max(c, vec3(0.0)), vec3(0.72)) * 1.03;\n" +
+    "  float d = distance(wp, eyeP);\n" +
+    "  float f = clamp((d - fogR.x) / max(fogR.y - fogR.x, 0.001), 0.0, 1.0);\n" +
+    "  o = vec4(mix(c, fogC, f * 0.75), 1.0);\n" +
+    "}"
+  );
+  ["mvp","org","qscale","depthStep","clipHi","eyeP","fogC","fogR"].forEach(function (n) {
+    meshU[n] = gl.getUniformLocation(meshProg, n);
+  });
+
+  markProg = link(
+    "#version 300 es\n" +
+    "precision highp float;\n" +
+    "layout(location=0) in vec3 p;\n" +
+    "layout(location=1) in vec4 c;\n" +
+    "layout(location=2) in float w;\n" +
+    "uniform mat4 mvp; uniform float sizeScale; uniform float alphaScale; uniform int hoveredIndex;\n" +
+    "out vec4 vc; flat out float hot;\n" +
+    "void main(){\n" +
+    "  vc = c;\n" +
+    "  hot = (gl_VertexID == hoveredIndex) ? 1.0 : 0.0;\n" +
+    "  vec4 cp = mvp * vec4(p, 1.0);\n" +
+    "  gl_Position = cp;\n" +
+    "  float markerSize = clamp(sizeScale * (0.75 + 0.95 * w) / max(cp.w, 0.001), 18.0, 72.0);\n" +
+    "  gl_PointSize = markerSize * mix(1.0, 1.65, hot);\n" +
+    "}",
+
+    "#version 300 es\n" +
+    "precision highp float;\n" +
+    "in vec4 vc; flat in float hot;\n" +
+    "uniform float alphaScale;\n" +
+    "out vec4 o;\n" +
+    "void main(){\n" +
+    "  vec2 d = gl_PointCoord - vec2(0.5);\n" +
+    "  float r = length(d) * 2.0;\n" +
+    "  if (r > 1.0) discard;\n" +
+    "  float core = smoothstep(1.0, 0.82, r);\n" +
+    "  float fill = smoothstep(0.78, 0.56, r);\n" +
+    "  vec3 c = mix(vec3(0.01,0.015,0.02), vc.rgb * 1.5, fill);\n" +
+    "  c = mix(c, vec3(1.0), smoothstep(0.46, 0.0, r) * 0.30);\n" +
+    "  if (hot > 0.5) {\n" +
+    "    if (r > 0.72) c = vec3(1.0, 0.88, 0.18);\n" +
+    "    else if (r > 0.54) c = vec3(0.015, 0.02, 0.03);\n" +
+    "    else c = mix(vc.rgb * 1.65, vec3(1.0), smoothstep(0.54, 0.0, r) * 0.42);\n" +
+    "  }\n" +
+    "  o = vec4(c, vc.a * core * alphaScale);\n" +
+    "}"
+  );
+  ["mvp","sizeScale","alphaScale","hoveredIndex"].forEach(function (n) {
+    markU[n] = gl.getUniformLocation(markProg, n);
+  });
+}
+
+// ---------------------------------------------------------------- GPU buffers
+var meshVao = null, meshBufQ = null, meshBufC = null, meshBufI = null;
+var markVao = null, markBuf = null;
+var meshIndexCount = 0, meshIndexType = 0;
+var markCount = 0;
+var hoveredMarkerIndex = -1;
+
+function uploadMesh(geo) {
+  if (!meshVao) {
+    meshVao = gl.createVertexArray();
+    meshBufQ = gl.createBuffer();
+    meshBufC = gl.createBuffer();
+    meshBufI = gl.createBuffer();
+  }
+  gl.bindVertexArray(meshVao);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, meshBufQ);
+  gl.bufferData(gl.ARRAY_BUFFER, geo.qv, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 3, gl.SHORT, false, 6, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, meshBufC);
+  gl.bufferData(gl.ARRAY_BUFFER, geo.cb, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(1);
+  gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, true, 4, 0);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshBufI);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geo.idx, gl.STATIC_DRAW);
+
+  gl.bindVertexArray(null);
+  meshIndexCount = geo.idx.length;
+  meshIndexType = (geo.idx.BYTES_PER_ELEMENT === 2) ? gl.UNSIGNED_SHORT : gl.UNSIGNED_INT;
+}
+
+// marker vertex: x,y,z, r,g,b,a, weight  => 8 floats
+function uploadMarkers(list) {
+  if (!markVao) {
+    markVao = gl.createVertexArray();
+    markBuf = gl.createBuffer();
+  }
+  var data = new Float32Array(list.length * 8);
+  for (var i = 0; i < list.length; i++) {
+    var m = list[i], o = i * 8;
+    data[o] = m.x; data[o+1] = m.y; data[o+2] = m.z;
+    data[o+3] = m.r; data[o+4] = m.g; data[o+5] = m.b; data[o+6] = m.a;
+    data[o+7] = m.w;
+  }
+  gl.bindVertexArray(markVao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, markBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 32, 0);
+  gl.enableVertexAttribArray(1);
+  gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 32, 12);
+  gl.enableVertexAttribArray(2);
+  gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 32, 28);
+  gl.bindVertexArray(null);
+  markCount = list.length;
+  hoveredMarkerIndex = -1;
+}
+
+// ---------------------------------------------------------------- math
+function mat4Identity() {
+  return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+}
+function mat4Perspective(out, fovyRad, aspect, near, far) {
+  var f = 1 / Math.tan(fovyRad / 2), nf = 1 / (near - far);
+  out[0]=f/aspect; out[1]=0; out[2]=0;  out[3]=0;
+  out[4]=0; out[5]=f; out[6]=0; out[7]=0;
+  out[8]=0; out[9]=0; out[10]=(far+near)*nf; out[11]=-1;
+  out[12]=0; out[13]=0; out[14]=2*far*near*nf; out[15]=0;
+  return out;
+}
+function mat4LookAt(out, eye, center, up) {
+  var zx=eye[0]-center[0], zy=eye[1]-center[1], zz=eye[2]-center[2];
+  var zl=Math.hypot(zx,zy,zz) || 1; zx/=zl; zy/=zl; zz/=zl;
+  var xx=up[1]*zz-up[2]*zy, xy=up[2]*zx-up[0]*zz, xz=up[0]*zy-up[1]*zx;
+  var xl=Math.hypot(xx,xy,xz) || 1; xx/=xl; xy/=xl; xz/=xl;
+  var yx=zy*xz-zz*xy, yy=zz*xx-zx*xz, yz=zx*xy-zy*xx;
+  out[0]=xx; out[1]=yx; out[2]=zx; out[3]=0;
+  out[4]=xy; out[5]=yy; out[6]=zy; out[7]=0;
+  out[8]=xz; out[9]=yz; out[10]=zz; out[11]=0;
+  out[12]=-(xx*eye[0]+xy*eye[1]+xz*eye[2]);
+  out[13]=-(yx*eye[0]+yy*eye[1]+yz*eye[2]);
+  out[14]=-(zx*eye[0]+zy*eye[1]+zz*eye[2]);
+  out[15]=1;
+  return out;
+}
+function mat4Mul(out, a, b) {
+  for (var i = 0; i < 4; i++) {
+    var b0=b[i*4], b1=b[i*4+1], b2=b[i*4+2], b3=b[i*4+3];
+    out[i*4]   = b0*a[0] + b1*a[4] + b2*a[8]  + b3*a[12];
+    out[i*4+1] = b0*a[1] + b1*a[5] + b2*a[9]  + b3*a[13];
+    out[i*4+2] = b0*a[2] + b1*a[6] + b2*a[10] + b3*a[14];
+    out[i*4+3] = b0*a[3] + b1*a[7] + b2*a[11] + b3*a[15];
+  }
+  return out;
+}
+
+var projM = mat4Identity(), viewM = mat4Identity(), mvpM = mat4Identity();
+
+// ---------------------------------------------------------------- camera
+// Orbit camera uses familiar map controls: left-drag rotate, right-drag pan,
+// wheel zoom. FPS camera is separate so F toggles back to the orbit view.
+var cam = {
+  target: [0, 0, 0],
+  yaw: Math.PI * 0.25,
+  pitch: -0.62,
+  dist: 120,
+  minDist: 2,
+  maxDist: 4000
+};
+var home = null;   // snapshot for Reset camera
+
+var DEFAULT_MOUSE_DPI = Math.pow(1.15, 3);
+var MIN_MOUSE_DPI = DEFAULT_MOUSE_DPI * 0.25;
+var MAX_MOUSE_DPI = DEFAULT_MOUSE_DPI * 4.0;
+var MOUSE_DPI_STORAGE_KEY = "tilesetMouseDpi";
+function loadMouseDpi() {
+  try {
+    var saved = Number(localStorage.getItem(MOUSE_DPI_STORAGE_KEY));
+    if (Number.isFinite(saved) && saved >= MIN_MOUSE_DPI && saved <= MAX_MOUSE_DPI) {
+      return saved;
+    }
+  } catch (_err) {}
+  return DEFAULT_MOUSE_DPI;
+}
+function saveMouseDpi() {
+  try { localStorage.setItem(MOUSE_DPI_STORAGE_KEY, String(fps.mouseDpi)); }
+  catch (_err) {}
+}
+var fps = {
+  active: false,
+  pos: [0, 0, 0],
+  yaw: 0,
+  pitch: 0,
+  mouseDpi: loadMouseDpi(),
+  keys: Object.create(null)
+};
+function updateDpiHud() {
+  dpiVal.textContent = Math.round(fps.mouseDpi / DEFAULT_MOUSE_DPI * 100) + "%";
+}
+updateDpiHud();
+
+var FPS_FOV = 90 * Math.PI / 180;
+var ORBIT_FOV = 52 * Math.PI / 180;
+
+// Authored from the user's locally reviewed screenshots. `target` is an
+// absolute viewer-space orbit target; yaw/pitch are radians and dist is metres.
+// Keeping these data-driven makes the Reset button reproduce the approved view.
+// Screenshot-approved starting views. Distances are world-space so the same
+// framing survives the responsive desktop layout; the canvas aspect ratio is
+// held near 16:9 by CSS. Maps without a user-authored pan keep the spawn-centred
+// target calculated by frameOn().
+var CAMERA_PRESETS = {
+  "callisto+sinai+io": {target:[5.205103,-33.863803,-22.04191], yaw:-3.011059, pitch:-0.409066, dist:145.0, ceiling:50},
+  "umbriel+stephano": {target:[-17.753214,-19.532657,5.554408], yaw:0.0, pitch:-0.698132, dist:120.0, ceiling:40},
+  "cytherean+xini+gulliver": {target:[0.531116,-12.866282,0.552096], yaw:0.000001, pitch:-0.946, dist:141.593015, ceiling:56},
+  "alator+kadesh+spear": {target:[-27.663796,18.931762,6.707534], yaw:-1.560001, pitch:-0.936, dist:90.0, ceiling:70},
+  "tyana_pass": {target:[4.87537,6.060849,-9.536342], yaw:3.141593, pitch:-0.610865, dist:250.0, ceiling:70},
+  "munio": {target:[16.001629,36.976046,-6.11593], yaw:0.789398, pitch:-0.786865, dist:250.0, ceiling:52},
+  "mithra+taranis+belenus": {target:[-8.83281,-34.382601,1.3246], yaw:0.0, pitch:-0.872665, dist:156.363645, ceiling:20},
+  "casta+seimeni+cinxia": {target:[-3.26833,24.302202,-3.276596], yaw:0.785398, pitch:-0.610865, dist:101.0, ceiling:100},
+  "hydron+helene+odin": {target:[-1.700319,-15.737037,12.867354], yaw:1.568, pitch:-0.899931, dist:105.0, ceiling:51},
+  "sechura+tessera+outer_terminus": {target:[-23.010727,-6.54659,9.582888], yaw:2.171793, pitch:-0.663599, dist:88.692044, ceiling:39},
+  "ose+paimon+larzac": {target:[-7.944646,-19.43459,-43.014385], yaw:0.610865, pitch:-0.436332, dist:137.472668, ceiling:100},
+  "rhea+lares+sangeru": {target:[4.50073,-16.226332,-8.095243], yaw:-6.947999, pitch:-0.8773, dist:124.024654, ceiling:50},
+  "akkad+kala-azar": {target:[2.806096,-7.34581,1.43077], yaw:-1.958, pitch:-0.904, dist:110.0, ceiling:41},
+  "coba+lith": {target:[-2.845025,10.393959,-0.915467], yaw:1.424, pitch:-0.759931, dist:103.834878, ceiling:36},
+  "oestrus": {target:[-3.820106,-20.565318,1.174978], yaw:1.572, pitch:-0.895931, dist:95.837232, ceiling:45},
+  "gaia": {target:[-14.706538,39.911946,-12.087347], yaw:0.873398, pitch:-0.702132, dist:153.392433, ceiling:39},
+  "hyf": {target:[8.048491,-19.48457,-2.598587], yaw:-3.152, pitch:-1.024, dist:101.474717, ceiling:41},
+  "stofler": {target:[-0.131466,6.587611,-0.044738], yaw:-1.539999, pitch:-0.610865, dist:200.0, ceiling:38}
+};
+
+function orbitEye() {
+  var cp = Math.cos(cam.pitch);
+  return [
+    cam.target[0] + cam.dist * cp * Math.sin(cam.yaw),
+    cam.target[1] + cam.dist * Math.sin(cam.pitch) * -1,
+    cam.target[2] + cam.dist * cp * Math.cos(cam.yaw)
+  ];
+}
+function fpsForward() {
+  var cp = Math.cos(fps.pitch);
+  return [Math.sin(fps.yaw) * cp, Math.sin(fps.pitch), Math.cos(fps.yaw) * cp];
+}
+
+// ---------------------------------------------------------------- canvas size
+var dpr = 1, vw = 1, vh = 1;
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var cssW = canvas.clientWidth || 800;
+  var cssH = Math.max(360, Math.round(Math.min(cssW * 0.56, window.innerHeight * 0.72)));
+  canvas.style.height = cssH + "px";
+  var w = Math.round(cssW * dpr), h = Math.round(cssH * dpr);
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w; canvas.height = h;
+  }
+  vw = w; vh = h;
+  crosshair.style.left = (cssW / 2) + "px";
+  crosshair.style.top = (cssH / 2) + "px";
+  dpiHud.style.top = Math.max(12, cssH - 44) + "px";
+}
+window.addEventListener("resize", resize);
+
+// ---------------------------------------------------------------- pointer input
+var drag = null;
+canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+canvas.addEventListener("pointerdown", function (e) {
+  if (fps.active) return;
+  canvas.setPointerCapture(e.pointerId);
+  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, btn: e.button };
+});
+canvas.addEventListener("pointermove", function (e) {
+  if (fps.active || !drag || e.pointerId !== drag.id) { maybeHover(e); return; }
+  var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  drag.x = e.clientX; drag.y = e.clientY;
+  if (drag.btn === 0) {
+    cam.yaw -= dx * 0.006;
+    cam.pitch = Math.max(-1.5533, Math.min(1.5533, cam.pitch - dy * 0.006));
+  } else {
+    // pan in the camera's screen plane, scaled so it feels constant at any zoom
+    var s = cam.dist * 0.0016;
+    var rx = Math.cos(cam.yaw), rz = -Math.sin(cam.yaw);
+    cam.target[0] -= (dx * rx) * s;
+    cam.target[2] -= (dx * rz) * s;
+    cam.target[1] -= dy * s;
+  }
+});
+function endDrag(e) {
+  if (drag && e.pointerId === drag.id) {
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+    drag = null;
+  }
+}
+canvas.addEventListener("pointerup", endDrag);
+canvas.addEventListener("pointercancel", endDrag);
+canvas.addEventListener("pointerleave", function () {
+  hoveredMarkerIndex = -1;
+  tipEl.style.display = "none";
+});
+
+canvas.addEventListener("wheel", function (e) {
+  if (fps.active) return;
+  e.preventDefault();
+  var k = Math.exp(e.deltaY * 0.0012);
+  cam.dist = Math.max(cam.minDist, Math.min(cam.maxDist, cam.dist * k));
+}, { passive: false });
+
+// Hover tooltip over spawn markers in free camera. First person uses the
+// locked center crosshair and updates its live distance every frame below.
+function maybeHover(e) {
+  if (fps.active || !current || !current.markers || !current.markers.length) {
+    hoveredMarkerIndex = -1;
+    tipEl.style.display = "none"; return;
+  }
+  var rect = canvas.getBoundingClientRect();
+  var mx = e.clientX - rect.left;
+  var my = e.clientY - rect.top;
+  var best = null, bestIndex = -1, bestPx = 20;
+  for (var i = 0; i < current.markers.length; i++) {
+    var m = current.markers[i];
+    var cx = mvpM[0]*m.x + mvpM[4]*m.y + mvpM[8]*m.z + mvpM[12];
+    var cy = mvpM[1]*m.x + mvpM[5]*m.y + mvpM[9]*m.z + mvpM[13];
+    var cw = mvpM[3]*m.x + mvpM[7]*m.y + mvpM[11]*m.z + mvpM[15];
+    if (cw <= 0.001) continue;
+    var px = (cx / cw * 0.5 + 0.5) * rect.width;
+    var py = (0.5 - cy / cw * 0.5) * rect.height;
+    var screenD = Math.hypot(px - mx, py - my);
+    if (screenD < bestPx) { bestPx = screenD; best = m; bestIndex = i; }
+  }
+  hoveredMarkerIndex = bestIndex;
+  if (!best) { tipEl.style.display = "none"; return; }
+  tipEl.innerHTML = best.tip;
+  tipEl.style.display = "block";
+  tipEl.style.left = (e.clientX + 14) + "px";
+  tipEl.style.top = (e.clientY + 14) + "px";
+}
+
+function updateFpsMarkerHover() {
+  if (!fps.active || !current || !current.markers || !current.markers.length) {
+    hoveredMarkerIndex = -1;
+    tipEl.style.display = "none"; return;
+  }
+  var rect = canvas.getBoundingClientRect();
+  var best = null, bestIndex = -1, bestPx = 25, bestRange = Infinity;
+  for (var i = 0; i < current.markers.length; i++) {
+    var m = current.markers[i];
+    if (m.kind !== "spawn") continue;
+    var cx = mvpM[0]*m.x + mvpM[4]*m.y + mvpM[8]*m.z + mvpM[12];
+    var cy = mvpM[1]*m.x + mvpM[5]*m.y + mvpM[9]*m.z + mvpM[13];
+    var cw = mvpM[3]*m.x + mvpM[7]*m.y + mvpM[11]*m.z + mvpM[15];
+    if (cw <= 0.001) continue;
+    var px = (cx / cw * 0.5 + 0.5) * rect.width;
+    var py = (0.5 - cy / cw * 0.5) * rect.height;
+    var screenD = Math.hypot(px - rect.width * 0.5, py - rect.height * 0.5);
+    var range = Math.hypot(m.x - fps.pos[0], m.y - fps.pos[1], m.z - fps.pos[2]);
+    if (screenD < bestPx || (Math.abs(screenD - bestPx) < 0.5 && range < bestRange)) {
+      bestPx = screenD; bestRange = range; best = m; bestIndex = i;
+    }
+  }
+  hoveredMarkerIndex = bestIndex;
+  if (!best) { tipEl.style.display = "none"; return; }
+  tipEl.innerHTML = best.tip + "<br><b>Distance:</b> " + bestRange.toFixed(1) + " m";
+  tipEl.style.display = "block";
+  tipEl.style.left = (rect.left + rect.width * 0.5 + 20) + "px";
+  tipEl.style.top = (rect.top + rect.height * 0.5 + 20) + "px";
+}
+
+// ---------------------------------------------------------------- first person
+function enterFps() {
+  if (!current || !current.geo || fps.active) return;
+  // Drop in at the current orbit eye, looking at the orbit target, so the
+  // transition reads as continuous rather than a teleport.
+  var eye = orbitEye();
+  fps.pos = [eye[0], eye[1], eye[2]];
+  var dx = cam.target[0] - eye[0], dy = cam.target[1] - eye[1], dz = cam.target[2] - eye[2];
+  fps.yaw = Math.atan2(dx, dz);
+  fps.pitch = Math.atan2(dy, Math.hypot(dx, dz));
+  fps.keys = Object.create(null);
+  fps.active = true;
+  document.body.classList.add("fps-active");
+  tipEl.style.display = "none";
+  if (canvas.requestPointerLock) canvas.requestPointerLock();
+}
+function exitFps() {
+  if (!fps.active) return;
+  fps.active = false;
+  fps.keys = Object.create(null);
+  hoveredMarkerIndex = -1;
+  document.body.classList.remove("fps-active");
+  tipEl.style.display = "none";
+  if (document.pointerLockElement === canvas && document.exitPointerLock) document.exitPointerLock();
+}
+document.addEventListener("pointerlockchange", function () {
+  // ESC releases the lock through the browser; mirror that into our state.
+  if (document.pointerLockElement !== canvas && fps.active) exitFps();
+});
+document.addEventListener("mousemove", function (e) {
+  if (!fps.active || document.pointerLockElement !== canvas) return;
+  var lookScale = 0.0022 * fps.mouseDpi;
+  fps.yaw -= (e.movementX || 0) * lookScale;
+  fps.pitch = Math.max(-1.5533, Math.min(1.5533, fps.pitch - (e.movementY || 0) * lookScale));
+});
+
+fpsBtn.addEventListener("click", function () { fps.active ? exitFps() : enterFps(); });
+
+var MOVE_KEYS = { KeyW:1, KeyA:1, KeyS:1, KeyD:1, Space:1, ShiftLeft:1, ShiftRight:1, ControlLeft:1, ControlRight:1, KeyQ:1, KeyE:1 };
+
+window.addEventListener("keydown", function (e) {
+  var t = e.target;
+  var inputType = t && t.tagName === "INPUT" ? (t.type || "").toLowerCase() : "";
+  var editingText = t && (
+    t.tagName === "TEXTAREA" ||
+    t.isContentEditable ||
+    (t.tagName === "INPUT" && inputType !== "range" &&
+      inputType !== "button" && inputType !== "checkbox")
+  );
+  if (editingText) return;
+
+  if (e.code === "KeyF" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    fps.active ? exitFps() : enterFps();
+    return;
+  }
+  if (fps.active && (e.code === "KeyQ" || e.code === "KeyE")) {
+    e.preventDefault();
+    if (!e.repeat) {
+      clipRange.value = Math.max(0, Math.min(100,
+        (+clipRange.value) + (e.code === "KeyE" ? 2 : -2)));
+      clipFromSlider();
+    }
+    fps.keys[e.code] = true;
+    return;
+  }
+  if (fps.active && (e.code === "KeyZ" || e.code === "KeyX")) {
+    e.preventDefault();
+    if (!e.repeat) {
+      var dpiFactor = e.code === "KeyX" ? 1.15 : (1 / 1.15);
+      fps.mouseDpi = Math.max(
+        MIN_MOUSE_DPI,
+        Math.min(MAX_MOUSE_DPI, fps.mouseDpi * dpiFactor)
+      );
+      saveMouseDpi();
+      updateDpiHud();
+    }
+    return;
+  }
+  if (fps.active && MOVE_KEYS[e.code]) {
+    e.preventDefault();
+    fps.keys[e.code] = true;
+  }
+});
+window.addEventListener("keyup", function (e) {
+  if (MOVE_KEYS[e.code]) fps.keys[e.code] = false;
+});
+window.addEventListener("blur", function () { fps.keys = Object.create(null); });
+
+// ---------------------------------------------------------------- clip slider
+var clipLoW = 0, clipHiW = 1, clipCur = 1;
+function clipFromSlider() {
+  var t = (+clipRange.value) / 100;
+  clipCur = clipLoW + (clipHiW - clipLoW) * t;
+  clipVal.textContent = current && current.geo ? (Math.round(t * 100) + "%") : "";
+}
+clipRange.addEventListener("input", clipFromSlider);
+clipRange.addEventListener("pointerup", function () { clipRange.blur(); });
+clipRange.addEventListener("change", function () { clipRange.blur(); });
+
+// ---------------------------------------------------------------- render loop
+var lastT = 0;
+function frame(t) {
+  requestAnimationFrame(frame);
+  var dt = Math.min(0.05, (t - lastT) / 1000 || 0);
+  lastT = t;
+
+  if (!gl || !current || !current.geo) { return; }
+  resize();
+
+  if (fps.active) stepFps(dt);
+
+  var eye, aspect = vw / Math.max(vh, 1);
+  if (fps.active) {
+    mat4Perspective(projM, FPS_FOV, aspect, 0.15, 6000);
+    eye = fps.pos;
+    var f = fpsForward();
+    mat4LookAt(viewM, eye, [eye[0]+f[0], eye[1]+f[1], eye[2]+f[2]], [0, 1, 0]);
+  } else {
+    mat4Perspective(projM, ORBIT_FOV, aspect, 0.15, 6000);
+    eye = orbitEye();
+    mat4LookAt(viewM, eye, cam.target, [0, 1, 0]);
+  }
+  mat4Mul(mvpM, projM, viewM);
+
+  var geo = current.geo;
+  gl.viewport(0, 0, vw, vh);
+  gl.clearColor(geo.bg[0], geo.bg[1], geo.bg[2], 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LEQUAL);
+  gl.disable(gl.BLEND);
+  // No back-face culling: arena interiors and extracted geometry are not
+  // reliably wound, and the shader derives its normal from the view direction.
+  gl.disable(gl.CULL_FACE);
+
+  gl.useProgram(meshProg);
+  gl.uniformMatrix4fv(meshU.mvp, false, mvpM);
+  gl.uniform3fv(meshU.org, geo.org);
+  gl.uniform1f(meshU.qscale, geo.scale);
+  // Stable per-primitive depth priority prevents layered authored surfaces
+  // from alternating as the camera moves. Geometry stays intact; only depth
+  // ordering within a few millimetres is made deterministic.
+  gl.uniform1f(meshU.depthStep, 0.000002);
+  gl.uniform1f(meshU.clipHi, clipCur);
+  gl.uniform3fv(meshU.eyeP, eye);
+  gl.uniform3fv(meshU.fogC, geo.bg);
+  gl.uniform2f(meshU.fogR, geo.radius * 0.9, geo.radius * 3.4);
+  gl.bindVertexArray(meshVao);
+  gl.drawElements(gl.TRIANGLES, meshIndexCount, meshIndexType, 0);
+
+  if (markCount) {
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(markProg);
+    gl.uniformMatrix4fv(markU.mvp, false, mvpM);
+    gl.uniform1f(markU.sizeScale, 0.10 * vh);
+    gl.uniform1i(markU.hoveredIndex, hoveredMarkerIndex);
+    gl.bindVertexArray(markVao);
+
+    // A very faint depth-free ghost keeps occluded locations discoverable
+    // without making them look attached to the frontmost room.
+    gl.disable(gl.DEPTH_TEST);
+    gl.uniform1f(markU.alphaScale, 0.82);
+    gl.drawArrays(gl.POINTS, 0, markCount);
+    gl.enable(gl.DEPTH_TEST);
+    gl.uniform1f(markU.alphaScale, 1.0);
+    gl.drawArrays(gl.POINTS, 0, markCount);
+    gl.disable(gl.BLEND);
+  }
+  gl.bindVertexArray(null);
+  if (fps.active) updateFpsMarkerHover();
+}
+
+function stepFps(dt) {
+  var k = fps.keys;
+  var fwd = (k.KeyW ? 1 : 0) - (k.KeyS ? 1 : 0);
+  var str = (k.KeyA ? 1 : 0) - (k.KeyD ? 1 : 0);
+  var up  = (k.Space ? 1 : 0) - ((k.ControlLeft || k.ControlRight) ? 1 : 0);
+  // Normal flight now equals the former sprint speed. Sprint adds one more
+  // former-baseline increment instead of doubling the new baseline.
+  var speedMultiplier = (k.ShiftLeft || k.ShiftRight) ? 3.0 : 2.0;
+
+  if (k.KeyQ) { clipRange.value = Math.max(0, (+clipRange.value) - 60 * dt); clipFromSlider(); }
+  if (k.KeyE) { clipRange.value = Math.min(100, (+clipRange.value) + 60 * dt); clipFromSlider(); }
+
+  // Direct movement stops on keyup. Keep the speed proportional to each arena,
+  // but cap it so the larger tiles do not feel like a noclip sprint.
+  var base = Math.max(4.5, Math.min(16, current.geo.radius * 0.06)) * speedMultiplier;
+  var cp = Math.cos(fps.pitch);
+  var fx = Math.sin(fps.yaw) * cp, fy = Math.sin(fps.pitch), fz = Math.cos(fps.yaw) * cp;
+  var rx = Math.cos(fps.yaw), rz = -Math.sin(fps.yaw);
+
+  var wx = fx * fwd + rx * str;
+  var wy = fy * fwd + up;
+  var wz = fz * fwd + rz * str;
+  var wl = Math.hypot(wx, wy, wz);
+  if (wl > 0.0001) { wx /= wl; wy /= wl; wz /= wl; }
+
+  fps.pos[0] += wx * base * dt;
+  fps.pos[1] += wy * base * dt;
+  fps.pos[2] += wz * base * dt;
+
+}
+
+// ---------------------------------------------------------------- .wfg decode
+function decodeWfg(buf) {
+  var dv = new DataView(buf);
+  if (dv.getUint8(0) !== 0x57 || dv.getUint8(1) !== 0x46 ||
+      dv.getUint8(2) !== 0x47 || dv.getUint8(3) !== 0x31) {
+    throw new Error("Not a WFG1 mesh file");
+  }
+  var metaLen = dv.getUint32(8, true);
+  var meta = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 12, metaLen)));
+  var pay = 12 + metaLen;
+  pay += (4 - (pay % 4)) % 4;
+
+  var s = meta.sections;
+  var idxBits = meta.idxBits || 32;
+  var geo = {
+    qv:  new Int16Array(buf, pay + s.qv[0], s.qv[1] / 2),
+    cb:  new Uint8Array(buf, pay + s.cb[0], s.cb[1]),
+    idx: idxBits === 16
+      ? new Uint16Array(buf, pay + s.idx[0], s.idx[1] / 2)
+      : new Uint32Array(buf, pay + s.idx[0], s.idx[1] / 4),
+    org: new Float32Array(meta.org),
+    scale: meta.scale || 0.05,
+    bbox: meta.bbox,
+    bg: new Float32Array(meta.bg || [0.075, 0.09, 0.125]),
+    nv: meta.nv, nt: meta.nt,
+    defClip: meta.defClip
+  };
+  var bb = geo.bbox;
+  geo.center = [(bb[0]+bb[3])/2, (bb[1]+bb[4])/2, (bb[2]+bb[5])/2];
+  geo.radius = Math.max(8, Math.hypot(bb[3]-bb[0], bb[4]-bb[1], bb[5]-bb[2]) / 2);
+  return geo;
+}
+
+async function fetchWithProgress(url, label) {
+  var resp = await fetch(url, { cache: "force-cache" });
+  if (!resp.ok) throw new Error(label + ": HTTP " + resp.status);
+  var total = +(resp.headers.get("content-length") || 0);
+  if (!resp.body || !total) {
+    var ab = await resp.arrayBuffer();
+    return ab;
+  }
+  var reader = resp.body.getReader();
+  var chunks = [], got = 0;
+  for (;;) {
+    var r = await reader.read();
+    if (r.done) break;
+    chunks.push(r.value); got += r.value.length;
+    var p = Math.min(1, got / total);
+    loadBar.style.width = (p * 100).toFixed(0) + "%";
+    loadPct.textContent = (got / 1e6).toFixed(1) + " / " + (total / 1e6).toFixed(1) + " MB";
+  }
+  var out = new Uint8Array(got), off = 0;
+  for (var i = 0; i < chunks.length; i++) { out.set(chunks[i], off); off += chunks[i].length; }
+  return out.buffer;
+}
+
+// ---------------------------------------------------------------- markers
+var FLOOR_PALETTE = ["#39c5ff", "#4de08c", "#ffd75e", "#ff7ad0", "#b98cff", "#ff9d5e"];
+
+function hexToRgb(h) {
+  var n = parseInt(h.slice(1), 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+}
+
+// Several Defense tiles contain authored NpcSpawnPoints almost exactly at the
+// stationary objective transform (normally within 1.5 m). Those entities are
+// objective helpers, not useful Arbitration spawn guidance. Hide every marker
+// inside that deliberately tight radius; this includes npcSpawnPoint3021 on Hyf.
+function visibleSpawns(overlay) {
+  var spawns = (overlay && overlay.spawns) || [];
+  var hidden = new Set();
+  ((overlay && overlay.objective) || []).forEach(function (obj) {
+    if (obj.type !== "ObjectiveMarkerInfo") return;
+    spawns.forEach(function (s) {
+      var d = Math.hypot(s.x - obj.x, s.y - obj.y, s.z - obj.z);
+      if (d < 1.5) hidden.add(s);
+    });
+  });
+  return spawns.filter(function (s) { return !hidden.has(s); });
+}
+
+function buildMarkers(overlay, geo) {
+  var list = [];
+  var spawns = visibleSpawns(overlay);
+  var authored = overlay.spawnMode === "authored";
+  var maxN = 1;
+  spawns.forEach(function (s) { maxN = Math.max(maxN, s.n || 1); });
+
+  var floors = {};
+  spawns.forEach(function (s) {
+    var f = Math.round(s.y / 6) * 6;
+    floors[f] = (floors[f] || 0) + (authored ? 1 : (s.n || 0));
+  });
+  var fKeys = Object.keys(floors).map(Number).sort(function (a, b) { return a - b; });
+  var fColor = {};
+  fKeys.forEach(function (f, i) { fColor[f] = FLOOR_PALETTE[i % FLOOR_PALETTE.length]; });
+
+  var total = authored
+    ? (spawns.length || 1)
+    : (overlay.total || spawns.reduce(function (a, s) { return a + (s.n || 0); }, 0) || 1);
+
+  legendEl.innerHTML = fKeys.map(function (f) {
+    return '<span><span class="legend-dot" style="background:' + fColor[f] + '"></span>' +
+           f + 'm (' + (floors[f] / total * 100).toFixed(0) + '%)</span>';
+  }).join("") +
+  ((overlay.camps && overlay.camps.length)
+    ? '<span><span class="legend-dot" style="background:#4de08c"></span>Camp</span>' : "");
+
+  spawns.forEach(function (s, spawnIndex) {
+    var f = Math.round(s.y / 6) * 6;
+    var c = hexToRgb(fColor[f] || "#39c5ff");
+    var w = authored ? 1.0 : Math.pow((s.n || 1) / maxN, 0.5);
+    var entityMatch = String(s.path || "").match(/#(\d+)$/);
+    var entityId = entityMatch ? entityMatch[1] : String(spawnIndex + 1);
+    var tip = "<b>npcSpawnPoint" + entityId + "</b><br>(" +
+      Math.round(s.x) + ", " + Math.round(s.y) + ", " + Math.round(s.z) + ")";
+    if (!authored) {
+      tip += "<br>" + (s.n || 0).toLocaleString() + " spawns (" +
+        ((s.n || 0) / total * 100).toFixed(1) + "%)";
+    }
+    list.push({
+      x: s.x, y: s.y, z: s.z, r: c[0], g: c[1], b: c[2], a: authored ? 1.0 : 0.5 + 0.5 * w, w: w,
+      kind: "spawn",
+      tip: tip
+    });
+  });
+
+  (overlay.camps || []).forEach(function (cp) {
+    var c = hexToRgb("#4de08c");
+    list.push({ x: cp.x, y: cp.y, z: cp.z, r: c[0], g: c[1], b: c[2], a: 1, w: 1.25,
+                kind: "camp",
+                tip: "<b>" + esc(cp.name || "Camp position") + "</b>" +
+                     (cp.note ? "<br>" + esc(cp.note) : "") });
+  });
+  return list;
+}
+
+// ---------------------------------------------------------------- camera framing
+function frameOn(geo, overlay) {
+  // Prefer a camp position, then the spawn-weighted centroid. The authored
+  // defense-objective transform is not useful in Arbitrations because the
+  // operative is a moving NPC.
+  // Avoid an unweighted full-map centroid: repeated distant room markers can
+  // pull that point away from the playable arena.
+  var t = null;
+  var framingSpawns = visibleSpawns(overlay);
+  if (overlay && overlay.camps && overlay.camps.length) {
+    t = [overlay.camps[0].x, overlay.camps[0].y, overlay.camps[0].z];
+  } else if (framingSpawns.length) {
+    var sx = 0, sy = 0, sz = 0, sw = 0;
+    framingSpawns.forEach(function (s) {
+      var w = s.n || 1; sx += s.x * w; sy += s.y * w; sz += s.z * w; sw += w;
+    });
+    t = [sx / sw, sy / sw, sz / sw];
+  } else {
+    t = geo.center.slice();
+  }
+  var focusRadius = 0;
+  var focusMarkers = framingSpawns.concat((overlay && overlay.camps) || []);
+  focusMarkers.forEach(function (m) {
+    focusRadius = Math.max(
+      focusRadius,
+      Math.hypot(m.x - t[0], m.y - t[1], m.z - t[2])
+    );
+  });
+  cam.target = t;
+  cam.yaw = Math.PI * 0.25;
+  cam.pitch = -0.62;
+  // Frame the playable arena, not every distant piece of surrounding scenery.
+  // The complete mesh remains present and can be reached by orbiting/panning.
+  cam.dist = Math.max(geo.radius * 0.45, focusRadius * 1.35);
+  cam.minDist = Math.max(1, geo.radius * 0.02);
+  cam.maxDist = geo.radius * 9;
+  var preset = current && CAMERA_PRESETS[current.group.id];
+  if (preset) {
+    if (preset.target) cam.target = preset.target.slice();
+    if (typeof preset.yaw === "number") cam.yaw = preset.yaw;
+    if (typeof preset.pitch === "number") cam.pitch = preset.pitch;
+    if (typeof preset.dist === "number") cam.dist = preset.dist;
+  }
+  home = JSON.parse(JSON.stringify({ target: cam.target, yaw: cam.yaw, pitch: cam.pitch, dist: cam.dist }));
+}
+
+resetBtn.addEventListener("click", function () {
+  if (!home) return;
+  exitFps();
+  cam.target = home.target.slice();
+  cam.yaw = home.yaw; cam.pitch = home.pitch; cam.dist = home.dist;
+});
+
+// ---------------------------------------------------------------- loading a map
+async function loadGroup(gid) {
+  var g = byId[gid];
+  if (!g) return;
+  var token = ++loadToken;
+
+  clearHighlights();
+
+  exitFps();
+  setActiveSidebar(gid);
+  showGuideBlock(gid);
+  titleEl.textContent = g.label;
+  document.title = g.label + " | 3D Tileset | Warframe Arbitrations Guide";
+
+  // Every node in a group runs on the same arena, so a group resolves to
+  // exactly one mesh and one overlay. The node chips are informational.
+  var entry = manifest && manifest.groups && manifest.groups[gid];
+
+  chipsEl.innerHTML = (entry && entry.nodes && entry.nodes.length)
+    ? entry.nodes.map(function (n) {
+        var sub = [n.planet, n.mission, n.faction].filter(Boolean).join(" · ");
+        return "<span><b>" + esc(n.name) + "</b>" + (sub ? " " + esc(sub) : "") + "</span>";
+      }).join("")
+    : "";
+
+  if (!entry || !entry.mesh) {
+    subEl.textContent = g.mission || "";
+    current = null;
+    markCount = 0;
+    legendEl.innerHTML = "";
+    clipVal.textContent = "";
+    showLoad("No 3D data captured for " + g.label + " yet.", true);
+    applySearch();
+    return;
+  }
+
+  subEl.textContent = [entry.tileset, entry.mission].filter(Boolean).join("  ·  ");
+  showLoad("Loading " + g.label + "…");
+
+  try {
+    var overlay = entry.overlay
+      ? await (await fetch(DATA_BASE + entry.overlay, { cache: "no-cache" })).json()
+      : { spawns: [] };
+    if (token !== loadToken) return;
+
+    var geo = meshCache.get(entry.mesh);
+    if (!geo) {
+      var buf = await fetchWithProgress(DATA_BASE + entry.mesh + ".wfg", entry.mesh);
+      if (token !== loadToken) return;
+      geo = decodeWfg(buf);
+      meshCache.set(entry.mesh, geo);
+      while (meshCache.size > MESH_CACHE_MAX) {
+        meshCache.delete(meshCache.keys().next().value);
+      }
+    }
+    if (token !== loadToken) return;
+
+    current = { group: g, entry: entry, overlay: overlay, geo: geo };
+
+    uploadMesh(geo);
+    current.markers = buildMarkers(overlay, geo);
+    uploadMarkers(current.markers);
+
+    clipLoW = geo.bbox[1];
+    clipHiW = geo.bbox[4] + 1;
+    // Open on the complete authored tile. The cutaway is opt-in so roofs and
+    // upper/lower surrounding geometry are never mistaken for missing data.
+    var cameraPreset = CAMERA_PRESETS[gid];
+    clipRange.value = cameraPreset && typeof cameraPreset.ceiling === "number"
+      ? cameraPreset.ceiling : 100;
+    clipFromSlider();
+
+    frameOn(geo, overlay);
+
+    hideLoad();
+    // Re-highlight against the newly swapped-in content, and honour a pending
+    // cross-group hit if the reader navigated here from a search result.
+    applySearch();
+  } catch (err) {
+    if (token !== loadToken) return;
+    current = null;
+    showLoad("Could not load this map: " + err.message, true);
+  }
+}
+
+function setActiveSidebar(gid) {
+  var links = sideEl.querySelectorAll("a[data-group]");
+  for (var i = 0; i < links.length; i++) {
+    links[i].classList.toggle("active", links[i].getAttribute("data-group") === gid);
+  }
+}
+function showGuideBlock(gid) {
+  var blocks = document.querySelectorAll("#guideBlocks .guide-block");
+  var hasContent = false;
+  for (var i = 0; i < blocks.length; i++) {
+    var selected = blocks[i].getAttribute("data-group") === gid;
+    var populated = blocks[i].getAttribute("data-has-content") === "1";
+    blocks[i].hidden = !(selected && populated);
+    if (selected && populated) hasContent = true;
+  }
+  guideSection.hidden = !hasContent;
+}
+
+// ---------------------------------------------------------------- routing
+// Real static pages exist at /3d_tilesets/<slug>, so direct links, crawlers and
+// no-JS visitors all resolve server-side. Once JS is running we intercept the
+// sidebar and swap content with pushState, so moving between maps never
+// reloads the chrome or the WebGL context.
+function urlFor(gid) { return URL_BASE + gid; }
+
+function slugFromPath() {
+  var p = location.pathname;
+  if (p.indexOf(URL_BASE) !== 0) return "";
+  var rest = p.slice(URL_BASE.length).replace(/\/+$/, "");
+  try { rest = decodeURIComponent(rest); } catch (_) {}
+  return byId[rest] ? rest : "";
+}
+
+// Copy-link buttons. The button lives inside the sidebar <a>, so it must stop
+// propagation as well as prevent default or the click also navigates.
+var CHAIN_SVG = '<svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg>';
+var CLIP_SVG  = '<svg width="17" height="17" aria-hidden="true"><use href="#icon-clipboard"/></svg>';
+
+function resetCopyBtn(btn) {
+  btn.classList.remove("copied");
+  btn.innerHTML = CHAIN_SVG;
+}
+
+sideEl.addEventListener("click", function (e) {
+  var copy = e.target.closest(".sidebar-copy-link");
+  if (!copy) return;
+  e.preventDefault();
+  e.stopPropagation();
+  var row = copy.closest("a[data-group]");
+  if (!row) return;
+  var url = location.origin + urlFor(row.getAttribute("data-group"));
+  var done = function () {
+    copy.classList.add("copied");
+    copy.innerHTML = CLIP_SVG;
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done, function () {});
+  } else {
+    // Older engines: fall back to a throwaway textarea + execCommand.
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = url; ta.setAttribute("readonly", "");
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      done();
+    } catch (_) {}
+  }
+}, true);
+
+sideEl.addEventListener("mouseleave", function (e) {
+  var row = e.target.closest ? e.target.closest("a[data-group]") : null;
+  if (!row) return;
+  var btn = row.querySelector(".sidebar-copy-link");
+  if (btn) { btn.blur(); resetCopyBtn(btn); }
+}, true);
+sideEl.addEventListener("blur", function (e) {
+  if (e.target.classList && e.target.classList.contains("sidebar-copy-link")) resetCopyBtn(e.target);
+}, true);
+
+sideEl.addEventListener("click", function (e) {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  if (e.target.closest(".sidebar-copy-link")) return;
+  var a = e.target.closest("a[data-group]");
+  if (!a) return;
+  e.preventDefault();
+  var gid = a.getAttribute("data-group");
+  if (current && current.group.id === gid) return;
+  history.pushState({ g: gid }, "", urlFor(gid));
+  // Each sidebar entry behaves as its own page: content is swapped in place
+  // but the reader is returned to the top so it never reads as one long
+  // scrolling document.
+  loadGroup(gid);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+window.addEventListener("popstate", function () {
+  var gid = slugFromPath();
+  if (gid && (!current || current.group.id !== gid)) loadGroup(gid);
+});
+
+// ---------------------------------------------------------------- boot
+(async function boot() {
+  resize();
+  requestAnimationFrame(frame);
+
+  try {
+    var r = await fetch(DATA_BASE + "maps.json", { cache: "no-cache" });
+    manifest = r.ok ? await r.json() : { groups: {} };
+  } catch (_) {
+    manifest = { groups: {} };
+  }
+
+  // Prefer the slug this static copy was built for, then the URL (covers a
+  // Pages SPA fallback serving the landing copy), then the first group that
+  // actually has data, then simply the first group.
+  var startId = (ACTIVE_SLUG && byId[ACTIVE_SLUG]) ? ACTIVE_SLUG : slugFromPath();
+  if (!startId) {
+    for (var i = 0; i < GROUPS.length; i++) {
+      var e2 = manifest.groups && manifest.groups[GROUPS[i].id];
+      if (e2 && e2.mesh) { startId = GROUPS[i].id; break; }
+    }
+  }
+  if (!startId) startId = GROUPS[0].id;
+
+  // Landing copy: put the resolved slug in the URL without adding a history
+  // entry, so Back still leaves the section rather than cycling maps.
+  if (!ACTIVE_SLUG) history.replaceState({ g: startId }, "", urlFor(startId));
+
+  loadGroup(startId);
+})();
+
+// Local-only camera authoring hook. It is unavailable on arbi.guide and exists
+// solely so reviewed screenshots can be converted into reproducible presets.
+if (location.hostname === "127.0.0.1" || location.hostname === "localhost") {
+  var cameraDebugInput = document.createElement("textarea");
+  cameraDebugInput.id = "cameraDebugInput";
+  cameraDebugInput.setAttribute("aria-label", "Local camera preset input");
+  cameraDebugInput.style.cssText =
+    "position:fixed;left:-20px;top:-20px;width:1px;height:1px;opacity:.001;z-index:-1";
+  document.body.appendChild(cameraDebugInput);
+  function cameraDebugState() {
+    return {
+      group: current && current.group.id,
+      target: cam.target.slice(),
+      yaw: cam.yaw,
+      pitch: cam.pitch,
+      dist: cam.dist,
+      ceiling: +clipRange.value
+    };
+  }
+  function applyCameraDebug(v) {
+    if (v.target) cam.target = v.target.slice();
+    if (typeof v.yaw === "number") cam.yaw = v.yaw;
+    if (typeof v.pitch === "number") cam.pitch = v.pitch;
+    if (typeof v.dist === "number") cam.dist = v.dist;
+    if (typeof v.ceiling === "number") {
+      clipRange.value = v.ceiling;
+      clipFromSlider();
+    }
+    cameraDebugInput.setAttribute("data-camera-state", JSON.stringify(cameraDebugState()));
+  }
+  cameraDebugInput.addEventListener("input", function () {
+    try { applyCameraDebug(JSON.parse(cameraDebugInput.value)); } catch (_) {}
+  });
+  setInterval(function () {
+    cameraDebugInput.setAttribute("data-camera-state", JSON.stringify(cameraDebugState()));
+  }, 100);
+}
+
+// ---------------------------------------------------------------- display controls
+// Same three knobs and the same localStorage keys as the guide, so a reader's
+// font / spacing / width settings carry across both pages.
+(function setupDisplayControls() {
+  var FONT  = { key: "guideFontScale",          def: 1,    min: 0.7,  max: 1.6,  step: 0.05, css: "--font-scale" };
+  var LINE  = { key: "guideReadingLineHeight",  def: 1.55, min: 1.35, max: 1.9,  step: 0.03, css: "--reading-line-height" };
+  var WIDTH = { key: "guideContentMaxWidth",    def: 1200, min: 860,  max: 1600, step: 40,   css: "--content-max-width", unit: "px" };
+
+  function read(c) {
+    var v;
+    try { v = parseFloat(localStorage.getItem(c.key)); } catch (_) { v = NaN; }
+    return (isFinite(v) && v >= c.min && v <= c.max) ? v : c.def;
+  }
+  function apply(c, v) {
+    v = Math.max(c.min, Math.min(c.max, v));
+    // Round to the step so repeated float adds cannot drift (0.7000000000001).
+    v = Math.round(v / c.step) * c.step;
+    v = Math.max(c.min, Math.min(c.max, v));
+    document.documentElement.style.setProperty(c.css, c.unit ? v + c.unit : String(v));
+    try { localStorage.setItem(c.key, String(v)); } catch (_) {}
+    return v;
+  }
+  var state = {};
+  [FONT, LINE, WIDTH].forEach(function (c) { state[c.key] = apply(c, read(c)); });
+
+  function bump(c, dir) { state[c.key] = apply(c, state[c.key] + dir * c.step); }
+
+  function wireClick(id, c, dir) {
+    var b = document.getElementById(id);
+    if (b) b.addEventListener("click", function () { bump(c, dir); });
+  }
+  wireClick("fontIncreaseBtn", FONT, 1);
+  wireClick("fontDecreaseBtn", FONT, -1);
+  wireClick("spacingIncreaseBtn", LINE, 1);
+  wireClick("spacingDecreaseBtn", LINE, -1);
+
+  // Width is hold-to-adjust, driven by rAF with an elapsed-time accumulator so
+  // the rate is identical on 60/120/240Hz displays.
+  var INTERVAL_MS = 75;
+  var raf = null, acc = 0, lastTs = 0;
+  function startHold(c, dir, btn) {
+    stopHold();
+    bump(c, dir);
+    btn.classList.add("is-pressed");
+    acc = 0; lastTs = 0;
+    var step = function (ts) {
+      if (!lastTs) lastTs = ts;
+      acc += ts - lastTs;
+      lastTs = ts;
+      while (acc >= INTERVAL_MS) { acc -= INTERVAL_MS; bump(c, dir); }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  }
+  function stopHold() {
+    if (raf !== null) { cancelAnimationFrame(raf); raf = null; }
+    acc = 0; lastTs = 0;
+    var els = document.querySelectorAll(".control-buttons button.is-pressed");
+    for (var i = 0; i < els.length; i++) els[i].classList.remove("is-pressed");
+  }
+  [["widthIncreaseBtn", 1], ["widthDecreaseBtn", -1]].forEach(function (pair) {
+    var b = document.getElementById(pair[0]);
+    if (!b) return;
+    b.addEventListener("pointerdown", function (e) { e.preventDefault(); startHold(WIDTH, pair[1], b); });
+    ["pointerup", "pointerleave", "pointercancel", "blur"].forEach(function (ev) {
+      b.addEventListener(ev, stopHold);
+    });
+  });
+  window.addEventListener("blur", stopHold);
+
+  var reset = document.getElementById("resetControlsBtn");
+  if (reset) reset.addEventListener("click", function () {
+    stopHold();
+    [FONT, LINE, WIDTH].forEach(function (c) { state[c.key] = apply(c, c.def); });
+  });
+})();
+
+// ---------------------------------------------------------------- search
+// Every group's notes are in the DOM at once (inactive ones are `hidden`), so a
+// hit in another map is findable; navigating to it switches group first, then
+// re-locates the same hit by its ordinal within that group.
+var searchBox   = document.getElementById("searchBox");
+var searchCount = document.getElementById("searchCount");
+var searchOriginals = new Map();
+var searchHits = [];
+var searchPos = -1;
+var searchTimer = null;
+var pendingHit = null;
+
+function searchContainers() {
+  var out = [];
+  var blocks = document.querySelectorAll("#guideBlocks .guide-block");
+  for (var i = 0; i < blocks.length; i++) out.push(blocks[i]);
+  return out;
+}
+
+function clearHighlights() {
+  // Defensive: loadGroup can in principle be reached before this module-level
+  // Map is assigned, and a throw there would abort the whole map load.
+  if (!searchOriginals) return;
+  searchOriginals.forEach(function (html, el) { el.innerHTML = html; });
+  searchOriginals.clear();
+  searchHits = [];
+  searchPos = -1;
+}
+
+function highlightIn(el, re) {
+  var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+  var nodes = [], n;
+  while ((n = walker.nextNode())) {
+    if (n.nodeValue && n.nodeValue.trim()) nodes.push(n);
+  }
+  var made = [];
+  nodes.forEach(function (node) {
+    var text = node.nodeValue;
+    re.lastIndex = 0;
+    if (!re.test(text)) return;
+    re.lastIndex = 0;
+    var frag = document.createDocumentFragment();
+    var last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      if (m[0].length === 0) { re.lastIndex++; continue; }
+      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      var mk = document.createElement("mark");
+      mk.className = "ts-hit";
+      mk.textContent = m[0];
+      frag.appendChild(mk);
+      made.push(mk);
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    if (node.parentNode) node.parentNode.replaceChild(frag, node);
+  });
+  return made;
+}
+
+function updateSearchCount() {
+  if (!searchCount) return;
+  var term = (searchBox && searchBox.value || "").trim();
+  if (term.length < 2) { searchCount.textContent = ""; return; }
+  searchCount.textContent = searchHits.length
+    ? ((searchPos >= 0 ? searchPos + 1 : 1) + " / " + searchHits.length)
+    : "0 / 0";
+}
+
+function applySearch() {
+  clearHighlights();
+  var term = (searchBox && searchBox.value || "").trim();
+  if (term.length < 2) { updateSearchCount(); return; }
+  // Escape every regex metacharacter so a literal search never throws.
+  var re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+  searchContainers().forEach(function (el) {
+    searchOriginals.set(el, el.innerHTML);
+    var block = el.closest(".guide-block");
+    var gid = block ? block.getAttribute("data-group") : (current ? current.group.id : "");
+    highlightIn(el, re).forEach(function (mk) { searchHits.push({ el: mk, gid: gid }); });
+  });
+
+  if (pendingHit) {
+    var want = pendingHit; pendingHit = null;
+    var ord = 0;
+    for (var i = 0; i < searchHits.length; i++) {
+      if (searchHits[i].gid !== want.gid) continue;
+      if (ord === want.ord) { setCurrentHit(i); return; }
+      ord++;
+    }
+  }
+  updateSearchCount();
+}
+
+function setCurrentHit(idx) {
+  for (var i = 0; i < searchHits.length; i++) searchHits[i].el.classList.remove("current");
+  searchPos = idx;
+  var hit = searchHits[idx];
+  if (hit && hit.el.isConnected) {
+    hit.el.classList.add("current");
+    hit.el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  updateSearchCount();
+}
+
+function goToHit(i) {
+  if (!searchHits.length) { updateSearchCount(); return; }
+  var n = searchHits.length;
+  var idx = ((i % n) + n) % n;
+  var hit = searchHits[idx];
+  if (hit.gid && (!current || current.group.id !== hit.gid)) {
+    var ord = 0;
+    for (var k = 0; k < idx; k++) if (searchHits[k].gid === hit.gid) ord++;
+    pendingHit = { gid: hit.gid, ord: ord };
+    history.pushState({ g: hit.gid }, "", urlFor(hit.gid));
+    loadGroup(hit.gid);
+    return;
+  }
+  setCurrentHit(idx);
+}
+
+if (searchBox) {
+  searchBox.addEventListener("input", function () {
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () {
+      searchTimer = null;
+      applySearch();
+      if (searchHits.length) goToHit(0);
+    }, 180);
+  });
+  searchBox.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (searchTimer) { clearTimeout(searchTimer); searchTimer = null; applySearch(); }
+    goToHit(searchPos + (e.shiftKey ? -1 : 1));
+  });
+}
+var sPrev = document.getElementById("searchPrevBtn");
+var sNext = document.getElementById("searchNextBtn");
+if (sPrev) sPrev.addEventListener("click", function () { goToHit(searchPos - 1); searchBox.focus(); });
+if (sNext) sNext.addEventListener("click", function () { goToHit(searchPos + 1); searchBox.focus(); });
+
+// ---------------------------------------------------------------- viewer count
+// Same presence Worker the main guide uses, so the count is shared across both
+// pages rather than being a second independent tally.
+(function initViewerCount() {
+  var WORKER_URL = "https://arbi-presence.7llewellyn.workers.dev";
+  if (!WORKER_URL) return;
+  var numEl = document.getElementById("viewerCountNum");
+  var wrapEl = document.getElementById("viewerCount");
+  if (!numEl || !wrapEl) return;
+
+  function createSessionId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+      var bytes = new Uint8Array(16);
+      window.crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      var hex = Array.prototype.map.call(bytes, function (b) {
+        return b.toString(16).padStart(2, "0");
+      });
+      return hex.slice(0, 4).join("") + "-" + hex.slice(4, 6).join("") + "-" +
+             hex.slice(6, 8).join("") + "-" + hex.slice(8, 10).join("") + "-" +
+             hex.slice(10, 16).join("");
+    }
+    return "sid-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
+
+  // Shares the storage key with the guide so moving between the two pages
+  // counts as one visitor, not two.
+  var sid = sessionStorage.getItem("arbi_sid");
+  if (!sid) {
+    sid = createSessionId();
+    sessionStorage.setItem("arbi_sid", sid);
+  }
+
+  function setCount(n) {
+    numEl.textContent = n;
+    wrapEl.classList.add("is-ready");
+  }
+  function beat() {
+    fetch(WORKER_URL, { method: "POST", body: JSON.stringify({ sid: sid }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && typeof d.count === "number") setCount(d.count); })
+      .catch(function () { /* Presence failures must not affect the viewer. */ });
+  }
+  function sendLeave() {
+    var body = JSON.stringify({ sid: sid, leave: true });
+    if (navigator.sendBeacon) {
+      try {
+        if (navigator.sendBeacon(WORKER_URL, new Blob([body], { type: "text/plain" }))) return;
+      } catch (_) { /* fall through to keepalive fetch */ }
+    }
+    fetch(WORKER_URL, { method: "POST", body: body, keepalive: true }).catch(function () {});
+  }
+
+  var HEARTBEAT_MS = 60000;
+  var timer = null;
+  function schedule(ms) {
+    if (timer !== null) clearTimeout(timer);
+    timer = setTimeout(tick, Math.max(1000, ms));
+  }
+  function tick() { timer = null; beat(); schedule(HEARTBEAT_MS); }
+
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) { if (timer !== null) clearTimeout(timer); tick(); }
+  });
+  window.addEventListener("pagehide", sendLeave);
+  tick();
+})();
+
+})();
+</script>
+</body>
+</html>

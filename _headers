@@ -1,3 +1,13 @@
 /*
   Content-Security-Policy: frame-ancestors 'none'
   X-Frame-Options: DENY
+
+# .wfg filenames are the content hash of the mesh, so a changed mesh is a
+# changed URL and these cache permanently. Never add a revalidation
+# directive here: paired with immutable it costs a round trip per map switch.
+/3d_tilesets/data/*.wfg
+  Cache-Control: public, max-age=31536000, immutable
+
+# Overlays may change after a data rebuild or marker enrichment, so they revalidate.
+/3d_tilesets/data/*.wfo
+  Cache-Control: public, max-age=300, must-revalidate
