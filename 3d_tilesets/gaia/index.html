@@ -1081,7 +1081,7 @@ window.addEventListener("keydown", function (e) {
     e.preventDefault();
     if (!e.repeat) {
       clipRange.value = Math.max(0, Math.min(100,
-        (+clipRange.value) + (e.code === "KeyE" ? 2 : -2)));
+        (+clipRange.value) + (e.code === "KeyE" ? 1 : -1)));
       clipFromSlider();
     }
     fps.keys[e.code] = true;
@@ -1204,8 +1204,8 @@ function stepFps(dt) {
   // former-baseline increment instead of doubling the new baseline.
   var speedMultiplier = (k.ShiftLeft || k.ShiftRight) ? 3.0 : 2.0;
 
-  if (k.KeyQ) { clipRange.value = Math.max(0, (+clipRange.value) - 60 * dt); clipFromSlider(); }
-  if (k.KeyE) { clipRange.value = Math.min(100, (+clipRange.value) + 60 * dt); clipFromSlider(); }
+  if (k.KeyQ) { clipRange.value = Math.max(0, (+clipRange.value) - 15 * dt); clipFromSlider(); }
+  if (k.KeyE) { clipRange.value = Math.min(100, (+clipRange.value) + 15 * dt); clipFromSlider(); }
 
   // Direct movement stops on keyup. Keep the speed proportional to each arena,
   // but cap it so the larger tiles do not feel like a noclip sprint.
