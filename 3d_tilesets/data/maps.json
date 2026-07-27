@@ -498,8 +498,28 @@
         "fcd5a887055ccf64.part01.wfg",
         "fcd5a887055ccf64.part02.wfg"
       ]
+    },
+    "berehynia": {
+      "mesh": "87177ac2c088c435",
+      "overlay": "berehynia.wfo",
+      "tileset": "Grineer Shipyard",
+      "mission": "Interception",
+      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "nodes": [
+        {
+          "name": "Berehynia",
+          "planet": "Sedna",
+          "mission": "Interception",
+          "faction": "Grineer"
+        }
+      ],
+      "meshBytes": 31216284,
+      "meshFiles": [
+        "87177ac2c088c435.part00.wfg",
+        "87177ac2c088c435.part01.wfg"
+      ]
     }
   },
-  "generated": "2026-07-26",
+  "generated": "2026-07-27",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used."
 }
