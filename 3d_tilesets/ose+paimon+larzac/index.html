@@ -345,7 +345,7 @@
       line-height: var(--reading-line-height);
     }
     .guide-block img, .guide-block video {
-      max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 12px 0;
+      max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 12px auto;
     }
     .guide-block table { max-width: 100%; overflow-x: auto; display: block; }
 
@@ -549,6 +549,10 @@ var current  = null;      // { group, nodeId, overlay, geo }
 var meshCache = new Map(); // meshId -> decoded geometry (LRU-ish, capped)
 var MESH_CACHE_MAX = 4;
 var loadToken = 0;        // guards against out-of-order map switches
+var prefetchQueue = [];   // group IDs waiting to be persisted in browser cache
+var prefetchDone = new Set();
+var prefetchRunning = false;
+var prefetchStarted = false;
 
 // ---------------------------------------------------------------- helpers
 function esc(s) {
@@ -1227,12 +1231,21 @@ function decodeWfg(buf) {
   return geo;
 }
 
-async function fetchWithProgress(url, label) {
+async function fetchWithProgress(url, label, overallBase, overallTotal) {
   var resp = await fetch(url, { cache: "force-cache" });
   if (!resp.ok) throw new Error(label + ": HTTP " + resp.status);
+  if ((resp.headers.get("content-type") || "").toLowerCase().indexOf("text/html") >= 0) {
+    throw new Error(label + ": data file is missing from the deployment");
+  }
   var total = +(resp.headers.get("content-length") || 0);
   if (!resp.body || !total) {
     var ab = await resp.arrayBuffer();
+    if (overallTotal) {
+      var done = Math.min(overallTotal, (overallBase || 0) + ab.byteLength);
+      loadBar.style.width = (done / overallTotal * 100).toFixed(0) + "%";
+      loadPct.textContent = (done / 1e6).toFixed(1) + " / " +
+                            (overallTotal / 1e6).toFixed(1) + " MB";
+    }
     return ab;
   }
   var reader = resp.body.getReader();
@@ -1241,13 +1254,130 @@ async function fetchWithProgress(url, label) {
     var r = await reader.read();
     if (r.done) break;
     chunks.push(r.value); got += r.value.length;
-    var p = Math.min(1, got / total);
+    var shown = overallTotal ? (overallBase || 0) + got : got;
+    var shownTotal = overallTotal || total;
+    var p = Math.min(1, shown / shownTotal);
     loadBar.style.width = (p * 100).toFixed(0) + "%";
-    loadPct.textContent = (got / 1e6).toFixed(1) + " / " + (total / 1e6).toFixed(1) + " MB";
+    loadPct.textContent = (shown / 1e6).toFixed(1) + " / " +
+                          (shownTotal / 1e6).toFixed(1) + " MB";
   }
   var out = new Uint8Array(got), off = 0;
   for (var i = 0; i < chunks.length; i++) { out.set(chunks[i], off); off += chunks[i].length; }
   return out.buffer;
+}
+
+async function fetchMeshPayload(entry) {
+  // Cloudflare Pages caps each static asset at 25 MiB. Large WFG payloads are
+  // therefore published as ordered, content-addressed parts and reassembled
+  // byte-for-byte in memory. Older/local manifests with one .wfg still work.
+  var files = Array.isArray(entry.meshFiles) && entry.meshFiles.length
+    ? entry.meshFiles : [entry.mesh + ".wfg"];
+  if (files.length === 1) {
+    return fetchWithProgress(DATA_BASE + files[0], entry.mesh, 0, entry.meshBytes || 0);
+  }
+
+  var total = +entry.meshBytes || 0;
+  if (!total) throw new Error(entry.mesh + ": split mesh is missing meshBytes");
+  var joined = new Uint8Array(total);
+  var offset = 0;
+  for (var i = 0; i < files.length; i++) {
+    var part = await fetchWithProgress(
+      DATA_BASE + files[i],
+      entry.mesh + " part " + (i + 1) + "/" + files.length,
+      offset,
+      total
+    );
+    if (offset + part.byteLength > total) {
+      throw new Error(entry.mesh + ": split mesh exceeds declared size");
+    }
+    joined.set(new Uint8Array(part), offset);
+    offset += part.byteLength;
+  }
+  if (offset !== total) {
+    throw new Error(entry.mesh + ": split mesh size mismatch");
+  }
+  return joined.buffer;
+}
+
+function meshFilesFor(entry) {
+  return Array.isArray(entry.meshFiles) && entry.meshFiles.length
+    ? entry.meshFiles.slice() : [entry.mesh + ".wfg"];
+}
+
+function cacheKeysFor(entry) {
+  var files = meshFilesFor(entry);
+  if (entry.overlay) files.unshift(entry.overlay);
+  return files;
+}
+
+function markEntryCached(entry) {
+  cacheKeysFor(entry).forEach(function (name) { prefetchDone.add(name); });
+}
+
+function prioritizeBackgroundGroup(gid) {
+  if (!gid) return;
+  prefetchQueue = prefetchQueue.filter(function (id) { return id !== gid; });
+  prefetchQueue.unshift(gid);
+}
+
+async function consumeIntoBrowserCache(name) {
+  if (prefetchDone.has(name)) return;
+  var resp = await fetch(DATA_BASE + name, { cache: "force-cache" });
+  if (!resp.ok) throw new Error(name + ": HTTP " + resp.status);
+  if ((resp.headers.get("content-type") || "").toLowerCase().indexOf("text/html") >= 0) {
+    throw new Error(name + ": data file is missing from the deployment");
+  }
+  // Consume without retaining chunks. The HTTP cache owns the bytes; decoded
+  // geometry remains capped separately by MESH_CACHE_MAX.
+  if (resp.body && resp.body.getReader) {
+    var reader = resp.body.getReader();
+    for (;;) {
+      var item = await reader.read();
+      if (item.done) break;
+    }
+  } else {
+    await resp.arrayBuffer();
+  }
+  prefetchDone.add(name);
+}
+
+async function pumpBackgroundPrefetch() {
+  if (prefetchRunning || !manifest) return;
+  prefetchRunning = true;
+  try {
+    while (prefetchQueue.length) {
+      var gid = prefetchQueue.shift();
+      var entry = manifest.groups && manifest.groups[gid];
+      if (!entry || !entry.mesh) continue;
+      var files = cacheKeysFor(entry);
+      for (var i = 0; i < files.length; i++) {
+        try {
+          await consumeIntoBrowserCache(files[i]);
+        } catch (_) {
+          // A foreground selection will surface a useful error. Background
+          // warming is best-effort and must never interrupt the active viewer.
+          break;
+        }
+      }
+    }
+  } finally {
+    prefetchRunning = false;
+    if (prefetchQueue.length) setTimeout(pumpBackgroundPrefetch, 0);
+  }
+}
+
+function startBackgroundPrefetch(activeGid) {
+  if (!manifest) return;
+  if (!prefetchStarted) {
+    prefetchStarted = true;
+    for (var i = 0; i < GROUPS.length; i++) {
+      if (GROUPS[i].id !== activeGid) prefetchQueue.push(GROUPS[i].id);
+    }
+  }
+  // If the reader switches while warming is underway, the selected map goes
+  // to the front. Its foreground load starts independently and immediately.
+  prioritizeBackgroundGroup(activeGid);
+  setTimeout(pumpBackgroundPrefetch, 150);
 }
 
 // ---------------------------------------------------------------- markers
@@ -1422,6 +1552,10 @@ async function loadGroup(gid) {
 
   subEl.textContent = [entry.tileset, entry.mission].filter(Boolean).join("  ·  ");
   showLoad("Loading " + g.label + "…");
+  if (prefetchStarted) {
+    prioritizeBackgroundGroup(gid);
+    setTimeout(pumpBackgroundPrefetch, 0);
+  }
 
   try {
     var overlay = entry.overlay
@@ -1431,7 +1565,7 @@ async function loadGroup(gid) {
 
     var geo = meshCache.get(entry.mesh);
     if (!geo) {
-      var buf = await fetchWithProgress(DATA_BASE + entry.mesh + ".wfg", entry.mesh);
+      var buf = await fetchMeshPayload(entry);
       if (token !== loadToken) return;
       geo = decodeWfg(buf);
       meshCache.set(entry.mesh, geo);
@@ -1442,6 +1576,7 @@ async function loadGroup(gid) {
     if (token !== loadToken) return;
 
     current = { group: g, entry: entry, overlay: overlay, geo: geo };
+    markEntryCached(entry);
 
     uploadMesh(geo);
     current.markers = buildMarkers(overlay, geo);
@@ -1459,6 +1594,7 @@ async function loadGroup(gid) {
     frameOn(geo, overlay);
 
     hideLoad();
+    startBackgroundPrefetch(gid);
     // Re-highlight against the newly swapped-in content, and honour a pending
     // cross-group hit if the reader navigated here from a search result.
     applySearch();
