@@ -2160,10 +2160,18 @@
       const resolveDepth = createOutlineDepthResolver(candidates);
 
       candidates.forEach((item) => {
+        let sourceTarget = resolveTargetFromHref(item.href);
+        if (sourceTarget?.closest(".inline-outline-source")) {
+          sourceTarget = null;
+        }
         const target = ensureReadableAliasForTarget(
-          resolveTargetFromHref(item.href) || findTextAnchorTarget(item.text),
+          sourceTarget || findTextAnchorTarget(item.text),
           item.text
         );
+        // Sections routed to another page remain in Google's hidden outline,
+        // but no longer have a visible target in this document. Omitting every
+        // targetless entry also removes their now-empty parent branch.
+        if (!target || target.closest(".inline-outline-source")) return;
 
         outline.push({
           href: item.href,
