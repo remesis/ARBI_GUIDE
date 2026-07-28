@@ -273,7 +273,7 @@
       position: absolute; z-index: 5; width: 16px; height: 16px; margin: -8px 0 0 -8px;
       display: none; pointer-events: none;
     }
-    body.fps-active #crosshair { display: block; }
+    body.fps-active #crosshair, body.local-authoring #crosshair { display: block; }
     #crosshair::before, #crosshair::after {
       content: ""; position: absolute; background: rgba(255,255,255,0.85); border-radius: 1px;
     }
@@ -447,7 +447,7 @@
 
   <div class="layout">
     <aside class="sidebar">
-      <div class="sidebar-head"><span>Last updated: 2026-07-27</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
+      <div class="sidebar-head"><span>Last updated: 2026-07-28</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
       <nav class="sidebar-links" id="sidebarLinks" aria-label="Tileset list">
         <a href="/3d_tilesets/callisto+sinai+io" data-group="callisto+sinai+io"><span class="sidebar-label">Callisto, Sinai, Io</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
         <a href="/3d_tilesets/umbriel+stephano" data-group="umbriel+stephano"><span class="sidebar-label">Umbriel, Stephano</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="17" height="17" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
@@ -510,25 +510,25 @@
 
         <section class="card guide-sec" id="guideSection">
           <div id="guideBlocks">
-            <div class="guide-block" data-group="callisto+sinai+io" data-has-content="1" hidden><h3 class="c19" id="h.vy6xs77lp9vq"><span class="c51">C</span><span class="c51">allisto, Sinai, Io</span></h3><p class="c7"><span class="c0">&#128315;There are 4 different starting tilesets to roll, look for the two short hallway one depicted below.</span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_lmuy1vhpgmy5-0 start"><li class="c7 c14 li-bullet-0"><span class="c0">Every time someone loots the starting area past the big door at the top of the stairs, it breaks the rest of the spawns for a noticeable amount of time. So either do NOT loot the void section vitus at all, or only loot if the team all agrees to not loot unless there are 3 or more drops in there.</span></li></ul><p class="c4"><span class="c0"></span></p><p class="c12"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 545.40px;"><img alt="Callisto, Sinai, Io screenshot"   style="width: 432.00px; height: 545.40px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="545" src="/.media_cache/v1/images/188c97731df9ece6.webp" data-src="/.media_cache/v1/images/188c97731df9ece6.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="umbriel+stephano" data-has-content="1" hidden><h3 class="c19" id="h.fwucq162acnv"><span class="c5">Umbriel, Stephano</span></h3><p class="c7"><span class="c0">&#128315;Roll for cave network tile for Umbriel, and the sealab tile for Stephano.</span></p><p class="c7 c8"><span class="c0"></span></p><ul class="c18 lst-kix_8m41az7hjzhy-0 start"><li class="c7 c14 c8 li-bullet-0"><span class="c0"></span></li></ul><p class="c7 c8"><span class="c0"></span></p><p class="c12"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 421.20px;"><img alt="Umbriel, Stephano screenshot"   style="width: 432.00px; height: 421.20px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="421" src="/.media_cache/v1/images/88f796357d0d4bf8.webp" data-src="/.media_cache/v1/images/88f796357d0d4bf8.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="cytherean+xini+gulliver" data-has-content="1" hidden><h3 class="c19" id="h.lwc8m2usajpv"><span class="c5">Cytherean, Xini, Gulliver</span></h3><p class="c24"><span class="c0">&#128315;</span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_3qlpxbhqiovn-0 start"><li class="c1 c8 li-bullet-0"><span class="c0"></span></li></ul><h3 class="c37 c26 c48" id="h.nu433t5k761k"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 465.48px;"><img alt="Cytherean, Xini, Gulliver screenshot"   style="width: 432.00px; height: 465.48px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="465" src="/.media_cache/v1/images/5ec34784702459c4.webp" data-src="/.media_cache/v1/images/5ec34784702459c4.webp" decoding="async" loading="lazy"></span></h3></div>
-      <div class="guide-block" data-group="alator+kadesh+spear" data-has-content="1" hidden><h3 class="c19" id="h.15tomtv5uk89"><span class="c15 c51">Alator</span><span class="c5">, Kadesh, Spear</span></h3><p class="c7"><span>&#128315;</span><span class="c20 c15"><a class="c32" href="https://www.youtube.com/watch?v=2AxLdauS7JY">https://www.youtube.com/watch?v=2AxLdauS7JY</a></span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_7qh9y4t3bouo-0 start"><li class="c1 li-bullet-0"><span class="c15">More spawns than Cinxia, but majority of them are only reachable via Cyte, supporting dps</span><span>&nbsp;</span><span class="c0">Saryn will have to be more active and move around to help cover spawns.</span></li><li class="c1 li-bullet-0"><span class="c0">Camp location can be either C or D point, I recommend D point. </span></li><li class="c1 li-bullet-0"><span class="c15">Kadesh and Spear are the defense variants of this tile, Kadesh is infested and more manageable. Spear is grineer and they can overwhelm you very quickly, and defense </span><span class="c15">operative is</span><span class="c0">&nbsp;highly likely to die.</span></li></ul><p class="c4 c30"><span class="c0"></span></p><p class="c12"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 383.40px;"><img alt="Alator, Kadesh, Spear screenshot"   style="width: 432.00px; height: 383.40px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="383" src="/.media_cache/v1/images/0fa3854f4dea2646.webp" data-src="/.media_cache/v1/images/0fa3854f4dea2646.webp" decoding="async" loading="lazy"></span></p><p class="c12"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 624.00px; height: 332.80px;"><img alt="Alator, Kadesh, Spear screenshot"   style="width: 624.00px; height: 332.80px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="624" height="333" src="/.media_cache/v1/images/a07e89912b51fae8.webp" data-src="/.media_cache/v1/images/a07e89912b51fae8.webp" decoding="async" loading="lazy"></span></p><p class="c12"><span class="c15 c13">*Spear and Kadesh can roll 2 different starting rooms, look for this specific one so that you do not get the random spawn 130m away from the camp area. Alator does not have this issue.*</span></p></div>
-      <div class="guide-block" data-group="tyana_pass" data-has-content="1" hidden><h3 class="c19" id="h.d7hevyyl0l8n"><span class="c5">Tyana Pass</span></h3><p class="c7"><span>&#128315;Mirror defense, first half same as </span><span class="c20"><a class="c32" href="#h.15tomtv5uk89">Alator</a></span><span class="c0">, other half is this corpus section. </span></p><p class="c7 c8"><span class="c0"></span></p><ul class="c18 lst-kix_s32lj57tneor-0 start"><li class="c7 c14 li-bullet-0"><span class="c0">Two spawns in the void area between tiles, best thing to do is drop a Kuva Zarr on call crewmate and make them hold position in the void platform between wave changes. </span></li><li class="c7 c14 li-bullet-0"><span>Every time someone loots the void area, it breaks the rest of the spawns for a noticeable amount of time. So either do NOT loot the void section vitus at all, or only loot if the team all agrees to not loot unless there are 3 or more drops in there.</span></li></ul><h3 class="c37 c48 c26" id="h.95gt1cgyle37"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 415.80px;"><img alt="Tyana Pass screenshot"   style="width: 432.00px; height: 415.80px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="416" src="/.media_cache/v1/images/2437381fda8e0408.webp" data-src="/.media_cache/v1/images/2437381fda8e0408.webp" decoding="async" loading="lazy"></span></h3></div>
-      <div class="guide-block" data-group="munio" data-has-content="1" hidden><h3 class="c19" id="h.c9q1v7uqyku8"><span class="c5">Munio</span></h3><p class="c7"><span class="c0">&#128315;Mirror defense</span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_gmutpuhs6fk7-0 start"><li class="c1 c8 li-bullet-0"><span class="c0"></span></li></ul><p class="c4 c30"><span class="c0"></span></p><p class="c12"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 576.00px; height: 206.31px;"><img alt="Munio screenshot"   style="width: 576.00px; height: 206.31px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="576" height="206" src="/.media_cache/v1/images/aa500135da5b63c5.webp" data-src="/.media_cache/v1/images/aa500135da5b63c5.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="mithra+taranis+belenus" data-has-content="1" hidden><h3 class="c19" id="h.iexxik355g3j"><span class="c5">Mithra, Taranis, Belenus</span></h3><p class="c7"><span class="c0">&#128315;words</span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_gmutpuhs6fk7-0"><li class="c1 c8 li-bullet-0"><span class="c0"></span></li></ul><p class="c4"><span class="c0"></span></p><h3 class="c37 c48 c26" id="h.kc2z4wqrossp"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 520.56px;"><img alt="Mithra, Taranis, Belenus screenshot"   style="width: 432.00px; height: 520.56px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="521" src="/.media_cache/v1/images/1988ccc0ad6a5794.webp" data-src="/.media_cache/v1/images/1988ccc0ad6a5794.webp" decoding="async" loading="lazy"></span></h3></div>
-      <div class="guide-block" data-group="casta+seimeni+cinxia" data-has-content="1" hidden><h3 class="c19" id="h.l49p5y8san1o"><span class="c5">Casta, Seimeni, Cinxia</span></h3><p class="c7"><span>&#128315;</span><span class="c20 c15"><a class="c32" href="https://www.youtube.com/watch?v=FOCBQu6UPQU">https://www.youtube.com/watch?v=FOCBQu6UPQU</a></span></p><p class="c7 c8"><span class="c0"></span></p><ul class="c18 lst-kix_dcrhvybnd0li-0 start"><li class="c6 li-bullet-0"><span class="c0">Plenty of spawn locations, all easily accessible from camp spot. Do not bother with Shyte here.</span></li><li class="c6 li-bullet-0"><span class="c0">There is a 50/50 chance the tile has rain each time you start the mission. </span></li></ul><p class="c11 c8"><span class="c0"></span></p><p class="c31"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 407.16px;"><img alt="Casta, Seimeni, Cinxia screenshot"   style="width: 432.00px; height: 407.16px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="407" src="/.media_cache/v1/images/cd9cd7b0e8e2b3ab.webp" data-src="/.media_cache/v1/images/cd9cd7b0e8e2b3ab.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="hydron+helene+odin" data-has-content="1" hidden><h3 class="c33 c26" id="h.mre46jsofs8e"><span class="c25 c21 c9">Hydron, Helene, Odin</span></h3><p class="c7"><span>&#128315;</span><span class="c20 c15"><a class="c32" href="https://www.youtube.com/watch?v=AL0in8XSot4">https://www.youtube.com/watch?v=AL0in8XSot4</a></span></p><p class="c7 c8"><span class="c5"></span></p><ul class="c18 lst-kix_1rnbw74u1fj0-0 start"><li class="c6 li-bullet-0"><span class="c15">Very </span><span class="c15 c29">bottom spawn and top left spawn</span><span class="c15">&nbsp;are the only ones that are not able to be cleared easily from the camp spot and may require you to move a bit or go </span><span class="c15">loot</span><span class="c0">&nbsp;to clear them faster.</span></li><li class="c6 li-bullet-0"><span class="c0">Shyte meta is probably the easiest on this tileset, and makes it much more playable. All of the spawns are on roughly the same level/plane and are easy to get the hang of.</span></li></ul><p class="c8 c11"><span class="c0"></span></p><p class="c31"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 405.00px;"><img alt="Hydron, Helene, Odin screenshot"   style="width: 432.00px; height: 405.00px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="405" src="/.media_cache/v1/images/461019156c0e0aa2.webp" data-src="/.media_cache/v1/images/461019156c0e0aa2.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="sechura+tessera+outer_terminus" data-has-content="1"><h3 class="c33 c26" id="h.igpko21z80bk"><span class="c25 c21 c9">Sechura, Tessera, Outer Terminus</span></h3><p class="c7"><span>&#128315;</span><span class="c20"><a class="c32" href="https://www.youtube.com/watch?v=Gj_VKXuPc6o">https://www.youtube.com/watch?v=Gj_VKXuPc6o</a></span><span>&nbsp;</span></p><p class="c7 c8"><span class="c0"></span></p><ul class="c18 lst-kix_jjqxrun35a73-0 start"><li class="c6 li-bullet-0"><span class="c0">Be careful when looting inside the top area spawns, if the operative follows you in there, he&#39;s quite vulnerable in tight quarters and active spawns.</span></li><li class="c6 li-bullet-0"><span class="c15">The majority of spawns accessible, </span><span class="c15 c29">bottom right spawn</span><span class="c0">&nbsp;occasionally require somebody to go over there and clear it. Shyte comp works nicely here, but is not as easy as Hydron/Helene.</span></li><li class="c7 c14 li-bullet-0"><span class="c0">A corpus ship flies by every other 5th wave and wastes about 30 seconds.</span></li></ul><p class="c8 c57"><span class="c0"></span></p><p class="c31"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 407.16px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 432.00px; height: 407.16px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="407" src="/.media_cache/v1/images/3c3e658c853f482c.webp" data-src="/.media_cache/v1/images/3c3e658c853f482c.webp" decoding="async" loading="lazy"></span></p><p class="c31"><span class="c0">Look for the below tile out of the 3 possible for this node:</span></p><p class="c31"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 624.00px; height: 334.88px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 624.00px; height: 334.88px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="624" height="335" src="/.media_cache/v1/images/b1764827d66014d1.webp" data-src="/.media_cache/v1/images/b1764827d66014d1.webp" decoding="async" loading="lazy"></span></p><p class="c31"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 336.00px; height: 180.32px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 336.00px; height: 180.32px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="336" height="180" src="/.media_cache/v1/images/be2869f0a0c84140.webp" data-src="/.media_cache/v1/images/be2869f0a0c84140.webp" decoding="async" loading="lazy"></span><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 336.00px; height: 180.32px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 336.00px; height: 180.32px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="336" height="180" src="/.media_cache/v1/images/24a9c7829e7599c1.webp" data-src="/.media_cache/v1/images/24a9c7829e7599c1.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="ose+paimon+larzac" data-has-content="1" hidden><h3 class="c33 c26" id="h.bunb4yr3p50q"><span>Ose, </span><span class="c25 c21 c9">Paimon, Larzac</span></h3><p class="c7"><span>&#128315;</span><span class="c20"><a class="c32" href="https://www.youtube.com/watch?v=ErfZb69yjhQ">https://www.youtube.com/watch?v=ErfZb69yjhQ</a></span><span class="c0">&nbsp;</span></p><p class="c7 c8"><span class="c0"></span></p><ul class="c18 lst-kix_5oig22it0nu8-0 start"><li class="c7 c14 li-bullet-0"><span class="c0">Spawns are very spread out but still accessible for the most part. </span></li><li class="c7 c14 li-bullet-0"><span class="c0">A corpus ship flies by every other 5th wave and wastes about 30 seconds.</span></li><li class="c7 c14 li-bullet-0"><span class="c15 c29">Do your best to not neglect the left spawn</span><span class="c0">&nbsp;with the ice tunnel. Enemies coming out of here get a nice line of sight on the camp spot and can easily 1 shot the defense operative.</span></li></ul><p class="c7 c8"><span class="c0"></span></p><p class="c31"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 333.72px;"><img alt="Ose, Paimon, Larzac screenshot"   style="width: 432.00px; height: 333.72px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="334" src="/.media_cache/v1/images/fa2e19ab6631e802.webp" data-src="/.media_cache/v1/images/fa2e19ab6631e802.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="rhea+lares+sangeru" data-has-content="1" hidden><h3 class="c26 c33" id="h.gxsznornlujw"><span class="c25 c21 c9">Rhea, Lares, Sangeru</span></h3><p class="c7"><span class="c0">&#128315;Larezzzzzz</span></p><p class="c7 c8"><span class="c0"></span></p><ul class="c18 lst-kix_ppmysgyobpx9-0 start"><li class="c7 c14 li-bullet-0"><span class="c0">The bottom right spawn just stops working randomly, so there are effectively only 6 real spawns, and they are quite slow. Easy tile though.</span></li></ul><p class="c7 c8 c30"><span class="c0"></span></p><p class="c12"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 374.76px;"><img alt="Rhea, Lares, Sangeru screenshot"   style="width: 432.00px; height: 374.76px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="375" src="/.media_cache/v1/images/66b10dd28f7d18ad.webp" data-src="/.media_cache/v1/images/66b10dd28f7d18ad.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="akkad+kala-azar" data-has-content="1" hidden><h3 class="c33 c26" id="h.hjgobh3fwbi8"><span class="c25 c21 c9">Akkad, Kala-Azar</span></h3><p class="c7"><span class="c0">&#128315;Loot despawns really fast due to sheer number of drops from infested, loot quickly.</span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_gmutpuhs6fk7-0"><li class="c1 c8 li-bullet-0"><span class="c0"></span></li></ul><p class="c7 c8"><span class="c0"></span></p><h3 class="c37 c26" id="h.gpifvgq7m4od"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 597.24px;"><img alt="Akkad, Kala-Azar screenshot"   style="width: 432.00px; height: 597.24px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="597" src="/.media_cache/v1/images/479d529623364bd5.webp" data-src="/.media_cache/v1/images/479d529623364bd5.webp" decoding="async" loading="lazy"></span></h3></div>
-      <div class="guide-block" data-group="coba+lith" data-has-content="1" hidden><h3 class="c33 c26" id="h.e8m04g7assgd"><span class="c25 c21 c9">Coba, Lith</span></h3><p class="c7"><span class="c0">&#128315;words</span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_gmutpuhs6fk7-0"><li class="c1 c8 li-bullet-0"><span class="c0"></span></li></ul><p class="c7 c8"><span class="c0"></span></p><h3 class="c37 c26" id="h.85vdxtvqvi8o"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 403.92px;"><img alt="Coba, Lith screenshot"   style="width: 432.00px; height: 403.92px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="404" src="/.media_cache/v1/images/6fac5e1e999b9483.webp" data-src="/.media_cache/v1/images/6fac5e1e999b9483.webp" decoding="async" loading="lazy"></span></h3></div>
-      <div class="guide-block" data-group="berehynia" data-has-content="1" hidden><h3 class="c19" id="h.jb7xx0o0v39"><span class="c25 c21 c9">Berehynia</span></h3><p class="c7"><span class="c0">&#128315;</span></p><p class="c7 c8"><span class="c0"></span></p><ul class="c18 lst-kix_4xl1755csajj-0 start"><li class="c7 c14 c8 li-bullet-0"><span class="c0"></span></li></ul><p class="c7 c8"><span class="c0"></span></p></div>
-      <div class="guide-block" data-group="oestrus" data-has-content="1" hidden><h3 class="c33 c26" id="h.gf7dg6b4ofbu"><span class="c21 c9 c25">Oestrus</span></h3><p class="c7"><span class="c0">&#128315;pain</span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_gmutpuhs6fk7-0"><li class="c1 c8 li-bullet-0"><span class="c0"></span></li></ul><p class="c7 c8"><span class="c0"></span></p><h3 class="c26 c37" id="h.kx5gwx3rrp2s"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 447.12px;"><img alt="Oestrus screenshot"   style="width: 432.00px; height: 447.12px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="447" src="/.media_cache/v1/images/f6801f70da213813.webp" data-src="/.media_cache/v1/images/f6801f70da213813.webp" decoding="async" loading="lazy"></span></h3></div>
-      <div class="guide-block" data-group="gaia" data-has-content="1" hidden><h3 class="c33 c26" id="h.ttkwqyd3nxml"><span class="c25 c21 c9">Gaia</span></h3><p class="c7"><span class="c0">&#128315;2 tiles to roll, open tile depicted below has better spawns than Iron Wake variant.</span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_gmutpuhs6fk7-0"><li class="c1 c8 li-bullet-0"><span class="c0"></span></li></ul><p class="c7 c8"><span class="c0"></span></p><h3 class="c37 c26" id="h.xq629c5egp4g"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 483.84px;"><img alt="Gaia screenshot"   style="width: 432.00px; height: 483.84px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="484" src="/.media_cache/v1/images/9093735eb2dd9f78.webp" data-src="/.media_cache/v1/images/9093735eb2dd9f78.webp" decoding="async" loading="lazy"></span></h3></div>
-      <div class="guide-block" data-group="hyf" data-has-content="1" hidden><h3 class="c33 c26" id="h.zcr5w3275bow"><span class="c25 c21 c9">Hyf</span></h3><p class="c7"><span>&#128315;</span><span class="c20"><a class="c32" href="https://www.youtube.com/watch?v=-HsabIutq14">https://www.youtube.com/watch?v=-HsabIutq14</a></span><span>, </span><span class="c20"><a class="c32" href="https://www.youtube.com/watch?v=oGZ3l39V16U">https://www.youtube.com/watch?v=oGZ3l39V16U</a></span></p><p class="c7 c8"><span class="c5"></span></p><ul class="c18 lst-kix_f0d8y2bgi20r-0 start"><li class="c7 c14 li-bullet-0"><span class="c0">When running with shyte, Supporting ogris dps needs to keep good uptime on napalm for the spawns they can reach to prevent getting easily overrun.</span></li><li class="c7 c14 li-bullet-0"><span>For this tile I </span><span class="c28">strongly</span><span class="c0">&nbsp;recommend everyone place down atomicycles and specters to keep the doors open to allow for better accessibility and prevent enemies getting stuck.</span></li><li class="c7 c14 li-bullet-0"><span class="c0">Do not place atomicycle or specter at the 2nd floor middle doorway, if it dies/expires it will cause a hard crash and clients will disconnect from the host.</span></li><li class="c7 c14 li-bullet-0"><span class="c0">Be careful of the right side spawns, it&#39;s a short run for them to get to the operative.</span></li></ul><p class="c7 c8"><span class="c5"></span></p><p class="c31"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 638.18px;"><img alt="Hyf screenshot"   style="width: 432.00px; height: 638.18px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="638" src="/.media_cache/v1/images/8a3d0a35149068a2.webp" data-src="/.media_cache/v1/images/8a3d0a35149068a2.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="stofler" data-has-content="1" hidden><h3 class="c33 c26" id="h.bhig007iwnrs"><span class="c25 c21 c9">St&ouml;fler</span></h3><p class="c7"><span class="c0">&#128315;Terrain changes to this after 2 rounds, tile is massive pain to loot, and loot despawns very quickly.</span></p><p class="c4"><span class="c0"></span></p><ul class="c18 lst-kix_gmutpuhs6fk7-0"><li class="c1 c8 li-bullet-0"><span class="c0"></span></li></ul><p class="c7 c8"><span class="c0"></span></p><p class="c31"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 417.96px;"><img alt="St&amp;ouml;fler screenshot"   style="width: 432.00px; height: 417.96px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="418" src="/.media_cache/v1/images/28e47ee10daa301a.webp" data-src="/.media_cache/v1/images/28e47ee10daa301a.webp" decoding="async" loading="lazy"></span></p></div>
+            <div class="guide-block" data-group="callisto+sinai+io" data-has-content="1" hidden><h3 class="c22 c39 c20" id="h.vy6xs77lp9vq"><span class="c44">C</span><span class="c44">allisto, Sinai, Io</span></h3><p class="c0"><span class="c5 c4">&#128315;There are 4 different starting tilesets to roll, look for the two short hallway one depicted below.</span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_lmuy1vhpgmy5-0 start"><li class="c0 c2 li-bullet-0"><span class="c5 c4">Every time someone loots the starting area past the big door at the top of the stairs, it breaks the rest of the spawns for a noticeable amount of time. So either do NOT loot the void section vitus at all, or only loot if the team all agrees to not loot unless there are 3 or more drops in there.</span></li></ul><p class="c3 c1"><span class="c5 c4"></span></p><p class="c15"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 545.40px;"><img alt="Callisto, Sinai, Io screenshot"   style="width: 432.00px; height: 545.40px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="545" src="/.media_cache/v1/images/188c97731df9ece6.webp" data-src="/.media_cache/v1/images/188c97731df9ece6.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="umbriel+stephano" data-has-content="1" hidden><h3 class="c22 c39 c20" id="h.fwucq162acnv"><span class="c5 c11 c14">Umbriel, Stephano</span></h3><p class="c0"><span class="c5 c4">&#128315;Roll for cave network tile for Umbriel, and the sealab tile for Stephano.</span></p><p class="c0 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_8m41az7hjzhy-0 start"><li class="c0 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><p class="c0 c1"><span class="c5 c4"></span></p><p class="c15"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 421.20px;"><img alt="Umbriel, Stephano screenshot"   style="width: 432.00px; height: 421.20px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="421" src="/.media_cache/v1/images/88f796357d0d4bf8.webp" data-src="/.media_cache/v1/images/88f796357d0d4bf8.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="cytherean+xini+gulliver" data-has-content="1" hidden><h3 class="c22 c39 c20" id="h.lwc8m2usajpv"><span class="c5 c11 c14">Cytherean, Xini, Gulliver</span></h3><p class="c3"><span class="c5 c4">&#128315;</span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_3qlpxbhqiovn-0 start"><li class="c3 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><h3 class="c32 c39 c20" id="h.nu433t5k761k"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 465.48px;"><img alt="Cytherean, Xini, Gulliver screenshot"   style="width: 432.00px; height: 465.48px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="465" src="/.media_cache/v1/images/5ec34784702459c4.webp" data-src="/.media_cache/v1/images/5ec34784702459c4.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="alator+kadesh+spear" data-has-content="1" hidden><h3 class="c22 c39 c20" id="h.15tomtv5uk89"><span class="c4 c44">Alator</span><span class="c5 c11 c14">, Kadesh, Spear</span></h3><p class="c0"><span>&#128315;</span><span class="c12 c4"><a class="c9" href="https://www.youtube.com/watch?v=2AxLdauS7JY">https://www.youtube.com/watch?v=2AxLdauS7JY</a></span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_7qh9y4t3bouo-0 start"><li class="c3 c2 li-bullet-0"><span class="c4">More spawns than Cinxia, but majority of them are only reachable via Cyte, supporting dps</span><span>&nbsp;</span><span class="c5 c4">Saryn will have to be more active and move around to help cover spawns.</span></li><li class="c3 c2 li-bullet-0"><span class="c5 c4">Camp location can be either C or D point, I recommend D point. </span></li><li class="c3 c2 li-bullet-0"><span class="c4">Kadesh and Spear are the defense variants of this tile, Kadesh is infested and more manageable. Spear is grineer and they can overwhelm you very quickly, and defense </span><span class="c4">operative is</span><span class="c5 c4">&nbsp;highly likely to die.</span></li></ul><p class="c3 c1 c27"><span class="c5 c4"></span></p><p class="c15"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 383.40px;"><img alt="Alator, Kadesh, Spear screenshot"   style="width: 432.00px; height: 383.40px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="383" src="/.media_cache/v1/images/0fa3854f4dea2646.webp" data-src="/.media_cache/v1/images/0fa3854f4dea2646.webp" decoding="async" loading="lazy"></span></p><p class="c15"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 624.00px; height: 332.80px;"><img alt="Alator, Kadesh, Spear screenshot"   style="width: 624.00px; height: 332.80px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="624" height="333" src="/.media_cache/v1/images/a07e89912b51fae8.webp" data-src="/.media_cache/v1/images/a07e89912b51fae8.webp" decoding="async" loading="lazy"></span></p><p class="c15"><span class="c4 c30">*Spear and Kadesh can roll 2 different starting rooms, look for this specific one so that you do not get the random spawn 130m away from the camp area. Alator does not have this issue.*</span></p></div>
+      <div class="guide-block" data-group="tyana_pass" data-has-content="1" hidden><h3 class="c22 c39 c20" id="h.d7hevyyl0l8n"><span class="c5 c11 c14">Tyana Pass</span></h3><p class="c0"><span>&#128315;Mirror defense, first half same as </span><span class="c12"><a class="c9" href="#h.15tomtv5uk89">Alator</a></span><span class="c5 c4">, other half is this corpus section. </span></p><p class="c0 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_s32lj57tneor-0 start"><li class="c0 c2 li-bullet-0"><span class="c5 c4">Two spawns in the void area between tiles, best thing to do is drop a Kuva Zarr on call crewmate and make them hold position in the void platform between wave changes. </span></li><li class="c0 c2 li-bullet-0"><span>Every time someone loots the void area, it breaks the rest of the spawns for a noticeable amount of time. So either do NOT loot the void section vitus at all, or only loot if the team all agrees to not loot unless there are 3 or more drops in there.</span></li></ul><h3 class="c32 c39 c20" id="h.95gt1cgyle37"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 415.80px;"><img alt="Tyana Pass screenshot"   style="width: 432.00px; height: 415.80px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="416" src="/.media_cache/v1/images/2437381fda8e0408.webp" data-src="/.media_cache/v1/images/2437381fda8e0408.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="munio" data-has-content="1" hidden><h3 class="c22 c39 c20" id="h.c9q1v7uqyku8"><span class="c5 c11 c14">Munio</span></h3><p class="c0"><span class="c5 c4">&#128315;Mirror defense</span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_gmutpuhs6fk7-0 start"><li class="c3 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><p class="c3 c1 c27"><span class="c5 c4"></span></p><p class="c15"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 576.00px; height: 206.31px;"><img alt="Munio screenshot"   style="width: 576.00px; height: 206.31px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="576" height="206" src="/.media_cache/v1/images/aa500135da5b63c5.webp" data-src="/.media_cache/v1/images/aa500135da5b63c5.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="mithra+taranis+belenus" data-has-content="1" hidden><h3 class="c22 c39 c20" id="h.iexxik355g3j"><span class="c5 c11 c14">Mithra, Taranis, Belenus</span></h3><p class="c0"><span class="c5 c4">&#128315;words</span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_gmutpuhs6fk7-0"><li class="c3 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><p class="c3 c1"><span class="c5 c4"></span></p><h3 class="c32 c39 c20" id="h.kc2z4wqrossp"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 520.56px;"><img alt="Mithra, Taranis, Belenus screenshot"   style="width: 432.00px; height: 520.56px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="521" src="/.media_cache/v1/images/1988ccc0ad6a5794.webp" data-src="/.media_cache/v1/images/1988ccc0ad6a5794.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="casta+seimeni+cinxia" data-has-content="1" hidden><h3 class="c22 c39 c20" id="h.l49p5y8san1o"><span class="c5 c11 c14">Casta, Seimeni, Cinxia</span></h3><p class="c0"><span>&#128315;</span><span class="c4 c12"><a class="c9" href="https://www.youtube.com/watch?v=FOCBQu6UPQU">https://www.youtube.com/watch?v=FOCBQu6UPQU</a></span></p><p class="c0 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_dcrhvybnd0li-0 start"><li class="c19 c2 li-bullet-0"><span class="c5 c4">Plenty of spawn locations, all easily accessible from camp spot. Do not bother with Shyte here.</span></li><li class="c2 c19 li-bullet-0"><span class="c5 c4">There is a 50/50 chance the tile has rain each time you start the mission. </span></li></ul><p class="c19 c1 c27"><span class="c5 c4"></span></p><p class="c16"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 407.16px;"><img alt="Casta, Seimeni, Cinxia screenshot"   style="width: 432.00px; height: 407.16px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="407" src="/.media_cache/v1/images/cd9cd7b0e8e2b3ab.webp" data-src="/.media_cache/v1/images/cd9cd7b0e8e2b3ab.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="hydron+helene+odin" data-has-content="1" hidden><h3 class="c22 c20" id="h.mre46jsofs8e"><span class="c17 c11 c14">Hydron, Helene, Odin</span></h3><p class="c0"><span>&#128315;</span><span class="c12 c4"><a class="c9" href="https://www.youtube.com/watch?v=AL0in8XSot4">https://www.youtube.com/watch?v=AL0in8XSot4</a></span></p><p class="c0 c1"><span class="c5 c11 c14"></span></p><ul class="c24 lst-kix_1rnbw74u1fj0-0 start"><li class="c19 c2 li-bullet-0"><span class="c4">Very </span><span class="c4 c41">bottom spawn and top left spawn</span><span class="c4">&nbsp;are the only ones that are not able to be cleared easily from the camp spot and may require you to move a bit or go </span><span class="c4">loot</span><span class="c5 c4">&nbsp;to clear them faster.</span></li><li class="c19 c2 li-bullet-0"><span class="c5 c4">Shyte meta is probably the easiest on this tileset, and makes it much more playable. All of the spawns are on roughly the same level/plane and are easy to get the hang of.</span></li></ul><p class="c19 c1 c27"><span class="c5 c4"></span></p><p class="c16"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 405.00px;"><img alt="Hydron, Helene, Odin screenshot"   style="width: 432.00px; height: 405.00px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="405" src="/.media_cache/v1/images/461019156c0e0aa2.webp" data-src="/.media_cache/v1/images/461019156c0e0aa2.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="sechura+tessera+outer_terminus" data-has-content="1"><h3 class="c22 c20" id="h.igpko21z80bk"><span class="c11 c14 c17">Sechura, Tessera, Outer Terminus</span></h3><p class="c0"><span>&#128315;</span><span class="c12"><a class="c9" href="https://www.youtube.com/watch?v=Gj_VKXuPc6o">https://www.youtube.com/watch?v=Gj_VKXuPc6o</a></span><span>&nbsp;</span></p><p class="c0 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_jjqxrun35a73-0 start"><li class="c19 c2 li-bullet-0"><span class="c5 c4">Be careful when looting inside the top area spawns, if the operative follows you in there, he&#39;s quite vulnerable in tight quarters and active spawns.</span></li><li class="c19 c2 li-bullet-0"><span class="c4">The majority of spawns accessible, </span><span class="c4 c41">bottom right spawn</span><span class="c5 c4">&nbsp;occasionally require somebody to go over there and clear it. Shyte comp works nicely here, but is not as easy as Hydron/Helene.</span></li><li class="c0 c2 li-bullet-0"><span class="c5 c4">A corpus ship flies by every other 5th wave and wastes about 30 seconds.</span></li></ul><p class="c19 c1"><span class="c5 c4"></span></p><p class="c16"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 407.16px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 432.00px; height: 407.16px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="407" src="/.media_cache/v1/images/3c3e658c853f482c.webp" data-src="/.media_cache/v1/images/3c3e658c853f482c.webp" decoding="async" loading="lazy"></span></p><p class="c16"><span class="c5 c4">Look for the below tile out of the 3 possible for this node:</span></p><p class="c16"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 624.00px; height: 334.88px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 624.00px; height: 334.88px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="624" height="335" src="/.media_cache/v1/images/b1764827d66014d1.webp" data-src="/.media_cache/v1/images/b1764827d66014d1.webp" decoding="async" loading="lazy"></span></p><p class="c16"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 336.00px; height: 180.32px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 336.00px; height: 180.32px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="336" height="180" src="/.media_cache/v1/images/be2869f0a0c84140.webp" data-src="/.media_cache/v1/images/be2869f0a0c84140.webp" decoding="async" loading="lazy"></span><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 336.00px; height: 180.32px;"><img alt="Sechura, Tessera, Outer Terminus screenshot"   style="width: 336.00px; height: 180.32px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="336" height="180" src="/.media_cache/v1/images/24a9c7829e7599c1.webp" data-src="/.media_cache/v1/images/24a9c7829e7599c1.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="ose+paimon+larzac" data-has-content="1" hidden><h3 class="c22 c20" id="h.bunb4yr3p50q"><span>Ose, </span><span class="c17 c11 c14">Paimon, Larzac</span></h3><p class="c0"><span>&#128315;</span><span class="c12"><a class="c9" href="https://www.youtube.com/watch?v=ErfZb69yjhQ">https://www.youtube.com/watch?v=ErfZb69yjhQ</a></span><span class="c5 c4">&nbsp;</span></p><p class="c0 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_5oig22it0nu8-0 start"><li class="c0 c2 li-bullet-0"><span class="c5 c4">Spawns are very spread out but still accessible for the most part. </span></li><li class="c0 c2 li-bullet-0"><span class="c5 c4">A corpus ship flies by every other 5th wave and wastes about 30 seconds.</span></li><li class="c0 c2 li-bullet-0"><span class="c4 c41">Do your best to not neglect the left spawn</span><span class="c5 c4">&nbsp;with the ice tunnel. Enemies coming out of here get a nice line of sight on the camp spot and can easily 1 shot the defense operative.</span></li></ul><p class="c0 c1"><span class="c5 c4"></span></p><p class="c16"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 333.72px;"><img alt="Ose, Paimon, Larzac screenshot"   style="width: 432.00px; height: 333.72px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="334" src="/.media_cache/v1/images/fa2e19ab6631e802.webp" data-src="/.media_cache/v1/images/fa2e19ab6631e802.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="rhea+lares+sangeru" data-has-content="1" hidden><h3 class="c22 c20" id="h.gxsznornlujw"><span class="c17 c11 c14">Rhea, Lares, Sangeru</span></h3><p class="c0"><span class="c5 c4">&#128315;Larezzzzzz</span></p><p class="c0 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_ppmysgyobpx9-0 start"><li class="c0 c2 li-bullet-0"><span class="c5 c4">The bottom right spawn just stops working randomly, so there are effectively only 6 real spawns, and they are quite slow. Easy tile though.</span></li></ul><p class="c0 c1 c27"><span class="c5 c4"></span></p><p class="c15"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 374.76px;"><img alt="Rhea, Lares, Sangeru screenshot"   style="width: 432.00px; height: 374.76px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="375" src="/.media_cache/v1/images/66b10dd28f7d18ad.webp" data-src="/.media_cache/v1/images/66b10dd28f7d18ad.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="akkad+kala-azar" data-has-content="1" hidden><h3 class="c22 c20" id="h.hjgobh3fwbi8"><span class="c17 c11 c14">Akkad, Kala-Azar</span></h3><p class="c0"><span class="c5 c4">&#128315;Loot despawns really fast due to sheer number of drops from infested, loot quickly.</span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_gmutpuhs6fk7-0"><li class="c3 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><p class="c0 c1"><span class="c5 c4"></span></p><h3 class="c20 c32" id="h.gpifvgq7m4od"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 597.24px;"><img alt="Akkad, Kala-Azar screenshot"   style="width: 432.00px; height: 597.24px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="597" src="/.media_cache/v1/images/479d529623364bd5.webp" data-src="/.media_cache/v1/images/479d529623364bd5.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="coba+lith" data-has-content="1" hidden><h3 class="c22 c20" id="h.e8m04g7assgd"><span class="c17 c11 c14">Coba, Lith</span></h3><p class="c0"><span class="c5 c4">&#128315;words</span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_gmutpuhs6fk7-0"><li class="c3 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><p class="c0 c1"><span class="c5 c4"></span></p><h3 class="c32 c20" id="h.85vdxtvqvi8o"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 403.92px;"><img alt="Coba, Lith screenshot"   style="width: 432.00px; height: 403.92px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="404" src="/.media_cache/v1/images/6fac5e1e999b9483.webp" data-src="/.media_cache/v1/images/6fac5e1e999b9483.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="berehynia" data-has-content="1" hidden><h3 class="c22 c39 c20" id="h.jb7xx0o0v39"><span class="c17 c11 c14">Berehynia</span></h3><p class="c0"><span class="c5 c4">&#128315;</span></p><p class="c0 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_4xl1755csajj-0 start"><li class="c0 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><p class="c0 c1"><span class="c5 c4"></span></p></div>
+      <div class="guide-block" data-group="oestrus" data-has-content="1" hidden><h3 class="c22 c20" id="h.gf7dg6b4ofbu"><span class="c17 c11 c14">Oestrus</span></h3><p class="c0"><span class="c5 c4">&#128315;pain</span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_gmutpuhs6fk7-0"><li class="c3 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><p class="c0 c1"><span class="c5 c4"></span></p><h3 class="c32 c20" id="h.kx5gwx3rrp2s"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 447.12px;"><img alt="Oestrus screenshot"   style="width: 432.00px; height: 447.12px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="447" src="/.media_cache/v1/images/f6801f70da213813.webp" data-src="/.media_cache/v1/images/f6801f70da213813.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="gaia" data-has-content="1" hidden><h3 class="c20 c22" id="h.ttkwqyd3nxml"><span class="c17 c11 c14">Gaia</span></h3><p class="c0"><span class="c5 c4">&#128315;2 tiles to roll, open tile depicted below has better spawns than Iron Wake variant.</span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_gmutpuhs6fk7-0"><li class="c3 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><p class="c0 c1"><span class="c5 c4"></span></p><h3 class="c32 c20" id="h.xq629c5egp4g"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 483.84px;"><img alt="Gaia screenshot"   style="width: 432.00px; height: 483.84px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="484" src="/.media_cache/v1/images/9093735eb2dd9f78.webp" data-src="/.media_cache/v1/images/9093735eb2dd9f78.webp" decoding="async" loading="lazy"></span></h3></div>
+      <div class="guide-block" data-group="hyf" data-has-content="1" hidden><h3 class="c22 c20" id="h.zcr5w3275bow"><span class="c17 c11 c14">Hyf</span></h3><p class="c0"><span>&#128315;</span><span class="c12"><a class="c9" href="https://www.youtube.com/watch?v=-HsabIutq14">https://www.youtube.com/watch?v=-HsabIutq14</a></span><span>, </span><span class="c12"><a class="c9" href="https://www.youtube.com/watch?v=oGZ3l39V16U">https://www.youtube.com/watch?v=oGZ3l39V16U</a></span></p><p class="c0 c1"><span class="c5 c11 c14"></span></p><ul class="c24 lst-kix_f0d8y2bgi20r-0 start"><li class="c0 c2 li-bullet-0"><span class="c5 c4">When running with shyte, Supporting ogris dps needs to keep good uptime on napalm for the spawns they can reach to prevent getting easily overrun.</span></li><li class="c0 c2 li-bullet-0"><span>For this tile I </span><span class="c43">strongly</span><span class="c5 c4">&nbsp;recommend everyone place down atomicycles and specters to keep the doors open to allow for better accessibility and prevent enemies getting stuck.</span></li><li class="c0 c2 li-bullet-0"><span class="c5 c4">Do not place atomicycle or specter at the 2nd floor middle doorway, if it dies/expires it will cause a hard crash and clients will disconnect from the host.</span></li><li class="c0 c2 li-bullet-0"><span class="c5 c4">Be careful of the right side spawns, it&#39;s a short run for them to get to the operative.</span></li></ul><p class="c0 c1"><span class="c5 c11 c14"></span></p><p class="c16"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 638.18px;"><img alt="Hyf screenshot"   style="width: 432.00px; height: 638.18px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="638" src="/.media_cache/v1/images/8a3d0a35149068a2.webp" data-src="/.media_cache/v1/images/8a3d0a35149068a2.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="stofler" data-has-content="1" hidden><h3 class="c22 c20" id="h.bhig007iwnrs"><span class="c17 c11 c14">St&ouml;fler</span></h3><p class="c0"><span class="c5 c4">&#128315;Terrain changes to this after 2 rounds, tile is massive pain to loot, and loot despawns very quickly.</span></p><p class="c3 c1"><span class="c5 c4"></span></p><ul class="c24 lst-kix_gmutpuhs6fk7-0"><li class="c3 c2 c1 li-bullet-0"><span class="c5 c4"></span></li></ul><p class="c0 c1"><span class="c5 c4"></span></p><p class="c16"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 417.96px;"><img alt="St&amp;ouml;fler screenshot"   style="width: 432.00px; height: 417.96px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="418" src="/.media_cache/v1/images/28e47ee10daa301a.webp" data-src="/.media_cache/v1/images/28e47ee10daa301a.webp" decoding="async" loading="lazy"></span></p></div>
           </div>
         </section>
       </div>
@@ -542,6 +542,7 @@
 (function () {
 
 var GROUPS = [{"id": "callisto+sinai+io", "label": "Callisto, Sinai, Io", "mission": ""}, {"id": "umbriel+stephano", "label": "Umbriel, Stephano", "mission": ""}, {"id": "cytherean+xini+gulliver", "label": "Cytherean, Xini, Gulliver", "mission": ""}, {"id": "alator+kadesh+spear", "label": "Alator, Kadesh, Spear", "mission": ""}, {"id": "tyana_pass", "label": "Tyana Pass", "mission": "Mirror Defense"}, {"id": "munio", "label": "Munio", "mission": "Mirror Defense"}, {"id": "mithra+taranis+belenus", "label": "Mithra, Taranis, Belenus", "mission": ""}, {"id": "casta+seimeni+cinxia", "label": "Casta, Seimeni, Cinxia", "mission": ""}, {"id": "hydron+helene+odin", "label": "Hydron, Helene, Odin", "mission": ""}, {"id": "sechura+tessera+outer_terminus", "label": "Sechura, Tessera, Outer Terminus", "mission": ""}, {"id": "ose+paimon+larzac", "label": "Ose, Paimon, Larzac", "mission": ""}, {"id": "rhea+lares+sangeru", "label": "Rhea, Lares, Sangeru", "mission": ""}, {"id": "akkad+kala-azar", "label": "Akkad, Kala-Azar", "mission": ""}, {"id": "coba+lith", "label": "Coba, Lith", "mission": ""}, {"id": "berehynia", "label": "Berehynia", "mission": ""}, {"id": "oestrus", "label": "Oestrus", "mission": "Infested Salvage"}, {"id": "gaia", "label": "Gaia", "mission": ""}, {"id": "hyf", "label": "Hyf", "mission": ""}, {"id": "stofler", "label": "Stöfler", "mission": ""}];
+var MOTE_LAYOUTS = {"callisto+sinai+io": [{"type": "health", "position": [0.529326, -17.9981, -95.775147]}, {"type": "haste", "position": [-0.087912, -17.9981, -95.890739]}, {"type": "health", "position": [-0.077668, -9.9341, -60.985752]}, {"type": "haste", "position": [-0.640532, -9.942101, -60.735835]}, {"type": "health", "position": [37.280063, -3.998101, -34.302278]}, {"type": "haste", "position": [36.916951, -3.998101, -33.781506]}], "umbriel+stephano": [{"type": "health", "position": [-6.853199, -5.5005, 10.445132]}, {"type": "haste", "position": [-6.326306, -5.5005, 10.810011]}, {"type": "health", "position": [46.037513, -14.250501, 11.570398]}, {"type": "haste", "position": [45.324014, -14.250501, 11.859943]}, {"type": "health", "position": [43.292031, -7.5005, -34.389833]}, {"type": "haste", "position": [43.173964, -7.5005, -33.528442]}], "cytherean+xini+gulliver": [{"type": "health", "position": [-29.129938, -2.0016, -1.029425]}, {"type": "haste", "position": [-29.201618, -2.0016, -0.467622]}, {"type": "health", "position": [-0.435831, 4.9984, -38.428234]}, {"type": "haste", "position": [0.042078, 5.0034, -38.178103]}, {"type": "health", "position": [29.293463, -6.8016, 23.332346]}, {"type": "haste", "position": [28.461622, -6.8016, 22.916374]}], "alator+kadesh+spear": [{"type": "health", "position": [-19.250467, 3.4806, 7.947262]}, {"type": "haste", "position": [-18.929805, 3.4806, 7.340067]}, {"type": "health", "position": [26.797176, 13.0006, 7.574887]}, {"type": "haste", "position": [26.466449, 13.0006, 7.077862]}, {"type": "health", "position": [-49.634945, -4.633845, -23.523392]}, {"type": "haste", "position": [-49.261063, -4.639242, -24.06718]}], "tyana_pass": [{"type": "health", "position": [118.20616, -0.7674, -27.432605]}, {"type": "haste", "position": [117.604635, -0.7674, -27.376085]}, {"type": "health", "position": [-170.072117, -0.1024, 14.559416]}, {"type": "haste", "position": [-170.483088, -0.1024, 15.161153]}, {"type": "health", "position": [-3.661895, 0.2966, -24.677911]}, {"type": "haste", "position": [-4.204955, 0.2966, -24.852874]}], "munio": [{"type": "health", "position": [-124.646366, 3.0314, 87.442223]}, {"type": "haste", "position": [-126.144118, 3.0314, 87.247785]}, {"type": "health", "position": [106.359012, 6.7554, -76.753216]}, {"type": "haste", "position": [106.114362, 6.7554, -76.012627]}, {"type": "health", "position": [-53.534644, -2.4986, -61.286532]}, {"type": "haste", "position": [-53.164763, -2.4986, -62.010286]}], "mithra+taranis+belenus": [{"type": "health", "position": [-9.374002, -1.6804, 11.824539]}, {"type": "haste", "position": [-8.540907, -1.655401, 12.359996]}, {"type": "health", "position": [-9.716135, -1.750401, -48.787836]}, {"type": "haste", "position": [-9.457353, -1.750401, -48.287302]}, {"type": "health", "position": [-63.583529, 4.749599, 27.630605]}, {"type": "haste", "position": [-62.996577, 4.749599, 27.23535]}], "casta+seimeni+cinxia": [{"type": "health", "position": [2.051051, 25.8046, 20.928896]}, {"type": "haste", "position": [2.244747, 25.774746, 20.670589]}, {"type": "health", "position": [-22.958954, 23.999601, 22.285414]}, {"type": "haste", "position": [-22.394157, 23.999601, 22.795141]}, {"type": "health", "position": [6.155208, 23.999601, -2.026319]}, {"type": "haste", "position": [5.67222, 23.999601, -1.512446]}], "hydron+helene+odin": [{"type": "health", "position": [-5.16308, 10, 6.202312]}, {"type": "haste", "position": [-5.196297, 10, 6.69008]}, {"type": "health", "position": [-28.147687, 6, 19.891963]}, {"type": "haste", "position": [-28.671866, 5.995, 20.457276]}, {"type": "health", "position": [-17.660596, 4.059896, -17.23582]}, {"type": "haste", "position": [-16.993993, 4.060056, -17.308811]}], "sechura+tessera+outer_terminus": [{"type": "health", "position": [-27.761131, 7.8004, -1.426215]}, {"type": "haste", "position": [-27.024114, 7.8004, -1.423619]}, {"type": "health", "position": [-27.672435, 7.8004, -11.220743]}, {"type": "haste", "position": [-26.955585, 7.8004, -11.10656]}, {"type": "health", "position": [-7.870579, 7.8004, -5.889869]}, {"type": "haste", "position": [-8.471568, 7.8004, -6.116861]}], "ose+paimon+larzac": [{"type": "health", "position": [-2.014291, 10.460459, -26.172533]}, {"type": "haste", "position": [-1.556585, 10.337379, -26.24285]}, {"type": "health", "position": [-31.706005, 2.315769, -41.719977]}, {"type": "haste", "position": [-31.783733, 2.294121, -41.263068]}, {"type": "health", "position": [53.285539, 2.046661, -33.985069]}, {"type": "haste", "position": [52.748402, 2.018595, -34.123516]}], "rhea+lares+sangeru": [{"type": "health", "position": [-4.064499, 3.767848, -14.853016]}, {"type": "haste", "position": [-3.877366, 3.73739, -14.399825]}, {"type": "health", "position": [-5.428208, 0.113686, 32.293642]}, {"type": "haste", "position": [-4.819165, 0.072302, 32.080503]}, {"type": "health", "position": [-24.864764, 0.095217, -6.224638]}, {"type": "haste", "position": [-24.366124, 0.001131, -6.360497]}], "akkad+kala-azar": [{"type": "health", "position": [0.530561, 2.770945, -20.328186]}, {"type": "haste", "position": [0.847739, 2.809639, -20.476238]}, {"type": "health", "position": [-0.427101, 5.750399, 6.112132]}, {"type": "haste", "position": [-0.938192, 5.750399, 5.71643]}, {"type": "health", "position": [20.93035, 6.288563, 31.623569]}, {"type": "haste", "position": [21.502258, 6.369224, 31.077605]}], "coba+lith": [{"type": "health", "position": [-1.639938, 9.7836, -5.706006]}, {"type": "haste", "position": [-1.16816, 9.7836, -5.421356]}, {"type": "health", "position": [48.357516, 7.4986, 4.704429]}, {"type": "haste", "position": [47.809017, 7.4986, 5.134041]}, {"type": "health", "position": [-36.361996, 8.098599, -23.961133]}, {"type": "haste", "position": [-35.676513, 8.098599, -24.309298]}], "berehynia": [{"type": "health", "position": [-14.761838, -58.281101, 12.747517]}, {"type": "haste", "position": [-15.04254, -58.281101, 12.148157]}, {"type": "health", "position": [52.055269, -53.686347, 46.089435]}, {"type": "haste", "position": [52.401513, -53.693987, 46.220503]}, {"type": "health", "position": [-55.813962, -54.251099, -16.730135]}, {"type": "haste", "position": [-55.210427, -54.251099, -16.487815]}], "oestrus": [{"type": "health", "position": [21.077694, 2.001, -1.710256]}, {"type": "haste", "position": [21.001, 2.001, -0.967501]}, {"type": "health", "position": [-24.57243, -10.982601, -21.779288]}, {"type": "haste", "position": [-24.558393, -10.959743, -21.044217]}, {"type": "health", "position": [43.355056, 2.077889, -34.250334]}, {"type": "haste", "position": [43.358963, 2.096626, -34.746868]}], "gaia": [{"type": "health", "position": [-39.928166, 22.566801, -40.818829]}, {"type": "haste", "position": [-39.621517, 22.566801, -41.06894]}, {"type": "health", "position": [-29.847278, 18.252802, -17.400584]}, {"type": "haste", "position": [-30.437338, 18.252802, -17.864384]}, {"type": "health", "position": [-87.176514, 18.252802, -14.013313]}, {"type": "haste", "position": [-86.874721, 18.252802, -13.561883]}], "hyf": [{"type": "health", "position": [-0.778038, -1.515684, -2.069876]}, {"type": "haste", "position": [-0.465326, -1.516569, -1.640525]}, {"type": "health", "position": [-1.986189, -1.9981, -10.694288]}, {"type": "haste", "position": [-1.311193, -1.9981, -10.702007]}, {"type": "health", "position": [18.819749, -1.9981, -5.762358]}, {"type": "haste", "position": [18.756891, -1.9981, -6.353866]}], "stofler": [{"type": "health", "position": [14.204979, -55.493903, -0.735981]}, {"type": "haste", "position": [14.70361, -55.491963, -0.456993]}, {"type": "health", "position": [15.140195, -8.54733, -0.246042]}, {"type": "haste", "position": [15.50713, -8.550732, -0.286486]}, {"type": "health", "position": [15.176366, 41.7509, -5.636944]}, {"type": "haste", "position": [15.665996, 41.7509, -5.320867]}]};
 var URL_BASE = "/3d_tilesets/";          // "/3d_tilesets/"
 var ACTIVE_SLUG = "sechura+tessera+outer_terminus";    // slug this static copy was built for
 var DATA_BASE = URL_BASE + "data/";   // absolute: pages live one level deeper
@@ -582,6 +583,10 @@ var prefetchDone = new Set();
 var prefetchRunning = false;
 var prefetchStarted = false;
 var groupingEnabled = false;
+var localMoteAuthorUpdate = null;
+var localMoteAuthorRender = null;
+var localMoteAuthorPlace = null;
+var localMoteAuthorGroupChanged = null;
 
 // ---------------------------------------------------------------- helpers
 function esc(s) {
@@ -925,7 +930,7 @@ canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
 canvas.addEventListener("pointerdown", function (e) {
   if (fps.active) return;
   canvas.setPointerCapture(e.pointerId);
-  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, btn: e.button };
+  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, btn: e.button, moved: 0 };
 });
 canvas.addEventListener("pointermove", function (e) {
   // Pointer-lock movement is handled exclusively by the document mousemove
@@ -935,6 +940,7 @@ canvas.addEventListener("pointermove", function (e) {
   if (fps.active) return;
   if (!drag || e.pointerId !== drag.id) { maybeHover(e); return; }
   var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  drag.moved += Math.hypot(dx, dy);
   drag.x = e.clientX; drag.y = e.clientY;
   if (drag.btn === 0) {
     cam.yaw -= dx * 0.006;
@@ -950,12 +956,20 @@ canvas.addEventListener("pointermove", function (e) {
 });
 function endDrag(e) {
   if (drag && e.pointerId === drag.id) {
+    var placeMote = drag.btn === 0 && drag.moved < 4 && localMoteAuthorPlace;
     try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
     drag = null;
+    if (placeMote) localMoteAuthorPlace();
   }
 }
 canvas.addEventListener("pointerup", endDrag);
 canvas.addEventListener("pointercancel", endDrag);
+canvas.addEventListener("click", function (e) {
+  if (fps.active && e.button === 0 && localMoteAuthorPlace) {
+    e.preventDefault();
+    localMoteAuthorPlace();
+  }
+});
 canvas.addEventListener("pointerleave", function () {
   hoveredMarkerIndex = -1;
   tipEl.style.display = "none";
@@ -1143,6 +1157,7 @@ function frame(t) {
   resize();
 
   if (fps.active) stepFps(dt);
+  if (localMoteAuthorUpdate) localMoteAuthorUpdate(t);
 
   var eye, aspect = vw / Math.max(vh, 1);
   if (fps.active) {
@@ -1202,6 +1217,7 @@ function frame(t) {
     gl.drawArrays(gl.POINTS, 0, markCount);
     gl.disable(gl.BLEND);
   }
+  if (localMoteAuthorRender) localMoteAuthorRender(mvpM, vh);
   gl.bindVertexArray(null);
   if (fps.active) updateFpsMarkerHover();
 }
@@ -1699,6 +1715,7 @@ async function loadGroup(gid) {
 
     current = { group: g, entry: entry, overlay: overlay, geo: geo };
     markEntryCached(entry);
+    if (localMoteAuthorGroupChanged) localMoteAuthorGroupChanged(gid);
 
     uploadMesh(geo);
     current.markers = buildMarkers(overlay, geo);
@@ -1860,9 +1877,13 @@ window.addEventListener("popstate", function () {
   loadGroup(startId);
 })();
 
-// Local-only camera authoring hook. It is unavailable on arbi.guide and exists
-// solely so reviewed screenshots can be converted into reproducible presets.
-if (location.hostname === "127.0.0.1" || location.hostname === "localhost") {
+// Localhost keeps the camera/mote authoring tools in the back pocket. Public
+// pages load the reviewed placements below but never expose editing controls.
+var IS_LOCAL_MOTE_AUTHORING =
+  location.hostname === "127.0.0.1" || location.hostname === "localhost";
+if (IS_LOCAL_MOTE_AUTHORING) {
+  document.body.classList.add("local-authoring");
+
   var cameraDebugInput = document.createElement("textarea");
   cameraDebugInput.id = "cameraDebugInput";
   cameraDebugInput.setAttribute("aria-label", "Local camera preset input");
@@ -1897,6 +1918,521 @@ if (location.hostname === "127.0.0.1" || location.hostname === "localhost") {
     cameraDebugInput.setAttribute("data-camera-state", JSON.stringify(cameraDebugState()));
   }, 100);
 }
+
+  var MOTE_TYPES = ["health", "haste", "health", "haste", "health", "haste"];
+  var MOTE_TYPE_LABELS = { health: "Health", haste: "Haste" };
+  var MOTE_RING_RGB = {
+    health: [1.0, 39 / 255, 52 / 255],
+    haste: [41 / 255, 1.0, 98 / 255]
+  };
+  var MOTE_HEAD_TINTS = {
+    health: [1.0, 0.15, 0.20],
+    haste: [0.16, 1.0, 0.38]
+  };
+  var MOTE_HORIZONTAL_NORMAL_MIN = 0.80;
+  var MOTE_RAYCAST_INTERVAL = 85;
+  var moteSetsByGroup = Object.create(null);
+  var motePreview = null;
+  var moteSurfaceCache = null;
+  var moteLastRaycastAt = -Infinity;
+
+  var motePositionBtn = null;
+  if (IS_LOCAL_MOTE_AUTHORING) {
+    motePositionBtn = document.createElement("button");
+    motePositionBtn.id = "motePositionBtn";
+    motePositionBtn.type = "button";
+    motePositionBtn.textContent = "Motes 0/6";
+    motePositionBtn.title =
+      "Aim at a horizontal surface and left-click six times. " +
+      "Placement alternates Health and Haste. Backspace removes the last mote, " +
+      "Shift+Backspace clears the saved layout, and C copies all six.";
+    resetBtn.parentNode.insertBefore(motePositionBtn, resetBtn);
+  }
+
+  function currentMoteSet() {
+    if (!current || !current.group) return [];
+    var gid = current.group.id;
+    var saved = MOTE_LAYOUTS[gid] || [];
+    if (!IS_LOCAL_MOTE_AUTHORING) return saved;
+    if (!moteSetsByGroup[gid]) {
+      moteSetsByGroup[gid] = saved.map(function (m) {
+        return { type: m.type, position: m.position.slice() };
+      });
+    }
+    return moteSetsByGroup[gid];
+  }
+
+  function nextMoteType() {
+    return MOTE_TYPES[Math.min(currentMoteSet().length, MOTE_TYPES.length - 1)];
+  }
+
+  var moteButtonTimer = 0;
+  function setMoteButtonFeedback(label) {
+    if (!motePositionBtn) return;
+    clearTimeout(moteButtonTimer);
+    motePositionBtn.textContent = label;
+    moteButtonTimer = setTimeout(refreshMoteButton, 1500);
+  }
+
+  function refreshMoteButton() {
+    if (!motePositionBtn) return;
+    clearTimeout(moteButtonTimer);
+    var placed = currentMoteSet().length;
+    if (placed >= MOTE_TYPES.length) {
+      motePositionBtn.innerHTML = "Motes 6/6 &middot; Copy [C]";
+      return;
+    }
+    var label = MOTE_TYPE_LABELS[MOTE_TYPES[placed]];
+    motePositionBtn.innerHTML =
+      "Motes " + placed + "/6 &middot; Next " + label;
+  }
+
+  function localCrosshairRay() {
+    var origin, direction;
+    if (fps.active) {
+      origin = fps.pos.slice();
+      direction = fpsForward();
+    } else {
+      origin = orbitEye();
+      direction = [
+        cam.target[0] - origin[0],
+        cam.target[1] - origin[1],
+        cam.target[2] - origin[2]
+      ];
+      var dl = Math.hypot(direction[0], direction[1], direction[2]) || 1;
+      direction[0] /= dl;
+      direction[1] /= dl;
+      direction[2] /= dl;
+    }
+    return { origin: origin, direction: direction };
+  }
+
+  function buildMoteSurfaceCache() {
+    if (!current || !current.geo || !current.geo.qv || !current.geo.idx) return null;
+
+    var geo = current.geo;
+    var qv = geo.qv;
+    var idx = geo.idx;
+    var org = geo.org;
+    var scale = geo.scale;
+    var world = new Float32Array(qv.length);
+    for (var vi = 0; vi < qv.length; vi += 3) {
+      world[vi] = org[0] + qv[vi] * scale;
+      world[vi + 1] = org[1] + qv[vi + 1] * scale;
+      world[vi + 2] = org[2] + qv[vi + 2] * scale;
+    }
+    var horizontal = [];
+    for (var tri = 0; tri + 2 < idx.length; tri += 3) {
+      var ai = idx[tri] * 3;
+      var bi = idx[tri + 1] * 3;
+      var ci = idx[tri + 2] * 3;
+      var e1x = world[bi] - world[ai];
+      var e1y = world[bi + 1] - world[ai + 1];
+      var e1z = world[bi + 2] - world[ai + 2];
+      var e2x = world[ci] - world[ai];
+      var e2y = world[ci + 1] - world[ai + 1];
+      var e2z = world[ci + 2] - world[ai + 2];
+      var nx = e1y * e2z - e1z * e2y;
+      var ny = e1z * e2x - e1x * e2z;
+      var nz = e1x * e2y - e1y * e2x;
+      var nl = Math.hypot(nx, ny, nz);
+      if (nl > 0.000001 && Math.abs(ny) / nl >= MOTE_HORIZONTAL_NORMAL_MIN) {
+        horizontal.push(idx[tri], idx[tri + 1], idx[tri + 2]);
+      }
+    }
+    moteSurfaceCache = {
+      groupId: current.group.id,
+      world: world,
+      indices: new Uint32Array(horizontal)
+    };
+    return moteSurfaceCache;
+  }
+
+  function localCrosshairMeshHit() {
+    if (!current || !current.geo || !current.geo.qv || !current.geo.idx) return null;
+    var cache = moteSurfaceCache;
+    if (!cache || cache.groupId !== current.group.id) {
+      cache = buildMoteSurfaceCache();
+    }
+    if (!cache || !cache.indices.length) return null;
+
+    var world = cache.world;
+    var idx = cache.indices;
+    var ray = localCrosshairRay();
+    var ox = ray.origin[0], oy = ray.origin[1], oz = ray.origin[2];
+    var dx = ray.direction[0], dy = ray.direction[1], dz = ray.direction[2];
+    var bestT = Infinity;
+
+    // Moller-Trumbore against only sufficiently horizontal triangles. The
+    // filtered world-space cache keeps the live crosshair preview responsive.
+    for (var tri = 0; tri + 2 < idx.length; tri += 3) {
+      var ai = idx[tri] * 3;
+      var bi = idx[tri + 1] * 3;
+      var ci = idx[tri + 2] * 3;
+
+      var ax = world[ai], ay = world[ai + 1], az = world[ai + 2];
+      var bx = world[bi], by = world[bi + 1], bz = world[bi + 2];
+      var cx = world[ci], cy = world[ci + 1], cz = world[ci + 2];
+
+      var e1x = bx - ax, e1y = by - ay, e1z = bz - az;
+      var e2x = cx - ax, e2y = cy - ay, e2z = cz - az;
+      var pvx = dy * e2z - dz * e2y;
+      var pvy = dz * e2x - dx * e2z;
+      var pvz = dx * e2y - dy * e2x;
+      var det = e1x * pvx + e1y * pvy + e1z * pvz;
+      if (Math.abs(det) < 0.0000001) continue;
+
+      var invDet = 1 / det;
+      var tvx = ox - ax, tvy = oy - ay, tvz = oz - az;
+      var u = (tvx * pvx + tvy * pvy + tvz * pvz) * invDet;
+      if (u < 0 || u > 1) continue;
+
+      var qvx = tvy * e1z - tvz * e1y;
+      var qvy = tvz * e1x - tvx * e1z;
+      var qvz = tvx * e1y - tvy * e1x;
+      var v = (dx * qvx + dy * qvy + dz * qvz) * invDet;
+      if (v < 0 || u + v > 1) continue;
+
+      var t = (e2x * qvx + e2y * qvy + e2z * qvz) * invDet;
+      if (t <= 0.01 || t >= bestT) continue;
+      var hitY = oy + dy * t;
+      if (hitY > clipCur + 0.001) continue;
+      bestT = t;
+    }
+
+    if (!Number.isFinite(bestT)) return null;
+    return [
+      ox + dx * bestT,
+      oy + dy * bestT,
+      oz + dz * bestT
+    ];
+  }
+
+  function rounded(n) { return +n.toFixed(6); }
+
+  function updateMotePreview(t) {
+    if (t - moteLastRaycastAt < MOTE_RAYCAST_INTERVAL) return;
+    moteLastRaycastAt = t;
+    if (!current || currentMoteSet().length >= MOTE_TYPES.length) {
+      motePreview = null;
+      return;
+    }
+    var hit = localCrosshairMeshHit();
+    motePreview = hit ? {
+      type: nextMoteType(),
+      position: hit.map(rounded),
+      preview: true
+    } : null;
+  }
+
+  function placePreviewMote() {
+    if (!current || !current.group) return;
+    var set = currentMoteSet();
+    if (set.length >= MOTE_TYPES.length) {
+      setMoteButtonFeedback("All six placed · press C");
+      return;
+    }
+    // Re-sample on click so the stored point is never an older preview.
+    var hit = localCrosshairMeshHit();
+    if (!hit) {
+      setMoteButtonFeedback("No horizontal surface hit");
+      return;
+    }
+    set.push({
+      type: MOTE_TYPES[set.length],
+      position: hit.map(rounded)
+    });
+    motePreview = null;
+    moteLastRaycastAt = -Infinity;
+    refreshMoteButton();
+  }
+
+  function writeLocalClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      var copyInput = document.createElement("textarea");
+      copyInput.value = text;
+      copyInput.style.cssText = "position:fixed;left:-9999px;top:0";
+      document.body.appendChild(copyInput);
+      copyInput.select();
+      var copied = false;
+      try { copied = document.execCommand("copy"); } catch (_) {}
+      copyInput.remove();
+      if (copied) resolve();
+      else reject(new Error("Clipboard unavailable"));
+    });
+  }
+
+  function copyLocalMoteSet() {
+    if (!current || !current.group) return;
+    var set = currentMoteSet();
+    if (set.length !== MOTE_TYPES.length) {
+      setMoteButtonFeedback("Place " + (MOTE_TYPES.length - set.length) + " more");
+      return;
+    }
+    var payload = {
+      id: current.group.id,
+      asset: "Wisp Prime Reservoir",
+      asset_origin_on_surface: true,
+      range_radius: 5,
+      motes: set.map(function (m) {
+        return { type: m.type, position: m.position.slice() };
+      })
+    };
+    var copiedText = "### " + (current.group.label || current.group.title || current.group.id) + "\n" +
+      JSON.stringify(payload, null, 2);
+    motePositionBtn.setAttribute("data-last-mote-set", copiedText);
+    writeLocalClipboard(copiedText).then(function () {
+      setMoteButtonFeedback("Six motes copied");
+    }).catch(function () {
+      setMoteButtonFeedback("Copy failed");
+    });
+  }
+
+  // Actual Wisp Prime reservoir geometry exported from the local Warframe
+  // cache. The shell's lowest vertex is already 0.082 m above its asset
+  // origin, so placing that origin on the hit surface preserves the authored
+  // in-game hover without inventing a vertical offset.
+  var moteAuthorAssets = null;
+  var moteAuthorAssetError = null;
+  var moteAuthorProg = null;
+  var moteAuthorU = {};
+  var moteRingProg = null;
+  var moteRingU = {};
+  var moteRingVao = null;
+  var moteRingCount = 0;
+
+  function decodeBase64Bytes(encoded) {
+    var raw = atob(encoded);
+    var bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return bytes;
+  }
+
+  function uploadMoteAsset(source) {
+    var qb = decodeBase64Bytes(source.positions);
+    var cb = decodeBase64Bytes(source.colors);
+    var ib = decodeBase64Bytes(source.indices);
+    var asset = {
+      origin: new Float32Array(source.origin),
+      scale: source.scale,
+      count: source.index_count,
+      vao: gl.createVertexArray()
+    };
+    gl.bindVertexArray(asset.vao);
+    var qbuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, qbuf);
+    gl.bufferData(gl.ARRAY_BUFFER, qb, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 3, gl.SHORT, false, 6, 0);
+    var cbuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cbuf);
+    gl.bufferData(gl.ARRAY_BUFFER, cb, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(1);
+    gl.vertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, true, 4, 0);
+    var ibuf = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, ib, gl.STATIC_DRAW);
+    gl.bindVertexArray(null);
+    asset.buffers = [qbuf, cbuf, ibuf];
+    return asset;
+  }
+
+  function prepareMoteAuthorPrograms() {
+    if (moteAuthorProg || !gl) return;
+    moteAuthorProg = link(
+      "#version 300 es\n" +
+      "precision highp float;\n" +
+      "layout(location=0) in vec3 q; layout(location=1) in vec4 col;\n" +
+      "uniform mat4 mvp; uniform vec3 org, place, tint; " +
+      "uniform float qscale, tintMix, opacity;\n" +
+      "out vec3 wp; out vec4 vc;\n" +
+      "void main(){ wp=q*qscale+org+place; " +
+      "vc=vec4(mix(col.rgb,tint,tintMix),opacity); " +
+      "gl_Position=mvp*vec4(wp,1.0); }",
+      "#version 300 es\n" +
+      "precision highp float;\n" +
+      "in vec3 wp; in vec4 vc; out vec4 o;\n" +
+      "void main(){ vec3 n=normalize(cross(dFdx(wp),dFdy(wp))); " +
+      "if(!gl_FrontFacing)n=-n; " +
+      "float up=clamp(n.y*.5+.5,0.0,1.0); " +
+      "float key=max(dot(n,normalize(vec3(.42,.78,.46))),0.0); " +
+      "vec3 light=mix(vec3(.38,.42,.50),vec3(1.05,1.02,.96),up)*.72+" +
+      "vec3(key*.42); o=vec4(pow(max(vc.rgb*light,vec3(0.0)),vec3(.76)),vc.a); }"
+    );
+    ["mvp","org","place","tint","qscale","tintMix","opacity"].forEach(function (n) {
+      moteAuthorU[n] = gl.getUniformLocation(moteAuthorProg, n);
+    });
+
+    moteRingProg = link(
+      "#version 300 es\n" +
+      "precision highp float; layout(location=0) in vec2 p; " +
+      "uniform mat4 mvp; uniform vec3 center; uniform float radius; " +
+      "void main(){ vec3 wp=center+vec3(p.x*radius,.025,p.y*radius); " +
+      "gl_Position=mvp*vec4(wp,1.0); }",
+      "#version 300 es\n" +
+      "precision highp float; uniform vec4 color; out vec4 o; " +
+      "void main(){o=color;}"
+    );
+    ["mvp","center","radius","color"].forEach(function (n) {
+      moteRingU[n] = gl.getUniformLocation(moteRingProg, n);
+    });
+    var segments = 96;
+    var ring = new Float32Array((segments + 1) * 4);
+    for (var ri = 0; ri <= segments; ri++) {
+      var angle = ri / segments * Math.PI * 2;
+      var co = Math.cos(angle), si = Math.sin(angle), ro = ri * 4;
+      ring[ro] = co; ring[ro + 1] = si;
+      ring[ro + 2] = co * 0.985; ring[ro + 3] = si * 0.985;
+    }
+    moteRingCount = (segments + 1) * 2;
+    moteRingVao = gl.createVertexArray();
+    gl.bindVertexArray(moteRingVao);
+    var ringBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, ringBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, ring, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+    gl.bindVertexArray(null);
+  }
+
+  function loadMoteAuthorAssets() {
+    if (!gl) return;
+    prepareMoteAuthorPrograms();
+    fetch(DATA_BASE + "author/wisp_motes.json?v=1", { cache: "force-cache" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (payload) {
+        if (payload.format !== "arbi-wisp-mote-author-v1") {
+          throw new Error("Unexpected mote asset format");
+        }
+        moteAuthorAssets = {
+          rangeRadius: payload.range_radius,
+          modelMinHeight: payload.model_min_height,
+          shell: uploadMoteAsset(payload.assets.shell),
+          health: uploadMoteAsset(payload.assets.health),
+          haste: uploadMoteAsset(payload.assets.haste)
+        };
+        if (motePositionBtn) {
+          motePositionBtn.setAttribute(
+            "data-asset-scale",
+            "game-space meters; lowest vertex " +
+            payload.model_min_height.toFixed(6) + "m"
+          );
+        }
+        refreshMoteButton();
+      })
+      .catch(function (err) {
+        moteAuthorAssetError = err;
+        if (motePositionBtn) setMoteButtonFeedback("Mote asset failed to load");
+        console.warn("Wisp mote asset failed to load", err);
+      });
+  }
+
+  function drawMoteRing(mvp, mote, alpha) {
+    var color = MOTE_RING_RGB[mote.type] || MOTE_RING_RGB.health;
+    gl.useProgram(moteRingProg);
+    gl.uniformMatrix4fv(moteRingU.mvp, false, mvp);
+    gl.uniform3fv(moteRingU.center, mote.position);
+    gl.uniform1f(
+      moteRingU.radius,
+      moteAuthorAssets ? moteAuthorAssets.rangeRadius : 5
+    );
+    gl.uniform4f(
+      moteRingU.color,
+      color[0], color[1], color[2], alpha
+    );
+    gl.bindVertexArray(moteRingVao);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, moteRingCount);
+  }
+
+  function drawMoteAssetPart(mvp, asset, placement, tint, tintMix, opacity) {
+    gl.useProgram(moteAuthorProg);
+    gl.uniformMatrix4fv(moteAuthorU.mvp, false, mvp);
+    gl.uniform3fv(moteAuthorU.org, asset.origin);
+    gl.uniform3fv(moteAuthorU.place, placement);
+    gl.uniform3fv(moteAuthorU.tint, tint);
+    gl.uniform1f(moteAuthorU.qscale, asset.scale);
+    gl.uniform1f(moteAuthorU.tintMix, tintMix);
+    gl.uniform1f(moteAuthorU.opacity, opacity);
+    gl.bindVertexArray(asset.vao);
+    gl.drawElements(gl.TRIANGLES, asset.count, gl.UNSIGNED_SHORT, 0);
+  }
+
+  function renderMoteAuthoring(mvp) {
+    if (!moteAuthorProg || !moteRingProg || !current) return;
+    var placed = currentMoteSet();
+    var visible = placed.slice();
+    if (motePreview) visible.push(motePreview);
+    if (!visible.length) return;
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false);
+    visible.forEach(function (m) {
+      drawMoteRing(mvp, m, m.preview ? 0.72 : 0.50);
+    });
+    gl.depthMask(true);
+
+    if (moteAuthorAssets) {
+      visible.forEach(function (m) {
+        var tint = MOTE_HEAD_TINTS[m.type];
+        var opacity = m.preview ? 0.72 : 1.0;
+        drawMoteAssetPart(
+          mvp, moteAuthorAssets.shell, m.position, [1, 1, 1], 0, opacity
+        );
+        drawMoteAssetPart(
+          mvp, moteAuthorAssets[m.type], m.position, tint, 0.82, opacity
+        );
+      });
+    }
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+    gl.bindVertexArray(null);
+  }
+
+  if (IS_LOCAL_MOTE_AUTHORING) {
+    localMoteAuthorUpdate = updateMotePreview;
+    localMoteAuthorPlace = placePreviewMote;
+  }
+  localMoteAuthorRender = renderMoteAuthoring;
+  if (IS_LOCAL_MOTE_AUTHORING) {
+    localMoteAuthorGroupChanged = function () {
+      moteSurfaceCache = null;
+      motePreview = null;
+      moteLastRaycastAt = -Infinity;
+      refreshMoteButton();
+    };
+  }
+
+  if (IS_LOCAL_MOTE_AUTHORING) {
+    motePositionBtn.addEventListener("click", copyLocalMoteSet);
+    document.addEventListener("keydown", function (e) {
+      var tag = e.target && e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.code === "KeyC" && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        copyLocalMoteSet();
+        return;
+      }
+      if (e.code === "Backspace" && !e.repeat && current) {
+        e.preventDefault();
+        var set = currentMoteSet();
+        if (e.shiftKey) set.length = 0;
+        else set.pop();
+        motePreview = null;
+        moteLastRaycastAt = -Infinity;
+        refreshMoteButton();
+      }
+    });
+  }
+  refreshMoteButton();
+  loadMoteAuthorAssets();
 
 // ---------------------------------------------------------------- display controls
 // Same three knobs and the same localStorage keys as the guide, so a reader's
