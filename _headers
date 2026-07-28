@@ -2,16 +2,26 @@
   Content-Security-Policy: frame-ancestors 'none'
   X-Frame-Options: DENY
 
-# .wfg filenames are the content hash of the mesh, so a changed mesh is a
-# changed URL and these cache permanently. Never add a revalidation
-# directive here: paired with immutable it costs a round trip per map switch.
-/3d_tilesets/data/*.wfg
-  Cache-Control: public, max-age=31536000, immutable
+# WFG2 geometry is split into content-hashed Brotli streams. Cloudflare must
+# preserve the stored Brotli bytes and advertise their decoded representation.
+/3d_tilesets/data/*.wfg2.br
+  Content-Type: application/octet-stream
+  Content-Encoding: br
+  Cache-Control: public, max-age=31536000, immutable, no-transform
+  Vary: Accept-Encoding
 
 # Versioned authored viewer assets are shared by every map and cache permanently.
 /3d_tilesets/data/author/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Overlays may change after a data rebuild or marker enrichment, so they revalidate.
+# Overlay filenames are content hashes too.
 /3d_tilesets/data/*.wfo
-  Cache-Control: public, max-age=300, must-revalidate
+  Cache-Control: public, max-age=31536000, immutable
+
+# The manifest is the small mutable pointer to the current content hashes.
+/3d_tilesets/data/maps.json
+  Cache-Control: no-cache
+
+# The decoder URL changes whenever its vendored implementation changes.
+/3d_tilesets/meshopt_decoder.1.0.1.js
+  Cache-Control: public, max-age=31536000, immutable
