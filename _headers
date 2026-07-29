@@ -2,8 +2,8 @@
   Content-Security-Policy: frame-ancestors 'none'
   X-Frame-Options: DENY
 
-# WFG2 geometry is split into content-hashed Brotli streams. Cloudflare must
-# preserve the stored Brotli bytes and advertise their decoded representation.
+# WFG2 chunks are precompressed Brotli streams. Their filenames contain
+# the decoded mesh hash, so a changed mesh gets a new immutable URL.
 /3d_tilesets/data/*.wfg2.br
   Content-Type: application/octet-stream
   Content-Encoding: br
@@ -14,14 +14,13 @@
 /3d_tilesets/data/author/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Overlay filenames are content hashes too.
+# Overlay filenames are content-addressed too.
 /3d_tilesets/data/*.wfo
   Cache-Control: public, max-age=31536000, immutable
 
-# The manifest is the small mutable pointer to the current content hashes.
+# The manifest maps stable routes to content-addressed geometry/overlays.
 /3d_tilesets/data/maps.json
   Cache-Control: no-cache
 
-# The decoder URL changes whenever its vendored implementation changes.
 /3d_tilesets/meshopt_decoder.1.0.1.js
   Cache-Control: public, max-age=31536000, immutable
