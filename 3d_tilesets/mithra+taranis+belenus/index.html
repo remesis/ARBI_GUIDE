@@ -2538,7 +2538,7 @@ if (IS_LOCAL_MOTE_AUTHORING) {
   function loadMoteAuthorAssets() {
     if (!gl) return;
     prepareMoteAuthorPrograms();
-    fetch(DATA_BASE + "author/wisp_motes.json?v=1", { cache: "force-cache" })
+    fetch(DATA_BASE + "author/wisp_motes.json?v=531ff6b97f90", { cache: "force-cache" })
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
