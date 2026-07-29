@@ -2062,9 +2062,9 @@ if (IS_LOCAL_MOTE_AUTHORING) {
     health: [1.0, 0.15, 0.20],
     haste: [0.16, 1.0, 0.38]
   };
-  // Keep only the flat energy ring clear of uneven/coplanar floor geometry.
-  // The authored reservoir model remains exactly on its saved position.
-  var MOTE_RING_HEIGHT_OFFSET = 0.12;
+  // Float only the energy ring at the flower bulb's lower seam. The authored
+  // reservoir model remains exactly on its saved surface position.
+  var MOTE_RING_HEIGHT_OFFSET = 0.52;
   var MOTE_HORIZONTAL_NORMAL_MIN = 0.80;
   var MOTE_RAYCAST_INTERVAL = 85;
   var moteSetsByGroup = Object.create(null);
