@@ -1112,6 +1112,7 @@ function enterFps() {
   fpsHoverPaintedIndex = -1;
   fpsHoverPaintedDistance = "";
   fpsHoverRect = canvas.getBoundingClientRect();
+  refreshFpsZoneMarkers(true);
   if (canvas.requestPointerLock) canvas.requestPointerLock();
 }
 function exitFps() {
@@ -1124,6 +1125,7 @@ function exitFps() {
   fpsHoverPaintedIndex = -1;
   fpsHoverPaintedDistance = "";
   fpsHoverRect = null;
+  refreshFpsZoneMarkers(true);
   if (document.pointerLockElement === canvas && document.exitPointerLock) document.exitPointerLock();
 }
 document.addEventListener("pointerlockchange", function () {
@@ -1249,7 +1251,10 @@ function frame(t) {
   resize();
 
   stepCeiling(dt);
-  if (fps.active) stepFps(dt);
+  if (fps.active) {
+    stepFps(dt);
+    refreshFpsZoneMarkers(false);
+  }
   if (localMoteAuthorUpdate) localMoteAuthorUpdate(t);
 
   var eye, aspect = vw / Math.max(vh, 1);
@@ -1592,6 +1597,60 @@ function visibleSpawns(overlay) {
   return spawns.filter(function (s) { return !hidden.has(s); });
 }
 
+// Tyana Pass and Munio each join two distant objective arenas through a
+// connector tile. In first person, suppress only the spawn markers belonging
+// to the opposite outer arena; the connector continues to show both sides.
+// The zone axis comes from the two authored objective transforms, so it stays
+// correct regardless of the camera angle or each composite map's orientation.
+var MIRROR_ZONE_GROUPS = new Set(["tyana_pass", "munio"]);
+function buildMirrorZoneProfile(groupId, overlay) {
+  if (!MIRROR_ZONE_GROUPS.has(groupId)) return null;
+  var objectives = ((overlay && overlay.objective) || []).filter(function (obj) {
+    return obj.type === "ObjectiveMarkerInfo";
+  });
+  if (objectives.length < 2) return null;
+  var a = objectives[0], b = objectives[1];
+  var dx = b.x - a.x, dz = b.z - a.z;
+  var axisLengthSq = dx * dx + dz * dz;
+  if (axisLengthSq < 1) return null;
+  return {
+    ax: a.x, az: a.z,
+    dx: dx, dz: dz,
+    axisLengthSq: axisLengthSq,
+    // The middle 40% is the authored connector region on both composites.
+    nearCut: 0.30,
+    farCut: 0.70
+  };
+}
+
+function mirrorZoneForPoint(profile, point) {
+  if (!profile || !point) return "connector";
+  var t = ((point.x - profile.ax) * profile.dx +
+           (point.z - profile.az) * profile.dz) / profile.axisLengthSq;
+  if (t < profile.nearCut) return "arena-a";
+  if (t > profile.farCut) return "arena-b";
+  return "connector";
+}
+
+function refreshFpsZoneMarkers(force) {
+  if (!current || !current.allMarkers) return;
+  var playerZone = fps.active
+    ? mirrorZoneForPoint(current.mirrorZoneProfile, { x: fps.pos[0], z: fps.pos[2] })
+    : "all";
+  if (!force && current.markerZoneState === playerZone) return;
+
+  var hiddenZone = playerZone === "arena-a" ? "arena-b"
+    : playerZone === "arena-b" ? "arena-a" : "";
+  current.markers = hiddenZone
+    ? current.allMarkers.filter(function (marker) {
+        return marker.kind !== "spawn" || marker.mirrorZone !== hiddenZone;
+      })
+    : current.allMarkers;
+  current.markerZoneState = playerZone;
+  uploadMarkers(current.markers);
+  tipEl.style.display = "none";
+}
+
 function clusterSpawnMarkers(markers) {
   var clusters = [];
   var HORIZONTAL_RADIUS = 5.5;
@@ -1602,6 +1661,7 @@ function clusterSpawnMarkers(markers) {
     var nearestDistance = Infinity;
     clusters.forEach(function (cluster) {
       if (cluster.floor !== marker.floor) return;
+      if (cluster.mirrorZone !== marker.mirrorZone) return;
       if (Math.abs(cluster.y - marker.y) > VERTICAL_RADIUS) return;
       var d = Math.hypot(cluster.x - marker.x, cluster.z - marker.z);
       if (d <= HORIZONTAL_RADIUS && d < nearestDistance) {
@@ -1613,6 +1673,7 @@ function clusterSpawnMarkers(markers) {
     if (!nearest) {
       clusters.push({
         floor: marker.floor,
+        mirrorZone: marker.mirrorZone,
         x: marker.x, y: marker.y, z: marker.z,
         sumWeight: marker.clusterWeight,
         members: [marker]
@@ -1648,13 +1709,14 @@ function clusterSpawnMarkers(markers) {
       kind: "spawn",
       tip: tip,
       floor: first.floor,
+      mirrorZone: first.mirrorZone,
       clusterWeight: cluster.sumWeight,
       sampleCount: sampledCount
     };
   });
 }
 
-function buildMarkers(overlay, geo) {
+function buildMarkers(overlay, geo, mirrorZoneProfile) {
   var list = [];
   var spawnMarkers = [];
   var spawns = visibleSpawns(overlay);
@@ -1699,6 +1761,7 @@ function buildMarkers(overlay, geo) {
       kind: "spawn",
       tip: tip,
       floor: f,
+      mirrorZone: mirrorZoneForPoint(mirrorZoneProfile, s),
       clusterWeight: authored ? 1 : Math.max(1, s.n || 0),
       sampleCount: authored ? 0 : (s.n || 0)
     });
@@ -1725,9 +1788,10 @@ groupBtn.addEventListener("click", function () {
   groupingEnabled = !groupingEnabled;
   refreshGroupingButton();
   if (!current || !current.overlay || !current.geo) return;
-  current.markers = buildMarkers(current.overlay, current.geo);
-  uploadMarkers(current.markers);
-  tipEl.style.display = "none";
+  current.allMarkers = buildMarkers(
+    current.overlay, current.geo, current.mirrorZoneProfile
+  );
+  refreshFpsZoneMarkers(true);
 });
 refreshGroupingButton();
 
@@ -1857,13 +1921,14 @@ async function loadGroup(gid) {
     if (token !== loadToken) return;
 
     current = { group: g, entry: entry, overlay: overlay, geo: geo };
+    current.mirrorZoneProfile = buildMirrorZoneProfile(gid, overlay);
     markEntryCached(entry);
     if (localMoteAuthorGroupChanged) localMoteAuthorGroupChanged(gid);
     if (localCampAuthorGroupChanged) localCampAuthorGroupChanged(gid);
 
     uploadMesh(geo);
-    current.markers = buildMarkers(overlay, geo);
-    uploadMarkers(current.markers);
+    current.allMarkers = buildMarkers(overlay, geo, current.mirrorZoneProfile);
+    refreshFpsZoneMarkers(true);
 
     clipLoW = geo.bbox[1];
     clipHiW = geo.bbox[4] + 1;
