@@ -1580,10 +1580,67 @@ function markEntryCached(entry) {
   cacheKeysFor(entry).forEach(function (name) { prefetchDone.add(name); });
 }
 
-function prioritizeBackgroundGroup(gid) {
-  if (!gid) return;
-  prefetchQueue = prefetchQueue.filter(function (id) { return id !== gid; });
-  prefetchQueue.unshift(gid);
+function backgroundPrefetchMapIds(activeMapId) {
+  var entries = (manifest && manifest.groups) || {};
+  var ids = Object.keys(entries);
+  var ordered = [];
+  var seen = new Set();
+  var activeRouteIndex = GROUPS.findIndex(function (group) {
+    return activeMapId === group.id ||
+      (activeMapId && activeMapId.indexOf(group.id + "~") === 0);
+  });
+  var routeOrder = activeRouteIndex >= 0
+    ? GROUPS.slice(activeRouteIndex).concat(GROUPS.slice(0, activeRouteIndex))
+    : GROUPS.slice();
+
+  // Start locally: if the reader opens Umbriel 1, warm Umbriel 2 then 3.
+  // Within the active route, continue forward from the selected variant and
+  // wrap to any earlier sibling. Then walk forward through sidebar order,
+  // keeping each later route's base/~2/~3 choices together, and wrap at the end.
+  routeOrder.forEach(function (group, routeIndex) {
+    var baseId = group.id;
+    var routeIds = ids.filter(function (mapId) {
+      return mapId === baseId || mapId.indexOf(baseId + "~") === 0;
+    }).sort(function (a, b) {
+      var av = a === baseId ? 1 : (+a.slice(baseId.length + 1) || 999);
+      var bv = b === baseId ? 1 : (+b.slice(baseId.length + 1) || 999);
+      return av - bv;
+    });
+    if (routeIndex === 0 && activeRouteIndex >= 0) {
+      var selectedIndex = routeIds.indexOf(activeMapId);
+      if (selectedIndex >= 0) {
+        routeIds = routeIds.slice(selectedIndex + 1).concat(
+          routeIds.slice(0, selectedIndex)
+        );
+      }
+    }
+    routeIds.forEach(function (mapId) {
+      if (!seen.has(mapId) && entries[mapId] && entries[mapId].mesh) {
+        seen.add(mapId);
+        ordered.push(mapId);
+      }
+    });
+  });
+
+  // Future manifest-only routes still get warmed even before they are added
+  // to the visible route list.
+  ids.forEach(function (mapId) {
+    if (!seen.has(mapId) && entries[mapId] && entries[mapId].mesh) {
+      seen.add(mapId);
+      ordered.push(mapId);
+    }
+  });
+  return ordered;
+}
+
+function reprioritizeBackgroundMaps(activeMapId) {
+  prefetchQueue = backgroundPrefetchMapIds(activeMapId).filter(function (mapId) {
+    if (mapId === activeMapId) return false;
+    var entry = manifest && manifest.groups && manifest.groups[mapId];
+    return entry && entry.mesh && cacheKeysFor(entry).some(function (name) {
+      return !prefetchDone.has(name);
+    });
+  });
 }
 
 async function consumeIntoBrowserCache(name) {
@@ -1632,17 +1689,12 @@ async function pumpBackgroundPrefetch() {
   }
 }
 
-function startBackgroundPrefetch(activeGid) {
+function startBackgroundPrefetch(activeMapId) {
   if (!manifest) return;
-  if (!prefetchStarted) {
-    prefetchStarted = true;
-    for (var i = 0; i < GROUPS.length; i++) {
-      if (GROUPS[i].id !== activeGid) prefetchQueue.push(GROUPS[i].id);
-    }
-  }
-  // If the reader switches while warming is underway, the selected map goes
-  // to the front. Its foreground load starts independently and immediately.
-  prioritizeBackgroundGroup(activeGid);
+  prefetchStarted = true;
+  // Recalculate on every selection so its sibling variants become the next
+  // background work. The selected map itself is already loading in foreground.
+  reprioritizeBackgroundMaps(activeMapId);
   setTimeout(pumpBackgroundPrefetch, 150);
 }
 
@@ -1978,7 +2030,7 @@ async function loadGroup(gid, variant) {
   subEl.textContent = entry.tileset || "";
   showLoad("Loading " + g.label + "…");
   if (prefetchStarted) {
-    prioritizeBackgroundGroup(gid);
+    reprioritizeBackgroundMaps(mapId);
     setTimeout(pumpBackgroundPrefetch, 0);
   }
 
@@ -2025,7 +2077,7 @@ async function loadGroup(gid, variant) {
     frameOn(geo, overlay);
 
     hideLoad();
-    startBackgroundPrefetch(gid);
+    startBackgroundPrefetch(mapId);
     // Re-highlight against the newly swapped-in content, and honour a pending
     // cross-group hit if the reader navigated here from a search result.
     applySearch();
