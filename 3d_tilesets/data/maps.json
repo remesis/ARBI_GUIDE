@@ -741,7 +741,7 @@
       "sourceBytes": 167609268
     },
     "umbriel+stephano~2": {
-      "mesh": "b756fd88635397d6",
+      "mesh": "a880da3ee4e1148b",
       "overlay": "a412671229966c1d.wfo",
       "tileset": "Grineer Sealab",
       "mission": "Defense / Interception",
@@ -762,18 +762,18 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 15406944,
-      "meshTransferBytes": 11370748,
+      "meshBytes": 15442388,
+      "meshTransferBytes": 11398310,
       "meshFiles": [
-        "b756fd88635397d6.wfg2.br"
+        "a880da3ee4e1148b.wfg2.br"
       ],
       "meshFileBytes": [
-        15406944
+        15442388
       ],
       "meshFileTransferBytes": [
-        11370748
+        11398310
       ],
-      "sourceBytes": 42764068
+      "sourceBytes": 42843112
     },
     "sechura+tessera+outer_terminus~2": {
       "mesh": "6d5af18ec39fd746",
@@ -890,5 +890,5 @@
   "generated": "2026-07-27",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "5b79ee38ec929606"
+  "buildHash": "015686512edbfc17"
 }
