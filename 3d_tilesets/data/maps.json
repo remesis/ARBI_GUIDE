@@ -885,45 +885,10 @@
         11679073
       ],
       "sourceBytes": 40992552
-    },
-    "umbriel+stephano~3": {
-      "mesh": "a894c062f5f3cd67",
-      "overlay": "1275de0829b92da9.wfo",
-      "tileset": "Grineer Sealab",
-      "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
-      "nodes": [
-        {
-          "name": "Umbriel",
-          "planet": "Uranus",
-          "mission": "Interception",
-          "faction": "Grineer"
-        },
-        {
-          "name": "Stephano",
-          "planet": "Uranus",
-          "mission": "Defense",
-          "faction": "Grineer"
-        }
-      ],
-      "meshFormat": 2,
-      "meshCodec": "meshopt+br",
-      "meshBytes": 19820888,
-      "meshTransferBytes": 14090337,
-      "meshFiles": [
-        "a894c062f5f3cd67.wfg2.br"
-      ],
-      "meshFileBytes": [
-        19820888
-      ],
-      "meshFileTransferBytes": [
-        14090337
-      ],
-      "sourceBytes": 57695324
     }
   },
   "generated": "2026-07-27",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "6dfec59ccd7fdffe"
+  "buildHash": "5b79ee38ec929606"
 }
