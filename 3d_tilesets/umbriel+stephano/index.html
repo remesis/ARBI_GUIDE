@@ -50,6 +50,18 @@
 
     a { color: var(--accent); }
 
+    /* Same connected, slowly drifting particle field used by the main guide.
+       The renderer clears the central .wrap column every frame, leaving the
+       effect in the desktop margins without drawing over the 3D viewer. */
+    .particle-canvas {
+      position: fixed;
+      inset: var(--topbar-offset) 0 0 0;
+      width: 100vw;
+      height: calc(100vh - var(--topbar-offset));
+      pointer-events: none;
+      z-index: 2;
+    }
+
     .skip-link {
       position: absolute; left: -9999px; top: 0; z-index: 2000;
       background: var(--panel); color: var(--text);
@@ -393,6 +405,7 @@
     .guide-block table { max-width: 100%; overflow-x: auto; display: block; }
 
     @media (max-width: 900px) {
+      .particle-canvas { display: none; }
       .layout { grid-template-columns: 1fr; }
       .sidebar {
         position: static; height: auto; max-height: 260px;
@@ -405,6 +418,10 @@
          phone topbar, so they are desktop-only. */
       .user-controls, .search-wrap { display: none; }
       .guide-tab-link { padding: 6px 8px; font-size: 12.5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .particle-canvas { display: none !important; }
     }
   </style>
 </head>
@@ -467,9 +484,11 @@
     </div>
   </header>
 
+  <canvas id="particleCanvas" class="particle-canvas" aria-hidden="true"></canvas>
+
   <div class="layout">
     <aside class="sidebar">
-      <div class="sidebar-head"><span>Last updated: 2026-07-30</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
+      <div class="sidebar-head"><span>Last updated: 2026-07-31</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
       <nav class="sidebar-links" id="sidebarLinks" aria-label="Tileset list">
         <a href="/3d_tilesets/callisto+sinai+io" data-group="callisto+sinai+io"><span class="sidebar-label">Callisto, Sinai, Io</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="22" height="22" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
         <a href="/3d_tilesets/umbriel+stephano" data-group="umbriel+stephano" class="active"><span class="sidebar-label">Umbriel, Stephano</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="22" height="22" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
@@ -3242,6 +3261,183 @@ var sPrev = document.getElementById("searchPrevBtn");
 var sNext = document.getElementById("searchNextBtn");
 if (sPrev) sPrev.addEventListener("click", function () { goToHit(searchPos - 1); searchBox.focus(); });
 if (sNext) sNext.addEventListener("click", function () { goToHit(searchPos + 1); searchBox.focus(); });
+
+// ------------------------------------------------------ background particles
+// Keep this visually aligned with the main guide's desktop-margin effect:
+// 48 blue particles, connected within 155px, updated at roughly 30 FPS.
+(function initParticles() {
+  var MOBILE_BREAKPOINT = 900;
+  var CONTENT_GAP = 20;
+  var MAX_DIST = 155;
+  var PARTICLE_COUNT = 48;
+  var PARTICLE_COLOR = "114, 199, 255";
+  var content = document.querySelector(".wrap");
+  var topbar = document.querySelector(".topbar");
+  var canvas = document.getElementById("particleCanvas");
+
+  if (!content || !canvas) return;
+  if (window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  var ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function createParticle(width, height) {
+    return {
+      x: Math.random() * Math.max(width, 1),
+      y: Math.random() * Math.max(height, 1),
+      vx: (Math.random() - 0.5) * 0.28,
+      vy: (Math.random() - 0.5) * 0.28,
+      r: Math.random() * 1.4 + 0.5
+    };
+  }
+
+  var state = {
+    cssWidth: 0,
+    cssHeight: 0,
+    particles: Array.from({ length: PARTICLE_COUNT }, function () {
+      return createParticle(window.innerWidth, window.innerHeight);
+    })
+  };
+
+  function getCanvasLayout() {
+    var topOffset = Math.max(
+      0,
+      Math.round(topbar ? topbar.getBoundingClientRect().height : 0)
+    );
+    var width = window.innerWidth;
+    var height = Math.max(0, window.innerHeight - topOffset);
+    var rect = content.getBoundingClientRect();
+    var holeLeft = clamp(Math.round(rect.left - CONTENT_GAP), 0, width);
+    var holeRight = clamp(Math.round(rect.right + CONTENT_GAP), 0, width);
+    var holeTop = clamp(Math.round(rect.top - topOffset - CONTENT_GAP), 0, height);
+    var holeBottom = clamp(Math.round(rect.bottom - topOffset + CONTENT_GAP), 0, height);
+
+    return {
+      topOffset: topOffset,
+      width: width,
+      height: height,
+      hole: {
+        left: Math.min(holeLeft, holeRight),
+        top: Math.min(holeTop, holeBottom),
+        right: Math.max(holeLeft, holeRight),
+        bottom: Math.max(holeTop, holeBottom)
+      }
+    };
+  }
+
+  function syncCanvasSize(layout) {
+    var width = Math.max(0, layout.width);
+    var height = Math.max(0, layout.height);
+    var previousWidth = state.cssWidth || width;
+    var previousHeight = state.cssHeight || height;
+    var sizeChanged = state.cssWidth !== width || state.cssHeight !== height;
+
+    canvas.style.top = layout.topOffset + "px";
+    canvas.style.height = height + "px";
+    canvas.style.display = width > 0 && height > 0 ? "block" : "none";
+    state.cssWidth = width;
+    state.cssHeight = height;
+
+    if (!sizeChanged) return;
+
+    var dpr = window.devicePixelRatio || 1;
+    var pixelWidth = Math.max(1, Math.round(width * dpr));
+    var pixelHeight = Math.max(1, Math.round(height * dpr));
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    state.particles.forEach(function (particle, index) {
+      if (previousWidth <= 0 || previousHeight <= 0 ||
+          !Number.isFinite(particle.x) || !Number.isFinite(particle.y)) {
+        state.particles[index] = createParticle(width, height);
+        return;
+      }
+      particle.x = clamp((particle.x / previousWidth) * width, 0, width);
+      particle.y = clamp((particle.y / previousHeight) * height, 0, height);
+    });
+  }
+
+  var lastTs = 0;
+  function frame(ts) {
+    if (window.innerWidth <= MOBILE_BREAKPOINT) {
+      canvas.style.display = "none";
+      state.cssWidth = 0;
+      state.cssHeight = 0;
+      requestAnimationFrame(frame);
+      return;
+    }
+
+    var layout = getCanvasLayout();
+    syncCanvasSize(layout);
+
+    if (ts - lastTs < 33) {
+      requestAnimationFrame(frame);
+      return;
+    }
+    lastTs = ts;
+
+    var width = state.cssWidth;
+    var height = state.cssHeight;
+    var particles = state.particles;
+    if (width <= 0 || height <= 0) {
+      requestAnimationFrame(frame);
+      return;
+    }
+
+    ctx.clearRect(0, 0, width, height);
+
+    particles.forEach(function (particle) {
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      if (particle.x < 0 || particle.x > width) particle.vx *= -1;
+      if (particle.y < 0 || particle.y > height) particle.vy *= -1;
+      particle.x = clamp(particle.x, 0, width);
+      particle.y = clamp(particle.y, 0, height);
+    });
+
+    for (var i = 0; i < particles.length; i += 1) {
+      for (var j = i + 1; j < particles.length; j += 1) {
+        var dx = particles[i].x - particles[j].x;
+        var dy = particles[i].y - particles[j].y;
+        var distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < MAX_DIST) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = "rgba(" + PARTICLE_COLOR + ", " +
+            ((1 - distance / MAX_DIST) * 0.25).toFixed(3) + ")";
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
+      }
+    }
+
+    particles.forEach(function (particle) {
+      ctx.beginPath();
+      ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(" + PARTICLE_COLOR + ", 0.55)";
+      ctx.fill();
+    });
+
+    var holeWidth = Math.max(0, layout.hole.right - layout.hole.left);
+    var holeHeight = Math.max(0, layout.hole.bottom - layout.hole.top);
+    if (holeWidth > 0 && holeHeight > 0) {
+      ctx.clearRect(layout.hole.left, layout.hole.top, holeWidth, holeHeight);
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
 
 // ---------------------------------------------------------------- viewer count
 // Same presence Worker the main guide uses, so the count is shared across both
