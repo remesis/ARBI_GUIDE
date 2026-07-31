@@ -205,9 +205,27 @@
       color: var(--text); text-align: left; font-size: 2em; font-weight: 700;
       margin: 0 0 0.2em; letter-spacing: normal;
     }
+    .ts-meta-row {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+      margin: 0 0 0.45em;
+    }
+    .variant-switch {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin: 0;
+    }
+    .variant-switch[hidden] { display: none; }
+    .variant-switch button {
+      min-width: 2.15em; padding: 5px 9px; border: 1px solid var(--border);
+      border-radius: 7px; background: var(--panel); color: var(--muted);
+      font: inherit; font-weight: 700; cursor: pointer;
+    }
+    .variant-switch button:hover { color: var(--text); border-color: var(--accent); }
+    .variant-switch button.active {
+      color: #061018; background: var(--accent); border-color: var(--accent);
+    }
     .ts-sub {
       text-align: left; color: var(--text); font-size: 1em;
-      margin: 0 0 0.45em;
+      margin: 0;
     }
     .ts-sub b { color: var(--text); font-weight: 700; }
 
@@ -478,7 +496,10 @@
     <main class="main">
       <div class="wrap">
         <h1 class="ts-title" id="tsTitle">Berehynia</h1>
-        <div class="ts-sub" id="tsSub">Select a map from the list.</div>
+        <div class="ts-meta-row">
+          <div class="variant-switch" id="variantSwitch" aria-label="Tileset variant" hidden></div>
+          <div class="ts-sub" id="tsSub">Select a map from the list.</div>
+        </div>
 
         <div class="node-chips" id="nodeChips"></div>
 
@@ -547,8 +568,8 @@
 (function () {
 
 var GROUPS = [{"id": "callisto+sinai+io", "label": "Callisto, Sinai, Io", "mission": ""}, {"id": "umbriel+stephano", "label": "Umbriel, Stephano", "mission": ""}, {"id": "cytherean+xini+gulliver", "label": "Cytherean, Xini, Gulliver", "mission": ""}, {"id": "alator+kadesh+spear", "label": "Alator, Kadesh, Spear", "mission": ""}, {"id": "tyana_pass", "label": "Tyana Pass", "mission": "Mirror Defense"}, {"id": "munio", "label": "Munio", "mission": "Mirror Defense"}, {"id": "mithra+taranis+belenus", "label": "Mithra, Taranis, Belenus", "mission": ""}, {"id": "casta+seimeni+cinxia", "label": "Casta, Seimeni, Cinxia", "mission": ""}, {"id": "hydron+helene+odin", "label": "Hydron, Helene, Odin", "mission": ""}, {"id": "sechura+tessera+outer_terminus", "label": "Sechura, Tessera, Outer Terminus", "mission": ""}, {"id": "ose+paimon+larzac", "label": "Ose, Paimon, Larzac", "mission": ""}, {"id": "rhea+lares+sangeru", "label": "Rhea, Lares, Sangeru", "mission": ""}, {"id": "akkad+kala-azar", "label": "Akkad, Kala-Azar", "mission": ""}, {"id": "coba+lith", "label": "Coba, Lith", "mission": ""}, {"id": "berehynia", "label": "Berehynia", "mission": ""}, {"id": "oestrus", "label": "Oestrus", "mission": "Infested Salvage"}, {"id": "gaia", "label": "Gaia", "mission": ""}, {"id": "hyf", "label": "Hyf", "mission": ""}, {"id": "stofler", "label": "Stöfler", "mission": ""}];
-var MOTE_LAYOUTS = {"callisto+sinai+io": [{"type": "health", "position": [0.529326, -17.9981, -95.775147]}, {"type": "haste", "position": [-0.087912, -17.9981, -95.890739]}, {"type": "health", "position": [-0.077668, -9.9341, -60.985752]}, {"type": "haste", "position": [-0.640532, -9.942101, -60.735835]}, {"type": "health", "position": [37.280063, -3.998101, -34.302278]}, {"type": "haste", "position": [36.916951, -3.998101, -33.781506]}], "umbriel+stephano": [{"type": "health", "position": [-6.853199, -5.5005, 10.445132]}, {"type": "haste", "position": [-6.326306, -5.5005, 10.810011]}, {"type": "health", "position": [46.037513, -14.250501, 11.570398]}, {"type": "haste", "position": [45.324014, -14.250501, 11.859943]}, {"type": "health", "position": [43.292031, -7.5005, -34.389833]}, {"type": "haste", "position": [43.173964, -7.5005, -33.528442]}], "cytherean+xini+gulliver": [{"type": "health", "position": [-29.129938, -2.0016, -1.029425]}, {"type": "haste", "position": [-29.201618, -2.0016, -0.467622]}, {"type": "health", "position": [-0.435831, 4.9984, -38.428234]}, {"type": "haste", "position": [0.042078, 5.0034, -38.178103]}, {"type": "health", "position": [29.293463, -6.8016, 23.332346]}, {"type": "haste", "position": [28.461622, -6.8016, 22.916374]}], "alator+kadesh+spear": [{"type": "health", "position": [-19.250467, 3.4806, 7.947262]}, {"type": "haste", "position": [-18.929805, 3.4806, 7.340067]}, {"type": "health", "position": [26.797176, 13.0006, 7.574887]}, {"type": "haste", "position": [26.466449, 13.0006, 7.077862]}, {"type": "health", "position": [-49.634945, -4.633845, -23.523392]}, {"type": "haste", "position": [-49.261063, -4.639242, -24.06718]}], "tyana_pass": [{"type": "health", "position": [118.20616, -0.7674, -27.432605]}, {"type": "haste", "position": [117.604635, -0.7674, -27.376085]}, {"type": "health", "position": [-170.072117, -0.1024, 14.559416]}, {"type": "haste", "position": [-170.483088, -0.1024, 15.161153]}, {"type": "health", "position": [-3.661895, 0.2966, -24.677911]}, {"type": "haste", "position": [-4.204955, 0.2966, -24.852874]}], "munio": [{"type": "health", "position": [-124.646366, 3.0314, 87.442223]}, {"type": "haste", "position": [-126.144118, 3.0314, 87.247785]}, {"type": "health", "position": [106.359012, 6.7554, -76.753216]}, {"type": "haste", "position": [106.114362, 6.7554, -76.012627]}, {"type": "health", "position": [-53.534644, -2.4986, -61.286532]}, {"type": "haste", "position": [-53.164763, -2.4986, -62.010286]}], "mithra+taranis+belenus": [{"type": "health", "position": [-9.374002, -1.6804, 11.824539]}, {"type": "haste", "position": [-8.540907, -1.655401, 12.359996]}, {"type": "health", "position": [-9.716135, -1.750401, -48.787836]}, {"type": "haste", "position": [-9.457353, -1.750401, -48.287302]}, {"type": "health", "position": [-63.583529, 4.749599, 27.630605]}, {"type": "haste", "position": [-62.996577, 4.749599, 27.23535]}], "casta+seimeni+cinxia": [{"type": "health", "position": [2.051051, 25.8046, 20.928896]}, {"type": "haste", "position": [2.244747, 25.774746, 20.670589]}, {"type": "health", "position": [-22.958954, 23.999601, 22.285414]}, {"type": "haste", "position": [-22.394157, 23.999601, 22.795141]}, {"type": "health", "position": [6.155208, 23.999601, -2.026319]}, {"type": "haste", "position": [5.67222, 23.999601, -1.512446]}], "hydron+helene+odin": [{"type": "health", "position": [-5.16308, 10, 6.202312]}, {"type": "haste", "position": [-5.196297, 10, 6.69008]}, {"type": "health", "position": [-28.147687, 6, 19.891963]}, {"type": "haste", "position": [-28.671866, 5.995, 20.457276]}, {"type": "health", "position": [-17.660596, 4.059896, -17.23582]}, {"type": "haste", "position": [-16.993993, 4.060056, -17.308811]}], "sechura+tessera+outer_terminus": [{"type": "health", "position": [-27.761131, 7.8004, -1.426215]}, {"type": "haste", "position": [-27.024114, 7.8004, -1.423619]}, {"type": "health", "position": [-27.672435, 7.8004, -11.220743]}, {"type": "haste", "position": [-26.955585, 7.8004, -11.10656]}, {"type": "health", "position": [-7.870579, 7.8004, -5.889869]}, {"type": "haste", "position": [-8.471568, 7.8004, -6.116861]}], "ose+paimon+larzac": [{"type": "health", "position": [-2.014291, 10.460459, -26.172533]}, {"type": "haste", "position": [-1.556585, 10.337379, -26.24285]}, {"type": "health", "position": [-31.706005, 2.315769, -41.719977]}, {"type": "haste", "position": [-31.783733, 2.294121, -41.263068]}, {"type": "health", "position": [53.285539, 2.046661, -33.985069]}, {"type": "haste", "position": [52.748402, 2.018595, -34.123516]}], "rhea+lares+sangeru": [{"type": "health", "position": [-4.064499, 3.767848, -14.853016]}, {"type": "haste", "position": [-3.877366, 3.73739, -14.399825]}, {"type": "health", "position": [-5.428208, 0.113686, 32.293642]}, {"type": "haste", "position": [-4.819165, 0.072302, 32.080503]}, {"type": "health", "position": [-24.864764, 0.095217, -6.224638]}, {"type": "haste", "position": [-24.366124, 0.001131, -6.360497]}], "akkad+kala-azar": [{"type": "health", "position": [0.530561, 2.770945, -20.328186]}, {"type": "haste", "position": [0.847739, 2.809639, -20.476238]}, {"type": "health", "position": [-0.427101, 5.750399, 6.112132]}, {"type": "haste", "position": [-0.938192, 5.750399, 5.71643]}, {"type": "health", "position": [20.93035, 6.288563, 31.623569]}, {"type": "haste", "position": [21.502258, 6.369224, 31.077605]}], "coba+lith": [{"type": "health", "position": [-1.639938, 9.7836, -5.706006]}, {"type": "haste", "position": [-1.16816, 9.7836, -5.421356]}, {"type": "health", "position": [48.357516, 7.4986, 4.704429]}, {"type": "haste", "position": [47.809017, 7.4986, 5.134041]}, {"type": "health", "position": [-36.361996, 8.098599, -23.961133]}, {"type": "haste", "position": [-35.676513, 8.098599, -24.309298]}], "berehynia": [{"type": "health", "position": [-14.761838, -58.281101, 12.747517]}, {"type": "haste", "position": [-15.04254, -58.281101, 12.148157]}, {"type": "health", "position": [52.055269, -53.686347, 46.089435]}, {"type": "haste", "position": [52.401513, -53.693987, 46.220503]}, {"type": "health", "position": [-55.813962, -54.251099, -16.730135]}, {"type": "haste", "position": [-55.210427, -54.251099, -16.487815]}], "oestrus": [{"type": "health", "position": [21.077694, 2.001, -1.710256]}, {"type": "haste", "position": [21.001, 2.001, -0.967501]}, {"type": "health", "position": [-24.57243, -10.982601, -21.779288]}, {"type": "haste", "position": [-24.558393, -10.959743, -21.044217]}, {"type": "health", "position": [43.355056, 2.077889, -34.250334]}, {"type": "haste", "position": [43.358963, 2.096626, -34.746868]}], "gaia": [{"type": "health", "position": [-39.928166, 22.566801, -40.818829]}, {"type": "haste", "position": [-39.621517, 22.566801, -41.06894]}, {"type": "health", "position": [-29.847278, 18.252802, -17.400584]}, {"type": "haste", "position": [-30.437338, 18.252802, -17.864384]}, {"type": "health", "position": [-87.176514, 18.252802, -14.013313]}, {"type": "haste", "position": [-86.874721, 18.252802, -13.561883]}], "hyf": [{"type": "health", "position": [-0.778038, -1.515684, -2.069876]}, {"type": "haste", "position": [-0.465326, -1.516569, -1.640525]}, {"type": "health", "position": [-1.986189, -1.9981, -10.694288]}, {"type": "haste", "position": [-1.311193, -1.9981, -10.702007]}, {"type": "health", "position": [18.819749, -1.9981, -5.762358]}, {"type": "haste", "position": [18.756891, -1.9981, -6.353866]}], "stofler": [{"type": "health", "position": [14.204979, -55.493903, -0.735981]}, {"type": "haste", "position": [14.70361, -55.491963, -0.456993]}, {"type": "health", "position": [15.140195, -8.54733, -0.246042]}, {"type": "haste", "position": [15.50713, -8.550732, -0.286486]}, {"type": "health", "position": [15.176366, 41.7509, -5.636944]}, {"type": "haste", "position": [15.665996, 41.7509, -5.320867]}]};
-var CAMP_PRESETS = {"callisto+sinai+io": [{"position": [-1.205025, -16.186178, -95.635893], "yaw": 0.110458, "pitch": 0.089477}, {"position": [-0.585309, -8.404306, -61.164205], "yaw": 5.865449, "pitch": -0.010901}], "umbriel+stephano": [{"position": [-7.227109, -1.756181, 11.43118], "yaw": -0.180911, "pitch": -0.16613}], "cytherean+xini+gulliver": [{"position": [-33.662296, 0.865856, -1.190262], "yaw": -4.935007, "pitch": 0.027664}, {"position": [31.070337, -0.511977, -0.727009], "yaw": -1.371597, "pitch": 0.071161}], "alator+kadesh+spear": [{"position": [-22.625422, 6.128021, 4.828276], "yaw": 1.186773, "pitch": 0.030972}, {"position": [30.003631, 16.231724, 8.611329], "yaw": -1.603729, "pitch": -0.290236}], "tyana_pass": [{"position": [119.345278, 1.886211, -28.58421], "yaw": -0.4517, "pitch": 0.038244}, {"position": [-173.107243, 1.91705, 15.834273], "yaw": 2.34884, "pitch": 0.031553}], "munio": [{"position": [-126.193813, 5.226725, 86.660537], "yaw": 0.020066, "pitch": -0.050762}, {"position": [104.187419, 8.658984, -75.977015], "yaw": 2.27522, "pitch": 0.063}], "mithra+taranis+belenus": [{"position": [-8.69686, 0.15001, 11.224189], "yaw": -3.587063, "pitch": -0.056259}], "casta+seimeni+cinxia": [{"position": [1.190189, 28.572885, 20.914024], "yaw": -3.11572, "pitch": -0.084439}], "hydron+helene+odin": [{"position": [-3.628811, 13.607403, 4.040771], "yaw": -7.194747, "pitch": -0.241697}, {"position": [22.706342, 9.236019, 12.496126], "yaw": -7.907429, "pitch": 0.052744}], "sechura+tessera+outer_terminus": [{"position": [-27.456423, 8.950227, -7.252971], "yaw": -1.301046, "pitch": -0.10483}, {"position": [-8.650966, 9.226646, -5.462328], "yaw": 2.105105, "pitch": 0.249839}], "ose+paimon+larzac": [{"position": [-2.349213, 12.315067, -28.295979], "yaw": -2.741521, "pitch": -0.15862}, {"position": [-0.221773, 8.458391, -36.80696], "yaw": -6.24805, "pitch": -0.001362}], "rhea+lares+sangeru": [{"position": [-3.899162, 4.893577, -14.058672], "yaw": -0.189923, "pitch": -0.094354}], "akkad+kala-azar": [{"position": [0.906572, 4.471202, -19.797884], "yaw": -0.024286, "pitch": 0.029513}, {"position": [-0.971462, 7.629002, 5.526428], "yaw": -3.286563, "pitch": -0.19801}], "coba+lith": [{"position": [-0.871979, 11.466713, -5.721319], "yaw": -2.075607, "pitch": 0.059821}], "berehynia": [{"position": [-15.041044, -56.92382, 12.607793], "yaw": -0.077187, "pitch": 0.020129}, {"position": [0.450189, -45.867574, -7.214525], "yaw": -0.659378, "pitch": -0.468376}], "oestrus": [{"position": [18.308788, 3.035608, -0.258119], "yaw": -1.519404, "pitch": -0.139752}], "gaia": [{"position": [-39.018849, 25.715168, -39.326943], "yaw": -2.472296, "pitch": -0.129979}], "hyf": [{"position": [-3.585173, -0.609938, -2.398708], "yaw": -1.770364, "pitch": -0.234362}, {"position": [20.899077, -0.37469, -5.086307], "yaw": -4.664589, "pitch": -0.043644}], "stofler": [{"position": [11.109374, 43.749389, -4.451223], "yaw": 0.959176, "pitch": 0.377299}, {"position": [15.659688, -6.821197, -0.230721], "yaw": -1.172178, "pitch": 0.136392}, {"position": [14.804389, -50.987079, -1.400911], "yaw": -7.462517, "pitch": -0.101169}]};
+var MOTE_LAYOUTS = {"callisto+sinai+io": [{"type": "health", "position": [0.529326, -17.9981, -95.775147]}, {"type": "haste", "position": [-0.087912, -17.9981, -95.890739]}, {"type": "health", "position": [-0.077668, -9.9341, -60.985752]}, {"type": "haste", "position": [-0.640532, -9.942101, -60.735835]}, {"type": "health", "position": [37.280063, -3.998101, -34.302278]}, {"type": "haste", "position": [36.916951, -3.998101, -33.781506]}], "callisto+sinai+io~2": [{"type": "health", "position": [0.529326, -17.9981, -95.775147]}, {"type": "haste", "position": [-0.087912, -17.9981, -95.890739]}, {"type": "health", "position": [-0.077668, -9.9341, -60.985752]}, {"type": "haste", "position": [-0.640532, -9.942101, -60.735835]}, {"type": "health", "position": [37.280063, -3.998101, -34.302278]}, {"type": "haste", "position": [36.916951, -3.998101, -33.781506]}], "umbriel+stephano": [{"type": "health", "position": [-6.853199, -5.5005, 10.445132]}, {"type": "haste", "position": [-6.326306, -5.5005, 10.810011]}, {"type": "health", "position": [46.037513, -14.250501, 11.570398]}, {"type": "haste", "position": [45.324014, -14.250501, 11.859943]}, {"type": "health", "position": [43.292031, -7.5005, -34.389833]}, {"type": "haste", "position": [43.173964, -7.5005, -33.528442]}], "umbriel+stephano~2": [{"type": "health", "position": [7.215769, 2.7869, -14.450457]}, {"type": "haste", "position": [7.238542, 2.7869, -15.04821]}, {"type": "health", "position": [-28.311943, -8.00388, -24.323882]}, {"type": "haste", "position": [-27.999274, -8.025929, -24.10055]}, {"type": "health", "position": [-36.114059, -5.759238, 41.257061]}, {"type": "haste", "position": [-36.155628, -5.746951, 40.650688]}], "umbriel+stephano~3": [{"type": "health", "position": [7.359698, 4.088, -0.038241]}, {"type": "haste", "position": [7.275135, 4.088, 0.410235]}, {"type": "health", "position": [4.317744, -4.124339, 36.592123]}, {"type": "haste", "position": [3.550532, -4.120646, 36.582229]}], "cytherean+xini+gulliver": [{"type": "health", "position": [-29.129938, -2.0016, -1.029425]}, {"type": "haste", "position": [-29.201618, -2.0016, -0.467622]}, {"type": "health", "position": [-0.435831, 4.9984, -38.428234]}, {"type": "haste", "position": [0.042078, 5.0034, -38.178103]}, {"type": "health", "position": [29.293463, -6.8016, 23.332346]}, {"type": "haste", "position": [28.461622, -6.8016, 22.916374]}], "alator+kadesh+spear": [{"type": "health", "position": [-19.250467, 3.4806, 7.947262]}, {"type": "haste", "position": [-18.929805, 3.4806, 7.340067]}, {"type": "health", "position": [26.797176, 13.0006, 7.574887]}, {"type": "haste", "position": [26.466449, 13.0006, 7.077862]}, {"type": "health", "position": [-49.634945, -4.633845, -23.523392]}, {"type": "haste", "position": [-49.261063, -4.639242, -24.06718]}], "tyana_pass": [{"type": "health", "position": [118.20616, -0.7674, -27.432605]}, {"type": "haste", "position": [117.604635, -0.7674, -27.376085]}, {"type": "health", "position": [-170.072117, -0.1024, 14.559416]}, {"type": "haste", "position": [-170.483088, -0.1024, 15.161153]}, {"type": "health", "position": [-3.661895, 0.2966, -24.677911]}, {"type": "haste", "position": [-4.204955, 0.2966, -24.852874]}], "munio": [{"type": "health", "position": [-124.646366, 3.0314, 87.442223]}, {"type": "haste", "position": [-126.144118, 3.0314, 87.247785]}, {"type": "health", "position": [106.359012, 6.7554, -76.753216]}, {"type": "haste", "position": [106.114362, 6.7554, -76.012627]}, {"type": "health", "position": [-53.534644, -2.4986, -61.286532]}, {"type": "haste", "position": [-53.164763, -2.4986, -62.010286]}], "mithra+taranis+belenus": [{"type": "health", "position": [-9.374002, -1.6804, 11.824539]}, {"type": "haste", "position": [-8.540907, -1.655401, 12.359996]}, {"type": "health", "position": [-9.716135, -1.750401, -48.787836]}, {"type": "haste", "position": [-9.457353, -1.750401, -48.287302]}, {"type": "health", "position": [-63.583529, 4.749599, 27.630605]}, {"type": "haste", "position": [-62.996577, 4.749599, 27.23535]}], "casta+seimeni+cinxia": [{"type": "health", "position": [2.051051, 25.8046, 20.928896]}, {"type": "haste", "position": [2.244747, 25.774746, 20.670589]}, {"type": "health", "position": [-22.958954, 23.999601, 22.285414]}, {"type": "haste", "position": [-22.394157, 23.999601, 22.795141]}, {"type": "health", "position": [6.155208, 23.999601, -2.026319]}, {"type": "haste", "position": [5.67222, 23.999601, -1.512446]}], "hydron+helene+odin": [{"type": "health", "position": [-5.16308, 10, 6.202312]}, {"type": "haste", "position": [-5.196297, 10, 6.69008]}, {"type": "health", "position": [-28.147687, 6, 19.891963]}, {"type": "haste", "position": [-28.671866, 5.995, 20.457276]}, {"type": "health", "position": [-17.660596, 4.059896, -17.23582]}, {"type": "haste", "position": [-16.993993, 4.060056, -17.308811]}], "sechura+tessera+outer_terminus": [{"type": "health", "position": [-27.761131, 7.8004, -1.426215]}, {"type": "haste", "position": [-27.024114, 7.8004, -1.423619]}, {"type": "health", "position": [-27.672435, 7.8004, -11.220743]}, {"type": "haste", "position": [-26.955585, 7.8004, -11.10656]}, {"type": "health", "position": [-7.870579, 7.8004, -5.889869]}, {"type": "haste", "position": [-8.471568, 7.8004, -6.116861]}], "sechura+tessera+outer_terminus~2": [{"type": "health", "position": [-2.45573, 12.029898, -19.501961]}, {"type": "haste", "position": [-1.861847, 12.029898, -18.990327]}, {"type": "health", "position": [27.950464, 6.109121, -39.79488]}, {"type": "haste", "position": [27.457178, 6.047861, -38.866258]}, {"type": "health", "position": [-32.676627, 11.999897, -23.542893]}, {"type": "haste", "position": [-32.058846, 11.999897, -23.851829]}], "sechura+tessera+outer_terminus~3": [{"type": "health", "position": [-1.567782, 40.065002, 0.926677]}, {"type": "haste", "position": [-1.518128, 40.065002, 0.266699]}, {"type": "health", "position": [64.431319, 6.358089, 4.105376]}, {"type": "haste", "position": [64.010829, 6.422593, 3.489718]}, {"type": "health", "position": [88.69488, 39.999001, 42.448129]}, {"type": "haste", "position": [87.841285, 39.999001, 42.060207]}], "ose+paimon+larzac": [{"type": "health", "position": [-2.014291, 10.460459, -26.172533]}, {"type": "haste", "position": [-1.556585, 10.337379, -26.24285]}, {"type": "health", "position": [-31.706005, 2.315769, -41.719977]}, {"type": "haste", "position": [-31.783733, 2.294121, -41.263068]}, {"type": "health", "position": [53.285539, 2.046661, -33.985069]}, {"type": "haste", "position": [52.748402, 2.018595, -34.123516]}], "rhea+lares+sangeru": [{"type": "health", "position": [-4.064499, 3.767848, -14.853016]}, {"type": "haste", "position": [-3.877366, 3.73739, -14.399825]}, {"type": "health", "position": [-5.428208, 0.113686, 32.293642]}, {"type": "haste", "position": [-4.819165, 0.072302, 32.080503]}, {"type": "health", "position": [-24.864764, 0.095217, -6.224638]}, {"type": "haste", "position": [-24.366124, 0.001131, -6.360497]}], "akkad+kala-azar": [{"type": "health", "position": [0.530561, 2.770945, -20.328186]}, {"type": "haste", "position": [0.847739, 2.809639, -20.476238]}, {"type": "health", "position": [-0.427101, 5.750399, 6.112132]}, {"type": "haste", "position": [-0.938192, 5.750399, 5.71643]}, {"type": "health", "position": [20.93035, 6.288563, 31.623569]}, {"type": "haste", "position": [21.502258, 6.369224, 31.077605]}], "coba+lith": [{"type": "health", "position": [-1.639938, 9.7836, -5.706006]}, {"type": "haste", "position": [-1.16816, 9.7836, -5.421356]}, {"type": "health", "position": [48.357516, 7.4986, 4.704429]}, {"type": "haste", "position": [47.809017, 7.4986, 5.134041]}, {"type": "health", "position": [-36.361996, 8.098599, -23.961133]}, {"type": "haste", "position": [-35.676513, 8.098599, -24.309298]}], "berehynia": [{"type": "health", "position": [-14.761838, -58.281101, 12.747517]}, {"type": "haste", "position": [-15.04254, -58.281101, 12.148157]}, {"type": "health", "position": [52.055269, -53.686347, 46.089435]}, {"type": "haste", "position": [52.401513, -53.693987, 46.220503]}, {"type": "health", "position": [-55.813962, -54.251099, -16.730135]}, {"type": "haste", "position": [-55.210427, -54.251099, -16.487815]}], "oestrus": [{"type": "health", "position": [21.077694, 2.001, -1.710256]}, {"type": "haste", "position": [21.001, 2.001, -0.967501]}, {"type": "health", "position": [-24.57243, -10.982601, -21.779288]}, {"type": "haste", "position": [-24.558393, -10.959743, -21.044217]}, {"type": "health", "position": [43.355056, 2.077889, -34.250334]}, {"type": "haste", "position": [43.358963, 2.096626, -34.746868]}], "gaia": [{"type": "health", "position": [-39.928166, 22.566801, -40.818829]}, {"type": "haste", "position": [-39.621517, 22.566801, -41.06894]}, {"type": "health", "position": [-29.847278, 18.252802, -17.400584]}, {"type": "haste", "position": [-30.437338, 18.252802, -17.864384]}, {"type": "health", "position": [-87.176514, 18.252802, -14.013313]}, {"type": "haste", "position": [-86.874721, 18.252802, -13.561883]}], "gaia~2": [{"type": "health", "position": [54.178308, -3.001299, 34.375937]}, {"type": "haste", "position": [54.536499, -3.001299, 34.53299]}, {"type": "health", "position": [86.996679, -5.389298, 30.677571]}, {"type": "haste", "position": [87.336053, -5.389298, 31.123617]}, {"type": "health", "position": [34.13752, -9.997298, 16.557036]}, {"type": "haste", "position": [34.73581, -9.997298, 16.55986]}], "hyf": [{"type": "health", "position": [-0.778038, -1.515684, -2.069876]}, {"type": "haste", "position": [-0.465326, -1.516569, -1.640525]}, {"type": "health", "position": [-1.986189, -1.9981, -10.694288]}, {"type": "haste", "position": [-1.311193, -1.9981, -10.702007]}, {"type": "health", "position": [18.819749, -1.9981, -5.762358]}, {"type": "haste", "position": [18.756891, -1.9981, -6.353866]}], "stofler": [{"type": "health", "position": [14.204979, -55.493903, -0.735981]}, {"type": "haste", "position": [14.70361, -55.491963, -0.456993]}, {"type": "health", "position": [15.140195, -8.54733, -0.246042]}, {"type": "haste", "position": [15.50713, -8.550732, -0.286486]}, {"type": "health", "position": [15.176366, 41.7509, -5.636944]}, {"type": "haste", "position": [15.665996, 41.7509, -5.320867]}]};
+var CAMP_PRESETS = {"callisto+sinai+io": [{"position": [-1.205025, -16.186178, -95.635893], "yaw": 0.110458, "pitch": 0.089477}, {"position": [-0.585309, -8.404306, -61.164205], "yaw": 5.865449, "pitch": -0.010901}], "callisto+sinai+io~2": [{"position": [-1.205025, -16.186178, -95.635893], "yaw": 0.110458, "pitch": 0.089477}, {"position": [-0.585309, -8.404306, -61.164205], "yaw": 5.865449, "pitch": -0.010901}], "umbriel+stephano": [{"position": [-7.227109, -1.756181, 11.43118], "yaw": -0.180911, "pitch": -0.16613}], "umbriel+stephano~2": [{"position": [7.966054, 5.623208, -13.53067], "yaw": 5.158142, "pitch": -0.522061}], "umbriel+stephano~3": [{"position": [6.899487, 7.078341, 0.744709], "yaw": -2.510784, "pitch": -0.103569}], "cytherean+xini+gulliver": [{"position": [-33.662296, 0.865856, -1.190262], "yaw": -4.935007, "pitch": 0.027664}, {"position": [31.070337, -0.511977, -0.727009], "yaw": -1.371597, "pitch": 0.071161}], "alator+kadesh+spear": [{"position": [-22.625422, 6.128021, 4.828276], "yaw": 1.186773, "pitch": 0.030972}, {"position": [30.003631, 16.231724, 8.611329], "yaw": -1.603729, "pitch": -0.290236}], "tyana_pass": [{"position": [119.345278, 1.886211, -28.58421], "yaw": -0.4517, "pitch": 0.038244}, {"position": [-173.107243, 1.91705, 15.834273], "yaw": 2.34884, "pitch": 0.031553}], "munio": [{"position": [-126.193813, 5.226725, 86.660537], "yaw": 0.020066, "pitch": -0.050762}, {"position": [104.187419, 8.658984, -75.977015], "yaw": 2.27522, "pitch": 0.063}], "mithra+taranis+belenus": [{"position": [-8.69686, 0.15001, 11.224189], "yaw": -3.587063, "pitch": -0.056259}], "casta+seimeni+cinxia": [{"position": [1.190189, 28.572885, 20.914024], "yaw": -3.11572, "pitch": -0.084439}], "hydron+helene+odin": [{"position": [-3.628811, 13.607403, 4.040771], "yaw": -7.194747, "pitch": -0.241697}, {"position": [22.706342, 9.236019, 12.496126], "yaw": -7.907429, "pitch": 0.052744}], "sechura+tessera+outer_terminus": [{"position": [-27.456423, 8.950227, -7.252971], "yaw": -1.301046, "pitch": -0.10483}, {"position": [-8.650966, 9.226646, -5.462328], "yaw": 2.105105, "pitch": 0.249839}], "sechura+tessera+outer_terminus~2": [{"position": [-4.436026, 13.954756, -17.265949], "yaw": 5.866301, "pitch": -0.155972}], "sechura+tessera+outer_terminus~3": [{"position": [-4.237793, 42.307851, -0.011231], "yaw": 1.564077, "pitch": -0.153331}], "ose+paimon+larzac": [{"position": [-2.349213, 12.315067, -28.295979], "yaw": -2.741521, "pitch": -0.15862}, {"position": [-0.221773, 8.458391, -36.80696], "yaw": -6.24805, "pitch": -0.001362}], "rhea+lares+sangeru": [{"position": [-3.899162, 4.893577, -14.058672], "yaw": -0.189923, "pitch": -0.094354}], "akkad+kala-azar": [{"position": [0.906572, 4.471202, -19.797884], "yaw": -0.024286, "pitch": 0.029513}, {"position": [-0.971462, 7.629002, 5.526428], "yaw": -3.286563, "pitch": -0.19801}], "coba+lith": [{"position": [-0.871979, 11.466713, -5.721319], "yaw": -2.075607, "pitch": 0.059821}], "berehynia": [{"position": [-15.041044, -56.92382, 12.607793], "yaw": -0.077187, "pitch": 0.020129}, {"position": [0.450189, -45.867574, -7.214525], "yaw": -0.659378, "pitch": -0.468376}], "oestrus": [{"position": [18.308788, 3.035608, -0.258119], "yaw": -1.519404, "pitch": -0.139752}], "gaia": [{"position": [-39.018849, 25.715168, -39.326943], "yaw": -2.472296, "pitch": -0.129979}], "gaia~2": [{"position": [55.151916, 0.224799, 35.302758], "yaw": -5.463024, "pitch": -0.441181}], "hyf": [{"position": [-3.585173, -0.609938, -2.398708], "yaw": -1.770364, "pitch": -0.234362}, {"position": [20.899077, -0.37469, -5.086307], "yaw": -4.664589, "pitch": -0.043644}], "stofler": [{"position": [11.109374, 43.749389, -4.451223], "yaw": 0.959176, "pitch": 0.377299}, {"position": [15.659688, -6.821197, -0.230721], "yaw": -1.172178, "pitch": 0.136392}, {"position": [14.804389, -50.987079, -1.400911], "yaw": -7.462517, "pitch": -0.101169}]};
 var URL_BASE = "/3d_tilesets/";          // "/3d_tilesets/"
 var ACTIVE_SLUG = "berehynia";    // slug this static copy was built for
 var DATA_BASE = URL_BASE + "data/";   // absolute: pages live one level deeper
@@ -563,6 +584,7 @@ var loadMsg   = document.getElementById("loadMsg");
 var loadBar   = document.querySelector("#loadBar i");
 var loadPct   = document.getElementById("loadPct");
 var titleEl   = document.getElementById("tsTitle");
+var variantEl = document.getElementById("variantSwitch");
 var subEl     = document.getElementById("tsSub");
 var chipsEl   = document.getElementById("nodeChips");
 var sideEl    = document.getElementById("sidebarLinks");
@@ -590,13 +612,17 @@ var prefetchDone = new Set();
 var prefetchRunning = false;
 var prefetchStarted = false;
 var groupingEnabled = false;
+var activeVariant = 1;
 var localMoteAuthorUpdate = null;
 var localMoteAuthorRender = null;
 var localMoteAuthorPlace = null;
 var localMoteAuthorGroupChanged = null;
 var localCampAuthorPlace = null;
 var localCampAuthorGroupChanged = null;
+var localCameraAuthorSave = null;
 var localCampSetsByGroup = Object.create(null);
+var localCameraPresetsByGroup = Object.create(null);
+var moteCaptureStartedByGroup = Object.create(null);
 var localAuthorMode = null;
 
 // ---------------------------------------------------------------- helpers
@@ -614,6 +640,40 @@ function showLoad(msg, isErr) {
   loadBar.parentNode.style.visibility = isErr ? "hidden" : "visible";
 }
 function hideLoad() { loadOv.style.display = "none"; }
+
+function variantMapId(gid, variant) {
+  return variant > 1 ? gid + "~" + variant : gid;
+}
+
+function availableVariants(gid) {
+  var variants = [];
+  if (manifest && manifest.groups && manifest.groups[gid]) variants.push(1);
+  for (var i = 2; i <= 9; i++) {
+    if (manifest && manifest.groups && manifest.groups[variantMapId(gid, i)]) {
+      variants.push(i);
+    }
+  }
+  return variants;
+}
+
+function renderVariantSwitch(gid, selected) {
+  var variants = availableVariants(gid);
+  variantEl.hidden = variants.length < 2;
+  variantEl.innerHTML = "";
+  variants.forEach(function (variant) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.textContent = String(variant);
+    button.classList.toggle("active", variant === selected);
+    button.setAttribute("aria-pressed", variant === selected ? "true" : "false");
+    button.setAttribute("aria-label", "Tileset variant " + variant);
+    button.addEventListener("click", function () {
+      if (current && current.group.id === gid && current.variant === variant) return;
+      loadGroup(gid, variant);
+    });
+    variantEl.appendChild(button);
+  });
+}
 
 // ---------------------------------------------------------------- WebGL init
 var gl = canvas.getContext("webgl2", { antialias: true, alpha: false });
@@ -889,7 +949,10 @@ var ORBIT_FOV = 52 * Math.PI / 180;
 // target calculated by frameOn().
 var CAMERA_PRESETS = {
   "callisto+sinai+io": {target:[5.205103,-33.863803,-22.04191], yaw:-3.011059, pitch:-0.409066, dist:145.0, ceiling:50},
-  "umbriel+stephano": {target:[-17.753214,-19.532657,5.554408], yaw:0.0, pitch:-0.698132, dist:120.0, ceiling:40},
+  "callisto+sinai+io~2": {target:[5.205103,-33.863803,-22.04191], yaw:-3.011059, pitch:-0.409066, dist:145.0, ceiling:50},
+  "umbriel+stephano": {target:[-7.087247,-36.243308,5.730941], yaw:-3.136001, pitch:-0.962132, dist:153.283898, ceiling:40},
+  "umbriel+stephano~2": {target:[-4.280925,-24.249874,2.801905], yaw:2.541398, pitch:-0.86, dist:139.570118, ceiling:44.9},
+  "umbriel+stephano~3": {target:[3.122951,4.139495,1.452437], yaw:-1.902603, pitch:-0.848, dist:75.783625, ceiling:58.2},
   "cytherean+xini+gulliver": {target:[0.531116,-12.866282,0.552096], yaw:0.000001, pitch:-0.946, dist:141.593015, ceiling:56},
   "alator+kadesh+spear": {target:[-27.663796,18.931762,6.707534], yaw:-1.560001, pitch:-0.936, dist:90.0, ceiling:70},
   "tyana_pass": {target:[4.87537,6.060849,-9.536342], yaw:3.141593, pitch:-0.610865, dist:250.0, ceiling:70},
@@ -897,7 +960,9 @@ var CAMERA_PRESETS = {
   "mithra+taranis+belenus": {target:[-8.83281,-34.382601,1.3246], yaw:0.0, pitch:-0.872665, dist:156.363645, ceiling:20},
   "casta+seimeni+cinxia": {target:[-3.26833,24.302202,-3.276596], yaw:0.785398, pitch:-0.610865, dist:101.0, ceiling:100},
   "hydron+helene+odin": {target:[-1.700319,-15.737037,12.867354], yaw:1.568, pitch:-0.899931, dist:105.0, ceiling:52},
-  "sechura+tessera+outer_terminus": {target:[-23.010727,-6.54659,9.582888], yaw:2.171793, pitch:-0.663599, dist:88.692044, ceiling:39},
+  "sechura+tessera+outer_terminus": {target:[-23.010727,-6.54659,9.582888], yaw:2.171793, pitch:-0.663599, dist:88.692044, ceiling:50},
+  "sechura+tessera+outer_terminus~2": {target:[8.386302,-12.366062,-18.23027], yaw:-1.166603, pitch:-0.872, dist:134.19308, ceiling:100},
+  "sechura+tessera+outer_terminus~3": {target:[26.084893,4.79707,5.791931], yaw:-3.106604, pitch:-1.040001, dist:175.335875, ceiling:44},
   "ose+paimon+larzac": {target:[-7.944646,-19.43459,-43.014385], yaw:0.610865, pitch:-0.436332, dist:137.472668, ceiling:100},
   "rhea+lares+sangeru": {target:[4.50073,-16.226332,-8.095243], yaw:-6.947999, pitch:-0.8773, dist:124.024654, ceiling:50},
   "akkad+kala-azar": {target:[2.806096,-7.34581,1.43077], yaw:-1.958, pitch:-0.904, dist:110.0, ceiling:41},
@@ -905,6 +970,7 @@ var CAMERA_PRESETS = {
   "berehynia": {target:[-0.050189,-52.865415,7.766453], yaw:0.0, pitch:-0.9, dist:140.0, ceiling:52},
   "oestrus": {target:[-3.820106,-20.565318,1.174978], yaw:1.572, pitch:-0.895931, dist:95.837232, ceiling:45},
   "gaia": {target:[-14.706538,39.911946,-12.087347], yaw:0.873398, pitch:-0.702132, dist:153.392433, ceiling:39},
+  "gaia~2": {target:[46.660069,4.938534,24.593888], yaw:0.733398, pitch:-0.836, dist:120.785967, ceiling:38.8},
   "hyf": {target:[8.048491,-19.48457,-2.598587], yaw:-3.152, pitch:-1.024, dist:101.474717, ceiling:41},
   "stofler": {target:[-0.131466,6.587611,-0.044738], yaw:-1.539999, pitch:-0.610865, dist:200.0, ceiling:38}
 };
@@ -974,22 +1040,14 @@ canvas.addEventListener("pointermove", function (e) {
 });
 function endDrag(e) {
   if (drag && e.pointerId === drag.id) {
-    var placeMote = drag.btn === 0 && drag.moved < 4 &&
-      localAuthorMode === "mote" && localMoteAuthorPlace;
     try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
     drag = null;
-    if (placeMote) localMoteAuthorPlace();
   }
 }
 canvas.addEventListener("pointerup", endDrag);
 canvas.addEventListener("pointercancel", endDrag);
 canvas.addEventListener("click", function (e) {
-  if (fps.active && e.button === 0 &&
-      localAuthorMode === "camp" && localCampAuthorPlace) {
-    e.preventDefault();
-    localCampAuthorPlace();
-  } else if (fps.active && e.button === 0 &&
-             localAuthorMode === "mote" && localMoteAuthorPlace) {
+  if (fps.active && e.button === 0 && localMoteAuthorPlace) {
     e.preventDefault();
     localMoteAuthorPlace();
   }
@@ -1113,7 +1171,12 @@ function enterFps() {
   fpsHoverPaintedDistance = "";
   fpsHoverRect = canvas.getBoundingClientRect();
   refreshFpsZoneMarkers(true);
-  if (canvas.requestPointerLock) canvas.requestPointerLock();
+  if (canvas.requestPointerLock) {
+    var pointerLockRequest = canvas.requestPointerLock();
+    if (pointerLockRequest && pointerLockRequest.catch) {
+      pointerLockRequest.catch(function () {});
+    }
+  }
 }
 function exitFps() {
   if (!fps.active) return;
@@ -1147,9 +1210,9 @@ var ceilingKeys = { KeyQ:false, KeyE:false };
 
 function campPresetsForCurrentGroup() {
   if (!current || !current.group) return [];
-  var gid = current.group.id;
-  if (localCampSetsByGroup[gid]) return localCampSetsByGroup[gid];
-  return Array.isArray(CAMP_PRESETS[gid]) ? CAMP_PRESETS[gid] : [];
+  var mapId = current.mapId;
+  if (localCampSetsByGroup[mapId]) return localCampSetsByGroup[mapId];
+  return Array.isArray(CAMP_PRESETS[mapId]) ? CAMP_PRESETS[mapId] : [];
 }
 
 function teleportToCampSlot(slot) {
@@ -1186,7 +1249,18 @@ window.addEventListener("keydown", function (e) {
     return;
   }
   if (/^Digit[123]$/.test(e.code)) {
-    if (teleportToCampSlot(parseInt(e.code.slice(5), 10) - 1)) {
+    var digitSlot = parseInt(e.code.slice(5), 10) - 1;
+    if (IS_LOCAL_MOTE_AUTHORING) {
+      e.preventDefault();
+      if (e.repeat) return;
+      if (fps.active) {
+        if (localCampAuthorPlace) localCampAuthorPlace(digitSlot);
+      } else if (digitSlot === 0 && localCameraAuthorSave) {
+        localCameraAuthorSave();
+      }
+      return;
+    }
+    if (teleportToCampSlot(digitSlot)) {
       e.preventDefault();
     }
     return;
@@ -1831,7 +1905,7 @@ function frameOn(geo, overlay) {
   cam.dist = Math.max(geo.radius * 0.45, focusRadius * 1.35);
   cam.minDist = Math.max(1, geo.radius * 0.02);
   cam.maxDist = geo.radius * 9;
-  var preset = current && CAMERA_PRESETS[current.group.id];
+  var preset = current && CAMERA_PRESETS[current.mapId];
   if (preset) {
     if (preset.target) cam.target = preset.target.slice();
     if (typeof preset.yaw === "number") cam.yaw = preset.yaw;
@@ -1849,9 +1923,11 @@ resetBtn.addEventListener("click", function () {
 });
 
 // ---------------------------------------------------------------- loading a map
-async function loadGroup(gid) {
+async function loadGroup(gid, variant) {
   var g = byId[gid];
   if (!g) return;
+  variant = variant || 1;
+  var mapId = variantMapId(gid, variant);
   var token = ++loadToken;
 
   clearHighlights();
@@ -1860,14 +1936,16 @@ async function loadGroup(gid) {
   setActiveSidebar(gid);
   showGuideBlock(gid);
   titleEl.textContent = g.label;
+  activeVariant = variant;
+  renderVariantSwitch(gid, variant);
   document.title = g.label + " | 3D Tileset | Warframe Arbitrations Guide";
 
   // Every node in a group runs on the same arena, so a group resolves to
   // exactly one mesh and one overlay. The node chips are informational.
-  var entry = manifest && manifest.groups && manifest.groups[gid];
+  var entry = manifest && manifest.groups && manifest.groups[mapId];
 
   if (manifestError) {
-    subEl.textContent = g.mission || "";
+    subEl.textContent = "";
     current = null;
     markCount = 0;
     legendEl.innerHTML = "";
@@ -1885,7 +1963,9 @@ async function loadGroup(gid) {
     : "";
 
   if (!entry || !entry.mesh) {
-    subEl.textContent = g.mission || "";
+    subEl.textContent =
+      (manifest && manifest.groups && manifest.groups[gid] &&
+       manifest.groups[gid].tileset) || "";
     current = null;
     markCount = 0;
     legendEl.innerHTML = "";
@@ -1895,7 +1975,7 @@ async function loadGroup(gid) {
     return;
   }
 
-  subEl.textContent = [entry.tileset, entry.mission].filter(Boolean).join("  ·  ");
+  subEl.textContent = entry.tileset || "";
   showLoad("Loading " + g.label + "…");
   if (prefetchStarted) {
     prioritizeBackgroundGroup(gid);
@@ -1920,7 +2000,10 @@ async function loadGroup(gid) {
     }
     if (token !== loadToken) return;
 
-    current = { group: g, entry: entry, overlay: overlay, geo: geo };
+    current = {
+      group: g, mapId: mapId, variant: variant,
+      entry: entry, overlay: overlay, geo: geo
+    };
     current.mirrorZoneProfile = buildMirrorZoneProfile(gid, overlay);
     markEntryCached(entry);
     if (localMoteAuthorGroupChanged) localMoteAuthorGroupChanged(gid);
@@ -1934,7 +2017,7 @@ async function loadGroup(gid) {
     clipHiW = geo.bbox[4] + 1;
     // Open on the complete authored tile. The cutaway is opt-in so roofs and
     // upper/lower surrounding geometry are never mistaken for missing data.
-    var cameraPreset = CAMERA_PRESETS[gid];
+    var cameraPreset = CAMERA_PRESETS[mapId];
     clipRange.value = cameraPreset && typeof cameraPreset.ceiling === "number"
       ? cameraPreset.ceiling : 100;
     clipFromSlider();
@@ -2097,7 +2180,7 @@ var IS_LOCAL_MOTE_AUTHORING =
   location.hostname === "127.0.0.1" || location.hostname === "localhost";
 if (IS_LOCAL_MOTE_AUTHORING) {
   document.body.classList.add("local-authoring");
-  localAuthorMode = "camp";
+  localAuthorMode = "mote";
 
   var cameraDebugInput = document.createElement("textarea");
   cameraDebugInput.id = "cameraDebugInput";
@@ -2147,12 +2230,11 @@ if (IS_LOCAL_MOTE_AUTHORING) {
     campPositionBtn.id = "campPositionBtn";
     campPositionBtn.className = "author-mode";
     campPositionBtn.type = "button";
-    campPositionBtn.setAttribute("aria-pressed", "true");
+    campPositionBtn.setAttribute("aria-pressed", "false");
     campPositionBtn.textContent = "Camps 0/3";
     campPositionBtn.title =
-      "Camp authoring mode. Enter first person, fly to a camp position, aim the " +
-      "camera, and left-click to save up to three presets. Backspace removes the " +
-      "last preset, Shift+Backspace clears them, and C copies the current set.";
+      "In first person, press 1, 2, or 3 to save or overwrite that camp slot. " +
+      "Press C to copy the combined camera, mote, and camp JSON.";
     resetBtn.parentNode.insertBefore(campPositionBtn, resetBtn);
   }
 
@@ -2182,21 +2264,21 @@ if (IS_LOCAL_MOTE_AUTHORING) {
     motePositionBtn.id = "motePositionBtn";
     motePositionBtn.className = "author-mode";
     motePositionBtn.type = "button";
-    motePositionBtn.setAttribute("aria-pressed", "false");
+    motePositionBtn.setAttribute("aria-pressed", "true");
     motePositionBtn.textContent = "Motes 0/6";
     motePositionBtn.title =
-      "Aim at a horizontal surface and left-click six times. " +
+      "In first person, aim at a horizontal surface and left-click six times. " +
       "Placement alternates Health and Haste. Backspace removes the last mote, " +
-      "Shift+Backspace clears the saved layout, and C copies all six.";
+      "Shift+Backspace clears the saved layout, and C copies the combined JSON.";
     resetBtn.parentNode.insertBefore(motePositionBtn, resetBtn);
   }
 
   function currentCampSet() {
     if (!current || !current.group) return [];
-    var gid = current.group.id;
-    if (!localCampSetsByGroup[gid]) {
-      var saved = Array.isArray(CAMP_PRESETS[gid]) ? CAMP_PRESETS[gid] : [];
-      localCampSetsByGroup[gid] = saved.slice(0, CAMP_SLOT_LIMIT).map(function (p) {
+    var mapId = current.mapId;
+    if (!localCampSetsByGroup[mapId]) {
+      var saved = Array.isArray(CAMP_PRESETS[mapId]) ? CAMP_PRESETS[mapId] : [];
+      localCampSetsByGroup[mapId] = saved.slice(0, CAMP_SLOT_LIMIT).map(function (p) {
         return {
           position: p.position.slice(),
           yaw: p.yaw,
@@ -2204,7 +2286,7 @@ if (IS_LOCAL_MOTE_AUTHORING) {
         };
       });
     }
-    return localCampSetsByGroup[gid];
+    return localCampSetsByGroup[mapId];
   }
 
   function setLocalAuthorMode(mode) {
@@ -2233,45 +2315,43 @@ if (IS_LOCAL_MOTE_AUTHORING) {
   function refreshCampButton() {
     if (!campPositionBtn) return;
     clearTimeout(campButtonTimer);
-    var placed = currentCampSet().length;
+    var placed = currentCampSet().filter(Boolean).length;
     campPositionBtn.innerHTML =
-      "Camps " + placed + "/" + CAMP_SLOT_LIMIT +
-      (localAuthorMode === "camp" ? " &middot; Active" : "");
+      "Camps " + placed + "/" + CAMP_SLOT_LIMIT + " &middot; Save [1/2/3]";
   }
 
-  function placeCurrentCampPreset() {
+  function saveCurrentCampSlot(slot) {
     if (!current || !current.group) return;
     if (!fps.active) {
       setCampButtonFeedback("Enter first person first");
       return;
     }
+    if (slot < 0 || slot >= CAMP_SLOT_LIMIT) return;
     var set = currentCampSet();
-    if (set.length >= CAMP_SLOT_LIMIT) {
-      setCampButtonFeedback("All three saved · press C");
-      return;
-    }
-    set.push({
+    set[slot] = {
       position: fps.pos.map(rounded),
       yaw: rounded(fps.yaw),
       pitch: rounded(fps.pitch)
-    });
-    refreshCampButton();
+    };
+    campPositionBtn.setAttribute("data-last-saved-slot", String(slot + 1));
+    setCampButtonFeedback("Camp " + (slot + 1) + " saved - press C");
   }
 
   function currentMoteSet() {
     if (!current || !current.group) return [];
-    var gid = current.group.id;
-    var saved = MOTE_LAYOUTS[gid] || [];
+    var mapId = current.mapId;
+    var saved = MOTE_LAYOUTS[mapId] || [];
     if (!IS_LOCAL_MOTE_AUTHORING) return saved;
-    if (!moteSetsByGroup[gid]) {
-      moteSetsByGroup[gid] = saved.map(function (m) {
+    if (!moteSetsByGroup[mapId]) {
+      moteSetsByGroup[mapId] = saved.map(function (m) {
         return { type: m.type, position: m.position.slice() };
       });
     }
-    return moteSetsByGroup[gid];
+    return moteSetsByGroup[mapId];
   }
 
   function nextMoteType() {
+    if (current && !moteCaptureStartedByGroup[current.mapId]) return MOTE_TYPES[0];
     return MOTE_TYPES[Math.min(currentMoteSet().length, MOTE_TYPES.length - 1)];
   }
 
@@ -2287,6 +2367,11 @@ if (IS_LOCAL_MOTE_AUTHORING) {
     if (!motePositionBtn) return;
     clearTimeout(moteButtonTimer);
     var placed = currentMoteSet().length;
+    if (current && !moteCaptureStartedByGroup[current.mapId] && placed) {
+      motePositionBtn.innerHTML =
+        "Motes " + placed + "/6 &middot; Left-click to replace";
+      return;
+    }
     if (placed >= MOTE_TYPES.length) {
       motePositionBtn.innerHTML = "Motes 6/6 &middot; Copy [C]";
       return;
@@ -2420,7 +2505,8 @@ if (IS_LOCAL_MOTE_AUTHORING) {
   function rounded(n) { return +n.toFixed(6); }
 
   function updateMotePreview(t) {
-    if (IS_LOCAL_MOTE_AUTHORING && localAuthorMode !== "mote") {
+    if (IS_LOCAL_MOTE_AUTHORING && (
+        !fps.active || !current || !moteCaptureStartedByGroup[current.mapId])) {
       motePreview = null;
       return;
     }
@@ -2439,10 +2525,15 @@ if (IS_LOCAL_MOTE_AUTHORING) {
   }
 
   function placePreviewMote() {
-    if (IS_LOCAL_MOTE_AUTHORING && localAuthorMode !== "mote") return;
     if (!current || !current.group) return;
+    if (IS_LOCAL_MOTE_AUTHORING && !fps.active) {
+      setMoteButtonFeedback("Enter first person first");
+      return;
+    }
     var set = currentMoteSet();
-    if (set.length >= MOTE_TYPES.length) {
+    var startsFreshCapture =
+      IS_LOCAL_MOTE_AUTHORING && !moteCaptureStartedByGroup[current.mapId];
+    if (!startsFreshCapture && set.length >= MOTE_TYPES.length) {
       setMoteButtonFeedback("All six placed · press C");
       return;
     }
@@ -2452,19 +2543,21 @@ if (IS_LOCAL_MOTE_AUTHORING) {
       setMoteButtonFeedback("No horizontal surface hit");
       return;
     }
+    if (startsFreshCapture) {
+      set.length = 0;
+      moteCaptureStartedByGroup[current.mapId] = true;
+    }
     set.push({
       type: MOTE_TYPES[set.length],
       position: hit.map(rounded)
     });
+    motePositionBtn.setAttribute("data-last-mote-count", String(set.length));
     motePreview = null;
     moteLastRaycastAt = -Infinity;
     refreshMoteButton();
   }
 
-  function writeLocalClipboard(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text);
-    }
+  function writeLocalClipboardFallback(text) {
     return new Promise(function (resolve, reject) {
       var copyInput = document.createElement("textarea");
       copyInput.value = text;
@@ -2477,6 +2570,15 @@ if (IS_LOCAL_MOTE_AUTHORING) {
       if (copied) resolve();
       else reject(new Error("Clipboard unavailable"));
     });
+  }
+
+  function writeLocalClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(function () {
+        return writeLocalClipboardFallback(text);
+      });
+    }
+    return writeLocalClipboardFallback(text);
   }
 
   function copyLocalCampSet() {
@@ -2529,6 +2631,87 @@ if (IS_LOCAL_MOTE_AUTHORING) {
       setMoteButtonFeedback("Six motes copied");
     }).catch(function () {
       setMoteButtonFeedback("Copy failed");
+    });
+  }
+
+  function currentLocalCameraPreset() {
+    if (!current || !current.group) return null;
+    var mapId = current.mapId;
+    var local = localCameraPresetsByGroup[mapId];
+    if (local) {
+      return {
+        target: local.target.slice(),
+        yaw: local.yaw,
+        pitch: local.pitch,
+        dist: local.dist,
+        ceiling: local.ceiling
+      };
+    }
+    var reviewed = CAMERA_PRESETS[mapId];
+    if (reviewed) {
+      return {
+        target: reviewed.target.slice(),
+        yaw: reviewed.yaw,
+        pitch: reviewed.pitch,
+        dist: reviewed.dist,
+        ceiling: reviewed.ceiling
+      };
+    }
+    return {
+      target: cam.target.map(rounded),
+      yaw: rounded(cam.yaw),
+      pitch: rounded(cam.pitch),
+      dist: rounded(cam.dist),
+      ceiling: +clipRange.value
+    };
+  }
+
+  function saveCurrentCameraPreset() {
+    if (!current || !current.group || fps.active) return;
+    var saved = {
+      target: cam.target.map(rounded),
+      yaw: rounded(cam.yaw),
+      pitch: rounded(cam.pitch),
+      dist: rounded(cam.dist),
+      ceiling: +clipRange.value
+    };
+    localCameraPresetsByGroup[current.mapId] = saved;
+    cameraDebugInput.setAttribute("data-saved-camera", JSON.stringify(saved));
+    setCampButtonFeedback("Default camera saved - press C");
+  }
+
+  function copyLocalAuthoringSet() {
+    if (!current || !current.group) return;
+    var cameraPreset = currentLocalCameraPreset();
+    var camps = currentCampSet().filter(Boolean);
+    var motes = currentMoteSet();
+    var payload = {
+      id: current.group.id,
+      variant: current.variant,
+      map_id: current.mapId,
+      camera: cameraPreset,
+      asset: "Wisp Prime Reservoir",
+      asset_origin_on_surface: true,
+      range_radius: 5,
+      motes: motes.map(function (m) {
+        return { type: m.type, position: m.position.slice() };
+      }),
+      camps: camps.map(function (p) {
+        return {
+          position: p.position.slice(),
+          yaw: p.yaw,
+          pitch: p.pitch
+        };
+      })
+    };
+    var copiedText =
+      "### " + (current.group.label || current.group.title || current.group.id) + "\n" +
+      JSON.stringify(payload, null, 2);
+    cameraDebugInput.setAttribute("data-last-authoring-set", copiedText);
+    writeLocalClipboard(copiedText).then(function () {
+      setCampButtonFeedback("Camera + motes + camps copied");
+    }).catch(function () {
+      setCampButtonFeedback("Copy failed");
     });
   }
 
@@ -2741,7 +2924,8 @@ if (IS_LOCAL_MOTE_AUTHORING) {
   if (IS_LOCAL_MOTE_AUTHORING) {
     localMoteAuthorUpdate = updateMotePreview;
     localMoteAuthorPlace = placePreviewMote;
-    localCampAuthorPlace = placeCurrentCampPreset;
+    localCampAuthorPlace = saveCurrentCampSlot;
+    localCameraAuthorSave = saveCurrentCameraPreset;
   }
   localMoteAuthorRender = renderMoteAuthoring;
   if (IS_LOCAL_MOTE_AUTHORING) {
@@ -2768,8 +2952,7 @@ if (IS_LOCAL_MOTE_AUTHORING) {
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       if (e.code === "KeyC" && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
-        if (localAuthorMode === "camp") copyLocalCampSet();
-        else copyLocalMoteSet();
+        copyLocalAuthoringSet();
         return;
       }
       if (e.code === "Backspace" && !e.repeat && current) {

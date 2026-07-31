@@ -692,10 +692,238 @@
         8511522
       ],
       "sourceBytes": 31216284
+    },
+    "callisto+sinai+io~2": {
+      "mesh": "ba79884de4465ed0",
+      "overlay": "cbc5cb839162442d.wfo",
+      "tileset": "Corpus Gas City",
+      "mission": "Defense / Interception",
+      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "nodes": [
+        {
+          "name": "Callisto",
+          "planet": "Jupiter",
+          "mission": "Interception",
+          "faction": "Corpus"
+        },
+        {
+          "name": "Sinai",
+          "planet": "Jupiter",
+          "mission": "Defense",
+          "faction": "Infested"
+        },
+        {
+          "name": "Io",
+          "planet": "Jupiter",
+          "mission": "Defense",
+          "faction": "Corpus"
+        }
+      ],
+      "meshFormat": 2,
+      "meshCodec": "meshopt+br",
+      "meshBytes": 54127496,
+      "meshTransferBytes": 34848073,
+      "meshFiles": [
+        "ba79884de4465ed0.part00.wfg2.br",
+        "ba79884de4465ed0.part01.wfg2.br",
+        "ba79884de4465ed0.part02.wfg2.br"
+      ],
+      "meshFileBytes": [
+        20971520,
+        20971520,
+        12184456
+      ],
+      "meshFileTransferBytes": [
+        16448366,
+        9578703,
+        8821004
+      ],
+      "sourceBytes": 167609268
+    },
+    "umbriel+stephano~2": {
+      "mesh": "b756fd88635397d6",
+      "overlay": "a412671229966c1d.wfo",
+      "tileset": "Grineer Sealab",
+      "mission": "Defense / Interception",
+      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "nodes": [
+        {
+          "name": "Umbriel",
+          "planet": "Uranus",
+          "mission": "Interception",
+          "faction": "Grineer"
+        },
+        {
+          "name": "Stephano",
+          "planet": "Uranus",
+          "mission": "Defense",
+          "faction": "Grineer"
+        }
+      ],
+      "meshFormat": 2,
+      "meshCodec": "meshopt+br",
+      "meshBytes": 15406944,
+      "meshTransferBytes": 11370748,
+      "meshFiles": [
+        "b756fd88635397d6.wfg2.br"
+      ],
+      "meshFileBytes": [
+        15406944
+      ],
+      "meshFileTransferBytes": [
+        11370748
+      ],
+      "sourceBytes": 42764068
+    },
+    "sechura+tessera+outer_terminus~2": {
+      "mesh": "6d5af18ec39fd746",
+      "overlay": "6d97e934d19cccaa.wfo",
+      "tileset": "Corpus Outpost",
+      "mission": "Defense",
+      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "nodes": [
+        {
+          "name": "Sechura",
+          "planet": "Pluto",
+          "mission": "Defense",
+          "faction": "Infested"
+        },
+        {
+          "name": "Tessera",
+          "planet": "Venus",
+          "mission": "Defense",
+          "faction": "Corpus"
+        },
+        {
+          "name": "Outer Terminus",
+          "planet": "Pluto",
+          "mission": "Defense",
+          "faction": "Corpus"
+        }
+      ],
+      "meshFormat": 2,
+      "meshCodec": "meshopt+br",
+      "meshBytes": 7528004,
+      "meshTransferBytes": 5660246,
+      "meshFiles": [
+        "6d5af18ec39fd746.wfg2.br"
+      ],
+      "meshFileBytes": [
+        7528004
+      ],
+      "meshFileTransferBytes": [
+        5660246
+      ],
+      "sourceBytes": 20322372
+    },
+    "sechura+tessera+outer_terminus~3": {
+      "mesh": "4f36fda8170224f7",
+      "overlay": "3d042f70d6b7d528.wfo",
+      "tileset": "Corpus Outpost",
+      "mission": "Defense",
+      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "nodes": [
+        {
+          "name": "Sechura",
+          "planet": "Pluto",
+          "mission": "Defense",
+          "faction": "Infested"
+        },
+        {
+          "name": "Tessera",
+          "planet": "Venus",
+          "mission": "Defense",
+          "faction": "Corpus"
+        },
+        {
+          "name": "Outer Terminus",
+          "planet": "Pluto",
+          "mission": "Defense",
+          "faction": "Corpus"
+        }
+      ],
+      "meshFormat": 2,
+      "meshCodec": "meshopt+br",
+      "meshBytes": 5997820,
+      "meshTransferBytes": 3238132,
+      "meshFiles": [
+        "4f36fda8170224f7.wfg2.br"
+      ],
+      "meshFileBytes": [
+        5997820
+      ],
+      "meshFileTransferBytes": [
+        3238132
+      ],
+      "sourceBytes": 18420296
+    },
+    "gaia~2": {
+      "mesh": "7953dc499b6168fb",
+      "overlay": "80d0f7d5e2c370c8.wfo",
+      "tileset": "Grineer Forest",
+      "mission": "Interception",
+      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "nodes": [
+        {
+          "name": "Gaia",
+          "planet": "Earth",
+          "mission": "Interception",
+          "faction": "Grineer"
+        }
+      ],
+      "meshFormat": 2,
+      "meshCodec": "meshopt+br",
+      "meshBytes": 15157756,
+      "meshTransferBytes": 11679073,
+      "meshFiles": [
+        "7953dc499b6168fb.wfg2.br"
+      ],
+      "meshFileBytes": [
+        15157756
+      ],
+      "meshFileTransferBytes": [
+        11679073
+      ],
+      "sourceBytes": 40992552
+    },
+    "umbriel+stephano~3": {
+      "mesh": "a894c062f5f3cd67",
+      "overlay": "1275de0829b92da9.wfo",
+      "tileset": "Grineer Sealab",
+      "mission": "Defense / Interception",
+      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "nodes": [
+        {
+          "name": "Umbriel",
+          "planet": "Uranus",
+          "mission": "Interception",
+          "faction": "Grineer"
+        },
+        {
+          "name": "Stephano",
+          "planet": "Uranus",
+          "mission": "Defense",
+          "faction": "Grineer"
+        }
+      ],
+      "meshFormat": 2,
+      "meshCodec": "meshopt+br",
+      "meshBytes": 19820888,
+      "meshTransferBytes": 14090337,
+      "meshFiles": [
+        "a894c062f5f3cd67.wfg2.br"
+      ],
+      "meshFileBytes": [
+        19820888
+      ],
+      "meshFileTransferBytes": [
+        14090337
+      ],
+      "sourceBytes": 57695324
     }
   },
   "generated": "2026-07-27",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "b260973583a57003"
+  "buildHash": "6dfec59ccd7fdffe"
 }
