@@ -1861,21 +1861,60 @@ function mirrorZoneForPoint(profile, point) {
   return "connector";
 }
 
+// Stöfler's authored Defense arena stacks three playable floors vertically.
+// Derive the two separators from the largest gaps in its spawn heights so the
+// filter follows the actual level composition instead of hard-coded camera
+// coordinates. In first person, only the player's current floor keeps its
+// spawn markers; orbit view continues to show the complete arena.
+function buildStoflerFloorProfile(groupId, overlay) {
+  if (groupId !== "stofler") return null;
+  var heights = visibleSpawns(overlay).map(function (spawn) {
+    return spawn.y;
+  }).filter(Number.isFinite).sort(function (a, b) { return a - b; });
+  if (heights.length < 3) return null;
+
+  var gaps = [];
+  for (var i = 1; i < heights.length; i++) {
+    var size = heights[i] - heights[i - 1];
+    if (size > 0.001) {
+      gaps.push({ size: size, cut: (heights[i] + heights[i - 1]) * 0.5 });
+    }
+  }
+  if (gaps.length < 2) return null;
+  gaps.sort(function (a, b) { return b.size - a.size; });
+  return {
+    cuts: gaps.slice(0, 2).map(function (gap) { return gap.cut; })
+      .sort(function (a, b) { return a - b; })
+  };
+}
+
+function stoflerFloorForPoint(profile, point) {
+  if (!profile || !point || !Number.isFinite(point.y)) return "all";
+  if (point.y < profile.cuts[0]) return "floor-1";
+  if (point.y < profile.cuts[1]) return "floor-2";
+  return "floor-3";
+}
+
 function refreshFpsZoneMarkers(force) {
   if (!current || !current.allMarkers) return;
   var playerZone = fps.active
     ? mirrorZoneForPoint(current.mirrorZoneProfile, { x: fps.pos[0], z: fps.pos[2] })
     : "all";
-  if (!force && current.markerZoneState === playerZone) return;
+  var playerFloor = fps.active
+    ? stoflerFloorForPoint(current.stoflerFloorProfile, { y: fps.pos[1] })
+    : "all";
+  var visibilityState = playerZone + "|" + playerFloor;
+  if (!force && current.markerZoneState === visibilityState) return;
 
   var hiddenZone = playerZone === "arena-a" ? "arena-b"
     : playerZone === "arena-b" ? "arena-a" : "";
-  current.markers = hiddenZone
-    ? current.allMarkers.filter(function (marker) {
-        return marker.kind !== "spawn" || marker.mirrorZone !== hiddenZone;
-      })
-    : current.allMarkers;
-  current.markerZoneState = playerZone;
+  current.markers = current.allMarkers.filter(function (marker) {
+    if (marker.kind !== "spawn") return true;
+    if (hiddenZone && marker.mirrorZone === hiddenZone) return false;
+    if (playerFloor !== "all" && marker.stoflerFloor !== playerFloor) return false;
+    return true;
+  });
+  current.markerZoneState = visibilityState;
   uploadMarkers(current.markers);
   tipEl.style.display = "none";
 }
@@ -1891,6 +1930,7 @@ function clusterSpawnMarkers(markers) {
     clusters.forEach(function (cluster) {
       if (cluster.floor !== marker.floor) return;
       if (cluster.mirrorZone !== marker.mirrorZone) return;
+      if (cluster.stoflerFloor !== marker.stoflerFloor) return;
       if (Math.abs(cluster.y - marker.y) > VERTICAL_RADIUS) return;
       var d = Math.hypot(cluster.x - marker.x, cluster.z - marker.z);
       if (d <= HORIZONTAL_RADIUS && d < nearestDistance) {
@@ -1903,6 +1943,7 @@ function clusterSpawnMarkers(markers) {
       clusters.push({
         floor: marker.floor,
         mirrorZone: marker.mirrorZone,
+        stoflerFloor: marker.stoflerFloor,
         x: marker.x, y: marker.y, z: marker.z,
         sumWeight: marker.clusterWeight,
         members: [marker]
@@ -1939,13 +1980,14 @@ function clusterSpawnMarkers(markers) {
       tip: tip,
       floor: first.floor,
       mirrorZone: first.mirrorZone,
+      stoflerFloor: first.stoflerFloor,
       clusterWeight: cluster.sumWeight,
       sampleCount: sampledCount
     };
   });
 }
 
-function buildMarkers(overlay, geo, mirrorZoneProfile) {
+function buildMarkers(overlay, geo, mirrorZoneProfile, stoflerFloorProfile) {
   var list = [];
   var spawnMarkers = [];
   var spawns = visibleSpawns(overlay);
@@ -1991,6 +2033,7 @@ function buildMarkers(overlay, geo, mirrorZoneProfile) {
       tip: tip,
       floor: f,
       mirrorZone: mirrorZoneForPoint(mirrorZoneProfile, s),
+      stoflerFloor: stoflerFloorForPoint(stoflerFloorProfile, s),
       clusterWeight: authored ? 1 : Math.max(1, s.n || 0),
       sampleCount: authored ? 0 : (s.n || 0)
     });
@@ -2018,7 +2061,8 @@ groupBtn.addEventListener("click", function () {
   refreshGroupingButton();
   if (!current || !current.overlay || !current.geo) return;
   current.allMarkers = buildMarkers(
-    current.overlay, current.geo, current.mirrorZoneProfile
+    current.overlay, current.geo, current.mirrorZoneProfile,
+    current.stoflerFloorProfile
   );
   refreshFpsZoneMarkers(true);
 });
@@ -2160,12 +2204,15 @@ async function loadGroup(gid, variant) {
       entry: entry, overlay: overlay, geo: geo
     };
     current.mirrorZoneProfile = buildMirrorZoneProfile(gid, overlay);
+    current.stoflerFloorProfile = buildStoflerFloorProfile(gid, overlay);
     markEntryCached(entry);
     if (localMoteAuthorGroupChanged) localMoteAuthorGroupChanged(gid);
     if (localCampAuthorGroupChanged) localCampAuthorGroupChanged(gid);
 
     uploadMesh(geo);
-    current.allMarkers = buildMarkers(overlay, geo, current.mirrorZoneProfile);
+    current.allMarkers = buildMarkers(
+      overlay, geo, current.mirrorZoneProfile, current.stoflerFloorProfile
+    );
     refreshFpsZoneMarkers(true);
 
     clipLoW = geo.bbox[1];
