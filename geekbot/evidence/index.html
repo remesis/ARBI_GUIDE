@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="color-scheme" content="dark">
+  <title>Geekbot Privileged Intent Evidence</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; background: #0b0c10; color: #e8e8ec; line-height: 1.6; }
+    main { width: min(980px, calc(100% - 40px)); margin: 56px auto; }
+    h1, h2 { color: #fff; line-height: 1.2; }
+    h1 { font-size: clamp(2rem, 6vw, 3rem); }
+    section { margin: 2.5rem 0; padding: 1.25rem; border: 1px solid #292b33; border-radius: 14px; background: #121319; }
+    img { display: block; max-width: 100%; height: auto; margin: 1rem auto 0; border-radius: 10px; border: 1px solid #353741; }
+    code { color: #f5a623; }
+    a { color: #f5a623; }
+    .meta { color: #aaaeb8; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Geekbot Privileged Intent Evidence</h1>
+    <p class="meta">Discord application ID <code>1127782614045048942</code></p>
+
+    <section id="server-members-intent">
+      <h2>Server Members Intent</h2>
+      <p>The Discord audit log shows Geekbot automatically updating member roles. The expanded entry records Geekbot adding the <strong>newJoin</strong> role with the reason “New join — gating until 100 msgs + 7 days.” This is the onboarding feature that requires member-join events and member role data.</p>
+      <img src="server-members-intent.png" alt="Discord audit log showing Geekbot adding the newJoin role to a member">
+    </section>
+
+    <section id="message-content-intent">
+      <h2>Message Content Intent</h2>
+      <p>A server member asks “what is SP mean?” in a normal Discord message. Geekbot reads the question and immediately posts its configured SP reference response. This keyword-based FAQ behavior requires message content.</p>
+      <img src="message-content-intent.png" alt="Discord conversation showing a member question and Geekbot's automatic response">
+    </section>
+
+    <p class="meta">Data handling for these features is described in the <a href="../privacy/">Geekbot Privacy Policy</a>.</p>
+  </main>
+</body>
+</html>
