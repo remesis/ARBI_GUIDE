@@ -283,7 +283,7 @@
       "sourceBytes": 24724168
     },
     "casta+seimeni+cinxia": {
-      "mesh": "69fe25cac82009ea",
+      "mesh": "c8b740807af7aa78",
       "overlay": "f1d079abca025eda.wfo",
       "tileset": "Grineer Shipyard",
       "mission": "Defense / Interception",
@@ -310,16 +310,16 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 9729172,
-      "meshTransferBytes": 6890334,
+      "meshBytes": 9729256,
+      "meshTransferBytes": 6892916,
       "meshFiles": [
-        "69fe25cac82009ea.wfg2.br"
+        "c8b740807af7aa78.wfg2.br"
       ],
       "meshFileBytes": [
-        9729172
+        9729256
       ],
       "meshFileTransferBytes": [
-        6890334
+        6892916
       ],
       "sourceBytes": 28346896
     },
@@ -902,5 +902,5 @@
   "generated": "2026-07-27",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "4689250ff7196438"
+  "buildHash": "eb55b7a7c335d957"
 }
