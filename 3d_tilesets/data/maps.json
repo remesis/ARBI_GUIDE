@@ -2,7 +2,7 @@
   "version": 2,
   "groups": {
     "callisto+sinai+io": {
-      "mesh": "123cbbd1f59f4bdc",
+      "mesh": "083a6103428944d4",
       "overlay": "5b9fa1f431864a84.wfo",
       "tileset": "Corpus Gas City",
       "mission": "Defense / Interception",
@@ -29,27 +29,27 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 56867516,
-      "meshTransferBytes": 38359534,
+      "meshBytes": 57237580,
+      "meshTransferBytes": 38635348,
       "meshFiles": [
-        "123cbbd1f59f4bdc.part00.wfg2.br",
-        "123cbbd1f59f4bdc.part01.wfg2.br",
-        "123cbbd1f59f4bdc.part02.wfg2.br"
+        "083a6103428944d4.part00.wfg2.br",
+        "083a6103428944d4.part01.wfg2.br",
+        "083a6103428944d4.part02.wfg2.br"
       ],
       "meshFileBytes": [
         20971520,
         20971520,
-        14924476
+        15294540
       ],
       "meshFileTransferBytes": [
-        16895592,
-        9651498,
-        11812444
+        16902737,
+        9613314,
+        12119297
       ],
-      "sourceBytes": 172515976
+      "sourceBytes": 173794352
     },
     "umbriel+stephano": {
-      "mesh": "09cbc3e1346eb2f1",
+      "mesh": "504d9e49334b519a",
       "overlay": "80742164e1298830.wfo",
       "tileset": "Grineer Sealab",
       "mission": "Defense / Interception",
@@ -70,21 +70,21 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 19689744,
-      "meshTransferBytes": 14333713,
+      "meshBytes": 19800680,
+      "meshTransferBytes": 14420608,
       "meshFiles": [
-        "09cbc3e1346eb2f1.wfg2.br"
+        "504d9e49334b519a.wfg2.br"
       ],
       "meshFileBytes": [
-        19689744
+        19800680
       ],
       "meshFileTransferBytes": [
-        14333713
+        14420608
       ],
-      "sourceBytes": 55459672
+      "sourceBytes": 55777376
     },
     "cytherean+xini+gulliver": {
-      "mesh": "cfdc0eab0efab258",
+      "mesh": "8cd089eb20f7be62",
       "overlay": "b02455ebddd72375.wfo",
       "tileset": "Corpus Ship",
       "mission": "Defense / Interception",
@@ -123,24 +123,24 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 33783272,
-      "meshTransferBytes": 19588429,
+      "meshBytes": 34173248,
+      "meshTransferBytes": 19878357,
       "meshFiles": [
-        "cfdc0eab0efab258.part00.wfg2.br",
-        "cfdc0eab0efab258.part01.wfg2.br"
+        "8cd089eb20f7be62.part00.wfg2.br",
+        "8cd089eb20f7be62.part01.wfg2.br"
       ],
       "meshFileBytes": [
         20971520,
-        12811752
+        13201728
       ],
       "meshFileTransferBytes": [
-        11163158,
-        8425271
+        11149382,
+        8728975
       ],
-      "sourceBytes": 107097584
+      "sourceBytes": 108400428
     },
     "alator+kadesh+spear": {
-      "mesh": "8fba1bec85be9843",
+      "mesh": "e93f399547af2db0",
       "overlay": "deb77ce1831dda2f.wfo",
       "tileset": "Grineer Settlement",
       "mission": "Defense / Interception",
@@ -167,18 +167,18 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 9770272,
-      "meshTransferBytes": 7462402,
+      "meshBytes": 10054552,
+      "meshTransferBytes": 7676528,
       "meshFiles": [
-        "8fba1bec85be9843.wfg2.br"
+        "e93f399547af2db0.wfg2.br"
       ],
       "meshFileBytes": [
-        9770272
+        10054552
       ],
       "meshFileTransferBytes": [
-        7462402
+        7676528
       ],
-      "sourceBytes": 27460548
+      "sourceBytes": 28287088
     },
     "tyana_pass": {
       "mesh": "cfa389a7b40696d8",
@@ -242,7 +242,7 @@
       "sourceBytes": 103861204
     },
     "mithra+taranis+belenus": {
-      "mesh": "538360b3da533bd2",
+      "mesh": "1b7c385d1db1c658",
       "overlay": "a8661b962181000a.wfo",
       "tileset": "Orokin Tower",
       "mission": "Defense / Interception",
@@ -269,21 +269,21 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 7703616,
-      "meshTransferBytes": 4320872,
+      "meshBytes": 7804412,
+      "meshTransferBytes": 4382770,
       "meshFiles": [
-        "538360b3da533bd2.wfg2.br"
+        "1b7c385d1db1c658.wfg2.br"
       ],
       "meshFileBytes": [
-        7703616
+        7804412
       ],
       "meshFileTransferBytes": [
-        4320872
+        4382770
       ],
-      "sourceBytes": 24405820
+      "sourceBytes": 24724168
     },
     "casta+seimeni+cinxia": {
-      "mesh": "c0204b2cdf79b157",
+      "mesh": "69fe25cac82009ea",
       "overlay": "f1d079abca025eda.wfo",
       "tileset": "Grineer Shipyard",
       "mission": "Defense / Interception",
@@ -310,21 +310,21 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 9470048,
-      "meshTransferBytes": 6711848,
+      "meshBytes": 9729172,
+      "meshTransferBytes": 6890334,
       "meshFiles": [
-        "c0204b2cdf79b157.wfg2.br"
+        "69fe25cac82009ea.wfg2.br"
       ],
       "meshFileBytes": [
-        9470048
+        9729172
       ],
       "meshFileTransferBytes": [
-        6711848
+        6890334
       ],
-      "sourceBytes": 27519228
+      "sourceBytes": 28346896
     },
     "hydron+helene+odin": {
-      "mesh": "6cd8094b7d92c740",
+      "mesh": "f72c162988750797",
       "overlay": "0583b676a7b618ee.wfo",
       "tileset": "Grineer Galleon",
       "mission": "Defense / Interception",
@@ -351,18 +351,18 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 13788088,
-      "meshTransferBytes": 9485445,
+      "meshBytes": 14040312,
+      "meshTransferBytes": 9679654,
       "meshFiles": [
-        "6cd8094b7d92c740.wfg2.br"
+        "f72c162988750797.wfg2.br"
       ],
       "meshFileBytes": [
-        13788088
+        14040312
       ],
       "meshFileTransferBytes": [
-        9485445
+        9679654
       ],
-      "sourceBytes": 41448056
+      "sourceBytes": 42274972
     },
     "sechura+tessera+outer_terminus": {
       "mesh": "69ded85bd42a3c37",
@@ -406,7 +406,7 @@
       "sourceBytes": 17574572
     },
     "ose+paimon+larzac": {
-      "mesh": "e21c7533cc37d792",
+      "mesh": "99fde9296cdb1e50",
       "overlay": "21122ea680f1b52e.wfo",
       "tileset": "Corpus Ice Planet",
       "mission": "Defense / Interception",
@@ -433,21 +433,21 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 16204200,
-      "meshTransferBytes": 11286080,
+      "meshBytes": 16565788,
+      "meshTransferBytes": 11548750,
       "meshFiles": [
-        "e21c7533cc37d792.wfg2.br"
+        "99fde9296cdb1e50.wfg2.br"
       ],
       "meshFileBytes": [
-        16204200
+        16565788
       ],
       "meshFileTransferBytes": [
-        11286080
+        11548750
       ],
-      "sourceBytes": 44930012
+      "sourceBytes": 46226212
     },
     "rhea+lares+sangeru": {
-      "mesh": "d26d2dcd3a1f01d2",
+      "mesh": "6e7c99f72c424452",
       "overlay": "0622657733870641.wfo",
       "tileset": "Grineer Asteroid",
       "mission": "Defense / Interception",
@@ -460,7 +460,7 @@
           "faction": "Grineer"
         },
         {
-          "name": "Lares",
+          "name": "Larezzz",
           "planet": "Mercury",
           "mission": "Defense",
           "faction": "Infested"
@@ -474,18 +474,18 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 4187500,
-      "meshTransferBytes": 3112917,
+      "meshBytes": 4446720,
+      "meshTransferBytes": 3303425,
       "meshFiles": [
-        "d26d2dcd3a1f01d2.wfg2.br"
+        "6e7c99f72c424452.wfg2.br"
       ],
       "meshFileBytes": [
-        4187500
+        4446720
       ],
       "meshFileTransferBytes": [
-        3112917
+        3303425
       ],
-      "sourceBytes": 12271460
+      "sourceBytes": 13100544
     },
     "akkad+kala-azar": {
       "mesh": "eb92b9e9a605a33a",
@@ -587,7 +587,7 @@
       "sourceBytes": 52324020
     },
     "gaia": {
-      "mesh": "27f0c3309b5fad94",
+      "mesh": "828a32cbff66dfd7",
       "overlay": "d2ba15f5085bf665.wfo",
       "tileset": "Grineer Forest",
       "mission": "Interception",
@@ -602,18 +602,18 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 19960292,
-      "meshTransferBytes": 14828943,
+      "meshBytes": 20224980,
+      "meshTransferBytes": 15029199,
       "meshFiles": [
-        "27f0c3309b5fad94.wfg2.br"
+        "828a32cbff66dfd7.wfg2.br"
       ],
       "meshFileBytes": [
-        19960292
+        20224980
       ],
       "meshFileTransferBytes": [
-        14828943
+        15029199
       ],
-      "sourceBytes": 54863036
+      "sourceBytes": 55687524
     },
     "hyf": {
       "mesh": "ac26a946229d22cc",
@@ -677,7 +677,7 @@
       "sourceBytes": 62687360
     },
     "berehynia": {
-      "mesh": "ecbdaf605c28cec5",
+      "mesh": "0d1922bab4b25fe9",
       "overlay": "48d10e27254eb545.wfo",
       "tileset": "Grineer Shipyard",
       "mission": "Interception",
@@ -692,21 +692,21 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 11213972,
-      "meshTransferBytes": 8511522,
+      "meshBytes": 11488160,
+      "meshTransferBytes": 8719514,
       "meshFiles": [
-        "ecbdaf605c28cec5.wfg2.br"
+        "0d1922bab4b25fe9.wfg2.br"
       ],
       "meshFileBytes": [
-        11213972
+        11488160
       ],
       "meshFileTransferBytes": [
-        8511522
+        8719514
       ],
-      "sourceBytes": 31216284
+      "sourceBytes": 32044900
     },
     "callisto+sinai+io~2": {
-      "mesh": "ba79884de4465ed0",
+      "mesh": "7101f4d69ea74ba4",
       "overlay": "cbc5cb839162442d.wfo",
       "tileset": "Corpus Gas City",
       "mission": "Defense / Interception",
@@ -733,27 +733,27 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 54127496,
-      "meshTransferBytes": 34848073,
+      "meshBytes": 54498480,
+      "meshTransferBytes": 35151578,
       "meshFiles": [
-        "ba79884de4465ed0.part00.wfg2.br",
-        "ba79884de4465ed0.part01.wfg2.br",
-        "ba79884de4465ed0.part02.wfg2.br"
+        "7101f4d69ea74ba4.part00.wfg2.br",
+        "7101f4d69ea74ba4.part01.wfg2.br",
+        "7101f4d69ea74ba4.part02.wfg2.br"
       ],
       "meshFileBytes": [
         20971520,
         20971520,
-        12184456
+        12555440
       ],
       "meshFileTransferBytes": [
-        16448366,
-        9578703,
-        8821004
+        16469590,
+        9558904,
+        9123084
       ],
-      "sourceBytes": 167609268
+      "sourceBytes": 168887260
     },
     "umbriel+stephano~2": {
-      "mesh": "a880da3ee4e1148b",
+      "mesh": "c76ad6cc96155ae0",
       "overlay": "a412671229966c1d.wfo",
       "tileset": "Grineer Sealab",
       "mission": "Defense / Interception",
@@ -774,21 +774,21 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 15442388,
-      "meshTransferBytes": 11398310,
+      "meshBytes": 15714176,
+      "meshTransferBytes": 11614160,
       "meshFiles": [
-        "a880da3ee4e1148b.wfg2.br"
+        "c76ad6cc96155ae0.wfg2.br"
       ],
       "meshFileBytes": [
-        15442388
+        15714176
       ],
       "meshFileTransferBytes": [
-        11398310
+        11614160
       ],
-      "sourceBytes": 42843112
+      "sourceBytes": 43669188
     },
     "sechura+tessera+outer_terminus~2": {
-      "mesh": "6d5af18ec39fd746",
+      "mesh": "33529debdf299a54",
       "overlay": "6d97e934d19cccaa.wfo",
       "tileset": "Corpus Outpost",
       "mission": "Defense",
@@ -815,21 +815,21 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 7528004,
-      "meshTransferBytes": 5660246,
+      "meshBytes": 7901472,
+      "meshTransferBytes": 5928712,
       "meshFiles": [
-        "6d5af18ec39fd746.wfg2.br"
+        "33529debdf299a54.wfg2.br"
       ],
       "meshFileBytes": [
-        7528004
+        7901472
       ],
       "meshFileTransferBytes": [
-        5660246
+        5928712
       ],
-      "sourceBytes": 20322372
+      "sourceBytes": 21625748
     },
     "sechura+tessera+outer_terminus~3": {
-      "mesh": "4f36fda8170224f7",
+      "mesh": "570e866c4e28ae58",
       "overlay": "3d042f70d6b7d528.wfo",
       "tileset": "Corpus Outpost",
       "mission": "Defense",
@@ -856,21 +856,21 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 5997820,
-      "meshTransferBytes": 3238132,
+      "meshBytes": 6322568,
+      "meshTransferBytes": 3441377,
       "meshFiles": [
-        "4f36fda8170224f7.wfg2.br"
+        "570e866c4e28ae58.wfg2.br"
       ],
       "meshFileBytes": [
-        5997820
+        6322568
       ],
       "meshFileTransferBytes": [
-        3238132
+        3441377
       ],
-      "sourceBytes": 18420296
+      "sourceBytes": 19716300
     },
     "gaia~2": {
-      "mesh": "7953dc499b6168fb",
+      "mesh": "f7a55930762c4284",
       "overlay": "80d0f7d5e2c370c8.wfo",
       "tileset": "Grineer Forest",
       "mission": "Interception",
@@ -885,22 +885,22 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 15157756,
-      "meshTransferBytes": 11679073,
+      "meshBytes": 15418804,
+      "meshTransferBytes": 11879439,
       "meshFiles": [
-        "7953dc499b6168fb.wfg2.br"
+        "f7a55930762c4284.wfg2.br"
       ],
       "meshFileBytes": [
-        15157756
+        15418804
       ],
       "meshFileTransferBytes": [
-        11679073
+        11879439
       ],
-      "sourceBytes": 40992552
+      "sourceBytes": 41816660
     }
   },
   "generated": "2026-07-27",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "015686512edbfc17"
+  "buildHash": "4689250ff7196438"
 }
