@@ -107,6 +107,18 @@
           "planet": "Phobos",
           "mission": "Defense",
           "faction": "Corpus"
+        },
+        {
+          "name": "Romula",
+          "planet": "Venus",
+          "mission": "Defense",
+          "faction": "Infested"
+        },
+        {
+          "name": "Proteus",
+          "planet": "Neptune",
+          "mission": "Defense",
+          "faction": "Corpus"
         }
       ],
       "meshFormat": 2,
