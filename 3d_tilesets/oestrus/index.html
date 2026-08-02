@@ -267,6 +267,40 @@
       background: #06080d; cursor: grab; touch-action: none;
     }
     .canvas-shell { position: relative; }
+    .viewer-fullscreen-btn {
+      position: absolute; top: 12px; right: 12px; z-index: 10;
+      width: 38px; height: 38px; padding: 0; display: grid; place-items: center;
+      border: 0; border-radius: 0; background: transparent; color: #b9bcc1;
+      cursor: pointer; transition: color 0.15s ease;
+    }
+    .viewer-fullscreen-btn:hover {
+      background: transparent; color: var(--accent);
+    }
+    .viewer-fullscreen-btn:focus-visible {
+      outline: none; color: var(--accent);
+    }
+    .viewer-fullscreen-btn[hidden] { display: none; }
+    .viewer-fullscreen-btn svg {
+      width: 23px; height: 23px; fill: none; stroke: currentColor;
+      stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .viewer-fullscreen-btn .fullscreen-icon-outline {
+      stroke: #050607; stroke-width: 6.4;
+    }
+    .viewer-fullscreen-btn .fullscreen-exit-icon { display: none; }
+    .viewport:fullscreen {
+      box-sizing: border-box; width: 100vw; height: 100vh; margin: 0;
+      display: flex; flex-direction: column; background: #06080d;
+    }
+    .viewport:fullscreen .canvas-shell { flex: 1 1 auto; min-height: 0; }
+    .viewport:fullscreen #glcanvas { border-radius: 0; }
+    .viewport:fullscreen #loadOverlay { border-radius: 0; }
+    .viewport:fullscreen .ctl-bar {
+      flex: 0 0 auto; padding: 10px 12px; background: #0b0f16;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .viewport:fullscreen .fullscreen-enter-icon { display: none; }
+    .viewport:fullscreen .fullscreen-exit-icon { display: block; }
     .viewer-watermark {
       position: absolute; right: 3px; bottom: 3px; z-index: 4;
       width: min(20%, 300px); height: auto; pointer-events: none;
@@ -528,6 +562,11 @@
           <div class="canvas-shell">
             <canvas id="glcanvas"></canvas>
             <img class="viewer-watermark" src="/3d_tilesets/watermark.png" alt="" aria-hidden="true">
+            <button id="fullscreenBtn" class="viewer-fullscreen-btn" type="button" hidden
+                    aria-label="Enter fullscreen" title="Enter fullscreen" aria-pressed="false">
+              <svg class="fullscreen-enter-icon" viewBox="0 0 24 24" aria-hidden="true"><path class="fullscreen-icon-outline" d="M9 3H3v6M15 3h6v6M21 15v6h-6M9 21H3v-6"/><path d="M9 3H3v6M15 3h6v6M21 15v6h-6M9 21H3v-6"/></svg>
+              <svg class="fullscreen-exit-icon" viewBox="0 0 24 24" aria-hidden="true"><path class="fullscreen-icon-outline" d="M3 9h6V3M21 9h-6V3M15 21v-6h6M9 21v-6H3"/><path d="M3 9h6V3M21 9h-6V3M15 21v-6h6M9 21v-6H3"/></svg>
+            </button>
           </div>
           <div id="loadOverlay"><div id="loadMsg">Select a map to begin.</div><div id="loadBar"><i></i></div><div id="loadPct"></div></div>
           <div id="fpsExit">Press <kbd>F</kbd> to toggle camera</div>
@@ -572,7 +611,8 @@
       <div class="guide-block" data-group="oestrus" data-has-content="1"><h3 class="c27" id="h.gf7dg6b4ofbu"><span class="c19">Oestrus</span></h3><p class="c14"><span class="c4">&#128315;Difficulty: Hard</span></p><p class="c21 c17"><span class="c4"></span></p><ul class="c9 lst-kix_gmutpuhs6fk7-0"><li class="c2 li-bullet-0"><span class="c4">Expected VE is 500-700.</span></li><li class="c2 li-bullet-0"><span class="c10">GAS IS IDEAL HERE DUE TO HIGH SPAWN RATES</span><span class="c4">.</span></li><li class="c2 li-bullet-0"><span class="c4">Setup motes close to A point and make sure to keep A point alive. Have supports pickup batteries and press &ldquo;x&rdquo; when close to A to upkeep the points healthbar. </span></li><li class="c2 li-bullet-0"><span class="c24">Boar on host</span><span class="c4">&nbsp;is recommended because infested spread out quickly when leaving spawn, spawn coverage is much harder on sobek.</span></li></ul><p class="c8"><span class="c4"></span></p><p class="c30"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 447.12px;"><img alt="Oestrus screenshot"   style="width: 432.00px; height: 447.12px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="447" src="/.media_cache/v1/images/f6801f70da213813.webp" data-src="/.media_cache/v1/images/f6801f70da213813.webp" decoding="async" loading="lazy"></span></p></div>
       <div class="guide-block" data-group="gaia" data-has-content="1" hidden><h3 class="c27" id="h.ttkwqyd3nxml"><span class="c19">Gaia</span></h3><p class="c14"><span class="c4">&#128315;Difficulty: Easy</span></p><p class="c21 c17"><span class="c4"></span></p><ul class="c9 lst-kix_gmutpuhs6fk7-0"><li class="c2 li-bullet-0"><span class="c4">Expected VE is 400-500.</span></li><li class="c2 li-bullet-0"><span class="c4">Loot fast and as soon as Vitus Spawns, delay kills: delaying kills involves waiting for the entire spawn to spawn in, the most simple way to do this is to wait until the next spawn starts spawning and then shoot the previous spawn if done correctly your saturation should be around 13-14%, requires both dps to delay.</span></li><li class="c7 li-bullet-0"><span>Avoid gas on this tile.</span></li></ul><p class="c8"><span class="c4"></span></p><p class="c30"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 483.84px;"><img alt="Gaia screenshot"   style="width: 432.00px; height: 483.84px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="484" src="/.media_cache/v1/images/9093735eb2dd9f78.webp" data-src="/.media_cache/v1/images/9093735eb2dd9f78.webp" decoding="async" loading="lazy"></span></p><p class="c30 c17"><span class="c4"></span></p><p class="c1"><span class="c39 c15 c36 c23">*The other tile, the iron wake variant has significantly more potential spawn points, still experimenting with ideal camp location to not block spawns and benefit from this. Still uncertain which tile is superior.</span></p></div>
       <div class="guide-block" data-group="hyf" data-has-content="1" hidden><h3 class="c27" id="h.zcr5w3275bow"><span class="c19">Hyf</span></h3><p class="c14"><span>&#128315;Difficulty: Easy</span></p><p class="c8"><span class="c3"></span></p><ul class="c9 lst-kix_f0d8y2bgi20r-0 start"><li class="c7 li-bullet-0"><span>Expected VE is 450-600. </span></li><li class="c7 li-bullet-0"><span>For this tile I </span><span class="c12">strongly</span><span class="c4">&nbsp;recommend everyone place down atomicycles and specters to keep the doors open to allow for better accessibility and prevent enemies getting stuck.</span></li><li class="c7 li-bullet-0"><span class="c4">Do not place atomicycle or specter at the 2nd floor middle doorway, if it dies/expires it will cause a hard crash and clients will disconnect from the host.</span></li><li class="c7 li-bullet-0"><span class="c4">Be careful of the right side spawns, it&#39;s a short run for them to get to the operative.</span></li><li class="c7 li-bullet-0"><span class="c4">Avoid gas it will make the mission take longer and will insta kill infested pods (infested pods give more drone spawns). &nbsp;</span></li><li class="c7 li-bullet-0"><span class="c4">If you are a newer player it is easier to run boar on this tile.</span></li><li class="c7 li-bullet-0"><span class="c12 c18"><a class="c22" href="https://www.youtube.com/watch?v=-HsabIutq14">https://www.youtube.com/watch?v=-HsabIutq14</a></span></li><li class="c7 li-bullet-0"><span class="c12 c18"><a class="c22" href="https://www.youtube.com/watch?v=oGZ3l39V16U">https://www.youtube.com/watch?v=oGZ3l39V16U</a></span></li></ul><p class="c8"><span class="c3"></span></p><p class="c35"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 638.18px;"><img alt="Hyf screenshot"   style="width: 432.00px; height: 638.18px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="638" src="/.media_cache/v1/images/8a3d0a35149068a2.webp" data-src="/.media_cache/v1/images/8a3d0a35149068a2.webp" decoding="async" loading="lazy"></span></p></div>
-      <div class="guide-block" data-group="stofler" data-has-content="1" hidden><h3 class="c27" id="h.bhig007iwnrs"><span class="c19">St&ouml;fler</span></h3><p class="c14"><span>&#128315;Difficulty: </span><span class="c31 c15 c36 c16">Very Hard</span></p><p class="c21 c17"><span class="c4"></span></p><ul class="c9 lst-kix_gmutpuhs6fk7-0"><li class="c7 li-bullet-0"><span class="c4">Expected VE is 400-500.</span></li><li class="c7 li-bullet-0"><span class="c4">The map changes twice, after the first two rounds. Setup prebuffed motes (1 health and 1 haste only) right outside of the middle ring area. Save 2 motes for middle zone and 2 motes for final zone at bottom.</span></li><li class="c7 li-bullet-0"><span class="c4">Bottom zone is where the majority of the mission will be spent, spawns are very spread out and loot despawns VERY fast on this tileset for some reason. So, loot quickly.</span></li><li class="c7 li-bullet-0"><span class="c4">Avoid gas on this tile.</span></li></ul><p class="c8"><span class="c4"></span></p><p class="c35"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 417.96px;"><img alt="St&amp;ouml;fler screenshot"   style="width: 432.00px; height: 417.96px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="418" src="/.media_cache/v1/images/28e47ee10daa301a.webp" data-src="/.media_cache/v1/images/28e47ee10daa301a.webp" decoding="async" loading="lazy"></span></p></div>
+      <div class="guide-block" data-group="stofler" data-has-content="1" hidden><h3 class="c27" id="h.bhig007iwnrs"><span class="c19">St&ouml;fler</span></h3><p class="c14"><span>&#128315;Difficulty: </span><span class="c31 c15 c36 c16">Very Hard</span></p><p class="c21 c17"><span class="c4"></span></p><ul class="c9 lst-kix_gmutpuhs6fk7-0"><li class="c7 li-bullet-0"><span class="c4">Expected VE is 400-500.</span></li><li class="c7 li-bullet-0"><span class="c4">The map changes twice, after the first two rounds. Setup prebuffed motes (1 health and 1 haste only) right outside of the middle ring area. Save 2 motes for middle zone and 2 motes for final zone at bottom.</span></li><li class="c7 li-bullet-0"><span class="c4">Bottom zone is where the majority of the mission will be spent, spawns are very spread out and loot despawns VERY fast on this tileset for some reason. So, loot quickly.</span></li><li class="c7 li-bullet-0"><span class="c4">Avoid gas on this tile.</span></li></ul><p class="c8"><span class="c4"></span></p><p class="c35"><span style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 432.00px; height: 417.96px;"><img alt="St&amp;ouml;fler screenshot"   style="width: 432.00px; height: 417.96px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);" title="" width="432" height="418" src="/.media_cache/v1/images/28e47ee10daa301a.webp" data-src="/.media_cache/v1/images/28e47ee10daa301a.webp" decoding="async" loading="lazy"></span></p>
+</section></div>
           </div>
         </section>
       </div>
@@ -598,6 +638,8 @@ GROUPS.forEach(function (g) { byId[g.id] = g; });
 
 // ---------------------------------------------------------------- DOM refs
 var canvas    = document.getElementById("glcanvas");
+var viewportEl = document.getElementById("viewport");
+var fullscreenBtn = document.getElementById("fullscreenBtn");
 var loadOv    = document.getElementById("loadOverlay");
 var loadMsg   = document.getElementById("loadMsg");
 var loadBar   = document.querySelector("#loadBar i");
@@ -1011,7 +1053,9 @@ var dpr = 1, vw = 1, vh = 1;
 function resize() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   var cssW = canvas.clientWidth || 800;
-  var cssH = Math.max(360, Math.round(Math.min(cssW * 0.56, window.innerHeight * 0.72)));
+  var cssH = document.fullscreenElement === viewportEl
+    ? Math.max(1, canvas.parentElement.clientHeight)
+    : Math.max(360, Math.round(Math.min(cssW * 0.56, window.innerHeight * 0.72)));
   canvas.style.height = cssH + "px";
   var w = Math.round(cssW * dpr), h = Math.round(cssH * dpr);
   if (canvas.width !== w || canvas.height !== h) {
@@ -1024,6 +1068,36 @@ function resize() {
   if (fps.active) fpsHoverRect = canvas.getBoundingClientRect();
 }
 window.addEventListener("resize", resize);
+
+function viewerIsFullscreen() {
+  return document.fullscreenElement === viewportEl;
+}
+
+function syncFullscreenButton() {
+  var active = viewerIsFullscreen();
+  fullscreenBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  fullscreenBtn.setAttribute(
+    "aria-label", active ? "Exit fullscreen" : "Enter fullscreen"
+  );
+  fullscreenBtn.title = active ? "Exit fullscreen" : "Enter fullscreen";
+  requestAnimationFrame(function () {
+    resize();
+    requestAnimationFrame(resize);
+  });
+}
+
+if (viewportEl.requestFullscreen && document.exitFullscreen) {
+  fullscreenBtn.hidden = false;
+  fullscreenBtn.addEventListener("click", function () {
+    var request = viewerIsFullscreen()
+      ? document.exitFullscreen()
+      : viewportEl.requestFullscreen();
+    if (request && request.catch) request.catch(function () {});
+  });
+  document.addEventListener("fullscreenchange", syncFullscreenButton);
+} else {
+  fullscreenBtn.hidden = true;
+}
 
 // ---------------------------------------------------------------- pointer input
 var drag = null;
