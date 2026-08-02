@@ -1046,6 +1046,12 @@ var CAMERA_PRESETS = {
   "stofler": {target:[-0.131466,6.587611,-0.044738], yaw:-1.539999, pitch:-0.610865, dist:200.0, ceiling:38}
 };
 
+// Optional per-camp cutaway values. Stöfler's upper two arenas need the full
+// mesh height visible; the bottom arena shares the reviewed 38% page default.
+var CAMP_CEILING_PRESETS = {
+  "stofler": [100, 100, 38]
+};
+
 function orbitEye() {
   var cp = Math.cos(cam.pitch);
   return [
@@ -1329,6 +1335,11 @@ function teleportToCampSlot(slot) {
   fps.pos = preset.position.slice();
   if (typeof preset.yaw === "number") fps.yaw = preset.yaw;
   if (typeof preset.pitch === "number") fps.pitch = preset.pitch;
+  var campCeilings = CAMP_CEILING_PRESETS[current.mapId];
+  if (Array.isArray(campCeilings) && Number.isFinite(campCeilings[slot])) {
+    clipRange.value = campCeilings[slot];
+    clipFromSlider();
+  }
   fps.keys = Object.create(null);
   hoveredMarkerIndex = -1;
   tipEl.style.display = "none";
