@@ -299,6 +299,10 @@
       flex: 0 0 auto; padding: 10px 12px; background: #0b0f16;
       border-top: 1px solid rgba(255,255,255,0.1);
     }
+    .ctl-bar .fullscreen-variant-switch { display: none; }
+    .viewport:fullscreen .ctl-bar .fullscreen-variant-switch:not([hidden]) {
+      display: inline-flex;
+    }
     .viewport:fullscreen .fullscreen-enter-icon { display: none; }
     .viewport:fullscreen .fullscreen-exit-icon { display: block; }
     .viewer-watermark {
@@ -573,6 +577,8 @@
           <div id="crosshair"></div>
           <div id="dpiHud">Mouse DPI <b id="dpiVal">100%</b></div>
           <div class="ctl-bar">
+            <div class="variant-switch fullscreen-variant-switch" id="fullscreenVariantSwitch"
+                 aria-label="Fullscreen tileset variant" hidden></div>
             <button id="fpsBtn" class="primary" type="button">Toggle first person [F]</button>
             <button id="groupBtn" type="button" aria-pressed="false">Grouping [<b>Off</b>]</button>
             <button id="resetBtn" class="icon-button" type="button" aria-label="Reset camera" title="Reset camera">&#8634;</button>
@@ -646,6 +652,7 @@ var loadBar   = document.querySelector("#loadBar i");
 var loadPct   = document.getElementById("loadPct");
 var titleEl   = document.getElementById("tsTitle");
 var variantEl = document.getElementById("variantSwitch");
+var fullscreenVariantEl = document.getElementById("fullscreenVariantSwitch");
 var subEl     = document.getElementById("tsSub");
 var chipsEl   = document.getElementById("nodeChips");
 var sideEl    = document.getElementById("sidebarLinks");
@@ -717,10 +724,9 @@ function availableVariants(gid) {
   return variants;
 }
 
-function renderVariantSwitch(gid, selected) {
-  var variants = availableVariants(gid);
-  variantEl.hidden = variants.length < 2;
-  variantEl.innerHTML = "";
+function renderVariantButtons(container, gid, selected, variants) {
+  container.hidden = variants.length < 2;
+  container.innerHTML = "";
   variants.forEach(function (variant) {
     var button = document.createElement("button");
     button.type = "button";
@@ -732,8 +738,14 @@ function renderVariantSwitch(gid, selected) {
       if (current && current.group.id === gid && current.variant === variant) return;
       loadGroup(gid, variant);
     });
-    variantEl.appendChild(button);
+    container.appendChild(button);
   });
+}
+
+function renderVariantSwitch(gid, selected) {
+  var variants = availableVariants(gid);
+  renderVariantButtons(variantEl, gid, selected, variants);
+  renderVariantButtons(fullscreenVariantEl, gid, selected, variants);
 }
 
 // ---------------------------------------------------------------- WebGL init
