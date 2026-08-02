@@ -786,7 +786,11 @@ if (gl) {
     "  float layerPriority = mod(packedA, 8.0);\n" +
     "  vcol = vec4(col.rgb, floor(packedA / 8.0) * 8.0 / 255.0);\n" +
     "  gl_Position = mvp * vec4(wp, 1.0);\n" +
-    "  gl_Position.z -= layerPriority * depthStep * gl_Position.w;\n" +
+    // Scale the priority offset as 1/w in clip space, which produces an
+    // approximately constant millimetre-scale separation in world space.
+    // A constant NDC offset grew into a large effective displacement when
+    // zoomed out and could bury genuinely raised floor plates under the floor.
+    "  gl_Position.z -= layerPriority * depthStep / max(abs(gl_Position.w), 1.0);\n" +
     "}",
 
     "#version 300 es\n" +
@@ -1474,9 +1478,9 @@ function frame(t) {
   gl.uniform3fv(meshU.org, geo.org);
   gl.uniform1f(meshU.qscale, geo.scale);
   // Stable per-primitive depth priority prevents layered authored surfaces
-  // from alternating as the camera moves. Geometry stays intact; only depth
-  // ordering within a few millimetres is made deterministic.
-  gl.uniform1f(meshU.depthStep, 0.000002);
+  // from alternating as the camera moves. The perspective-scaled shader
+  // keeps each step near 2 mm in world space at every viewing distance.
+  gl.uniform1f(meshU.depthStep, 0.0006);
   gl.uniform1f(meshU.clipHi, clipCur);
   gl.uniform3fv(meshU.eyeP, eye);
   gl.uniform3fv(meshU.fogC, geo.bg);
