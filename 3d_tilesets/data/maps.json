@@ -83,9 +83,9 @@
       ],
       "sourceBytes": 55777376
     },
-    "cytherean+xini+gulliver": {
+    "cytherean+xini+gulliver+romula+proteus": {
       "mesh": "8cd089eb20f7be62",
-      "overlay": "b02455ebddd72375.wfo",
+      "overlay": "1eafd67a7a7ec639.wfo",
       "tileset": "Corpus Ship",
       "mission": "Defense / Interception",
       "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
@@ -364,9 +364,9 @@
       ],
       "sourceBytes": 42274972
     },
-    "sechura+tessera+outer_terminus": {
+    "sechura+tessera+outer_terminus+cerberus": {
       "mesh": "69ded85bd42a3c37",
-      "overlay": "57bce664401430ee.wfo",
+      "overlay": "0b2bf4cbd478e2b9.wfo",
       "tileset": "Corpus Outpost",
       "mission": "Defense",
       "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
@@ -787,11 +787,11 @@
       ],
       "sourceBytes": 43669188
     },
-    "sechura+tessera+outer_terminus~2": {
+    "sechura+tessera+outer_terminus+cerberus~2": {
       "mesh": "33529debdf299a54",
-      "overlay": "6d97e934d19cccaa.wfo",
+      "overlay": "b30991a55ea1d86f.wfo",
       "tileset": "Corpus Outpost",
-      "mission": "Defense",
+      "mission": "Defense / Interception",
       "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
       "nodes": [
         {
@@ -810,6 +810,12 @@
           "name": "Outer Terminus",
           "planet": "Pluto",
           "mission": "Defense",
+          "faction": "Corpus"
+        },
+        {
+          "name": "Cerberus",
+          "planet": "Pluto",
+          "mission": "Interception",
           "faction": "Corpus"
         }
       ],
@@ -828,11 +834,11 @@
       ],
       "sourceBytes": 21625748
     },
-    "sechura+tessera+outer_terminus~3": {
+    "sechura+tessera+outer_terminus+cerberus~3": {
       "mesh": "570e866c4e28ae58",
-      "overlay": "3d042f70d6b7d528.wfo",
+      "overlay": "788297bfa3ce414a.wfo",
       "tileset": "Corpus Outpost",
-      "mission": "Defense",
+      "mission": "Defense / Interception",
       "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
       "nodes": [
         {
@@ -851,6 +857,12 @@
           "name": "Outer Terminus",
           "planet": "Pluto",
           "mission": "Defense",
+          "faction": "Corpus"
+        },
+        {
+          "name": "Cerberus",
+          "planet": "Pluto",
+          "mission": "Interception",
           "faction": "Corpus"
         }
       ],
@@ -902,5 +914,5 @@
   "generated": "2026-07-27",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "eb55b7a7c335d957"
+  "buildHash": "54f9da5c8be80305"
 }
