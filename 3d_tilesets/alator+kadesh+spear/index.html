@@ -591,7 +591,7 @@
           <h2>Controls</h2>
           <div class="help-cols">
             <div><b>First person:</b> press <kbd>F</kbd> or the button. <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move, <kbd>Space</kbd> to rise, <kbd>Ctrl</kbd> to descend, <kbd>Shift</kbd> to sprint. <kbd>Z</kbd> to lower <kbd>X</kbd> to increase mouse DPI.</div>
-            <div><b>Free camera:</b> left-drag to rotate, right-drag to pan, scroll to zoom. Aim the crosshair at a spawn marker to see its distance.</div>
+            <div><b>Free camera:</b> left-drag to rotate, right-drag to pan, scroll to zoom. Aim at a spawn to see info.<span id="campTeleportHelp"></span></div>
             <div><b>Spawn markers:</b> coloured dots are enemy spawn points, coloured by floor height. Size and opacity scale with frequency when recorded samples are available.</div>
             <div><b>Ceiling cutaway:</b> drag the slider to peel away everything above a height, so you can see into a roofed arena. <kbd>Q</kbd> and <kbd>E</kbd> nudge it.</div>
           </div>
@@ -655,6 +655,7 @@ var variantEl = document.getElementById("variantSwitch");
 var fullscreenVariantEl = document.getElementById("fullscreenVariantSwitch");
 var subEl     = document.getElementById("tsSub");
 var chipsEl   = document.getElementById("nodeChips");
+var campTeleportHelpEl = document.getElementById("campTeleportHelp");
 var sideEl    = document.getElementById("sidebarLinks");
 var legendEl  = document.getElementById("floorLegend");
 var clipRange = document.getElementById("clipRange");
@@ -1322,11 +1323,33 @@ fpsBtn.addEventListener("click", function () { fps.active ? exitFps() : enterFps
 var MOVE_KEYS = { KeyW:1, KeyA:1, KeyS:1, KeyD:1, Space:1, ShiftLeft:1, ShiftRight:1, ControlLeft:1, ControlRight:1 };
 var ceilingKeys = { KeyQ:false, KeyE:false };
 
-function campPresetsForCurrentGroup() {
-  if (!current || !current.group) return [];
-  var mapId = current.mapId;
+function campPresetsForMapId(mapId) {
   if (localCampSetsByGroup[mapId]) return localCampSetsByGroup[mapId];
   return Array.isArray(CAMP_PRESETS[mapId]) ? CAMP_PRESETS[mapId] : [];
+}
+
+function campPresetsForCurrentGroup() {
+  if (!current || !current.group) return [];
+  return campPresetsForMapId(current.mapId);
+}
+
+function updateCampTeleportHelp(mapId) {
+  var slots = [];
+  campPresetsForMapId(mapId).slice(0, 3).forEach(function (preset, index) {
+    if (preset && Array.isArray(preset.position) && preset.position.length === 3) {
+      slots.push(String(index + 1));
+    }
+  });
+  if (!slots.length) {
+    campTeleportHelpEl.textContent = "";
+    return;
+  }
+  var shortcut;
+  if (slots.length === 1) shortcut = slots[0];
+  else if (slots.length === 2) shortcut = slots[0] + " or " + slots[1];
+  else shortcut = slots.slice(0, -1).join(", ") + " or " + slots[slots.length - 1];
+  campTeleportHelpEl.textContent = " Press " + shortcut + " to teleport to " +
+    (slots.length === 1 ? "the camp location." : "camp locations.");
 }
 
 function teleportToCampSlot(slot) {
@@ -2153,6 +2176,7 @@ async function loadGroup(gid, variant) {
   titleEl.textContent = g.label;
   activeVariant = variant;
   renderVariantSwitch(gid, variant);
+  updateCampTeleportHelp(mapId);
   document.title = g.label + " | 3D Tileset | Warframe Arbitrations Guide";
 
   // Manifest nodes stay variant-accurate. The page-level detail line may add a
@@ -2557,6 +2581,7 @@ if (IS_LOCAL_MOTE_AUTHORING) {
       yaw: rounded(fps.yaw),
       pitch: rounded(fps.pitch)
     };
+    updateCampTeleportHelp(current.mapId);
     campPositionBtn.setAttribute("data-last-saved-slot", String(slot + 1));
     setCampButtonFeedback("Camp " + (slot + 1) + " saved - press C");
   }
@@ -3186,6 +3211,7 @@ if (IS_LOCAL_MOTE_AUTHORING) {
         else set.pop();
         if (localAuthorMode === "camp") {
           refreshCampButton();
+          updateCampTeleportHelp(current.mapId);
         } else {
           motePreview = null;
           moteLastRaycastAt = -Infinity;
