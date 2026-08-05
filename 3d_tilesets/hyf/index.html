@@ -746,14 +746,15 @@ var TOUCH_FIRST_MEDIA_QUERY = window.matchMedia
 var IS_TOUCH_FIRST_DEVICE = !!(TOUCH_FIRST_MEDIA_QUERY && TOUCH_FIRST_MEDIA_QUERY.matches);
 var MOBILE_VIEWER_MEDIA_QUERY = window.matchMedia
   ? window.matchMedia("(max-width: 900px)") : null;
+var IS_MOBILE_VIEWER = IS_TOUCH_FIRST_DEVICE ||
+  !!(MOBILE_VIEWER_MEDIA_QUERY && MOBILE_VIEWER_MEDIA_QUERY.matches);
 function prefersTouchViewerControls(event) {
   var pointerType = event && event.pointerType;
   return pointerType === "touch" || pointerType === "pen" ||
-    IS_TOUCH_FIRST_DEVICE ||
-    !!(MOBILE_VIEWER_MEDIA_QUERY && MOBILE_VIEWER_MEDIA_QUERY.matches);
+    IS_MOBILE_VIEWER;
 }
 var meshCache = new Map(); // meshId -> decoded geometry (LRU-ish, capped)
-var MESH_CACHE_MAX = IS_TOUCH_FIRST_DEVICE ? 1 : 4;
+var MESH_CACHE_MAX = IS_MOBILE_VIEWER ? 1 : 4;
 var loadToken = 0;        // guards against out-of-order map switches
 var prefetchQueue = [];   // group IDs waiting to be persisted in browser cache
 var prefetchDone = new Set();
@@ -829,8 +830,8 @@ function renderVariantSwitch(gid, selected) {
 }
 
 // ---------------------------------------------------------------- WebGL init
-var webglOptions = { antialias: !IS_TOUCH_FIRST_DEVICE, alpha: false };
-if (IS_TOUCH_FIRST_DEVICE) webglOptions.powerPreference = "low-power";
+var webglOptions = { antialias: !IS_MOBILE_VIEWER, alpha: false };
+if (IS_MOBILE_VIEWER) webglOptions.powerPreference = "low-power";
 var gl = canvas.getContext("webgl2", webglOptions);
 if (!gl) {
   showLoad("This viewer needs WebGL2, which this browser or device does not support.", true);
@@ -988,7 +989,7 @@ function uploadMesh(geo) {
 }
 
 function releaseMobileCpuGeometry(meshId, geo) {
-  if (!IS_TOUCH_FIRST_DEVICE || IS_LOCAL_MOTE_AUTHORING || !geo) return;
+  if (!IS_MOBILE_VIEWER || IS_LOCAL_MOTE_AUTHORING || !geo) return;
   // The public viewer no longer needs the decoded position/colour/index arrays
   // after WebGL has copied them. Callisto alone can otherwise leave well over
   // 100 MB duplicated between JavaScript and graphics memory on a phone.
@@ -1010,7 +1011,7 @@ function uploadMarkers(list) {
     data[o] = m.x; data[o+1] = m.y; data[o+2] = m.z;
     data[o+3] = m.r; data[o+4] = m.g; data[o+5] = m.b; data[o+6] = m.a;
     data[o+7] = m.w;
-    data[o+8] = (IS_TOUCH_FIRST_DEVICE && m.kind === "spawn") ? 0.67 : 1.0;
+    data[o+8] = (IS_MOBILE_VIEWER && m.kind === "spawn") ? 0.67 : 1.0;
   }
   gl.bindVertexArray(markVao);
   gl.bindBuffer(gl.ARRAY_BUFFER, markBuf);
@@ -1174,7 +1175,7 @@ function resize() {
   // exceed Android Chrome's graphics budget and corrupt the page compositor.
   // One CSS pixel per framebuffer pixel is still crisp enough on a phone and
   // leaves the desktop renderer's existing DPR cap untouched.
-  dpr = IS_TOUCH_FIRST_DEVICE ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+  dpr = IS_MOBILE_VIEWER ? 1 : Math.min(window.devicePixelRatio || 1, 2);
   var cssW = canvas.clientWidth || 800;
   var cssH = document.fullscreenElement === viewportEl
     ? Math.max(1, canvas.parentElement.clientHeight)
@@ -1803,9 +1804,9 @@ function frame(t) {
   // Callisto and the other large arenas are too expensive to redraw at the
   // phone display's full refresh rate. Capping touch-first devices at 20 fps
   // keeps camera motion usable without changing desktop animation cadence.
-  if (IS_TOUCH_FIRST_DEVICE &&
+  if (IS_MOBILE_VIEWER &&
       t - mobileLastFrameAt < MOBILE_FRAME_INTERVAL_MS) return;
-  if (IS_TOUCH_FIRST_DEVICE) mobileLastFrameAt = t;
+  if (IS_MOBILE_VIEWER) mobileLastFrameAt = t;
   var dt = Math.min(0.05, (t - lastT) / 1000 || 0);
   lastT = t;
 
@@ -2159,7 +2160,7 @@ function backgroundPrefetchEnabled() {
   // memory/CPU even though decoded geometry is not retained by meshCache.
   // Keep the established desktop warm-cache behaviour, but let touch-first
   // mobile/tablet browsers fetch a tile only when the visitor selects it.
-  return !IS_TOUCH_FIRST_DEVICE;
+  return !IS_MOBILE_VIEWER;
 }
 
 async function pumpBackgroundPrefetch() {
