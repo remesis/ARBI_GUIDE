@@ -1562,10 +1562,21 @@ document.addEventListener("mousemove", function (e) {
 });
 
 var fpsButtonTouchRequested = false;
+var fpsTouchToggleHandledAt = -Infinity;
+fpsBtn.addEventListener("touchend", function (e) {
+  // Android Chrome can expose a touch UI while delivering the later pointer
+  // and click events as mouse-like input. Enter touch FPS directly from the
+  // native touch sequence, then ignore the synthetic click that follows.
+  e.preventDefault();
+  fpsTouchToggleHandledAt = performance.now();
+  fpsButtonTouchRequested = false;
+  fps.active ? exitFps() : enterFps(true);
+}, { passive: false });
 fpsBtn.addEventListener("pointerdown", function (e) {
   fpsButtonTouchRequested = e.pointerType === "touch";
 });
 fpsBtn.addEventListener("click", function (e) {
+  if (performance.now() - fpsTouchToggleHandledAt < 750) return;
   var useTouchControls = fpsButtonTouchRequested || e.pointerType === "touch";
   fpsButtonTouchRequested = false;
   fps.active ? exitFps() : enterFps(useTouchControls);
