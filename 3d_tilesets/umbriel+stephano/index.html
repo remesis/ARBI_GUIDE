@@ -740,8 +740,11 @@ var guideSection = document.getElementById("guideSection");
 var manifest = null;      // maps.json
 var manifestError = "";
 var current  = null;      // { group, nodeId, overlay, geo }
+var TOUCH_FIRST_MEDIA_QUERY = window.matchMedia
+  ? window.matchMedia("(hover: none) and (pointer: coarse)") : null;
+var IS_TOUCH_FIRST_DEVICE = !!(TOUCH_FIRST_MEDIA_QUERY && TOUCH_FIRST_MEDIA_QUERY.matches);
 var meshCache = new Map(); // meshId -> decoded geometry (LRU-ish, capped)
-var MESH_CACHE_MAX = 4;
+var MESH_CACHE_MAX = IS_TOUCH_FIRST_DEVICE ? 1 : 4;
 var loadToken = 0;        // guards against out-of-order map switches
 var prefetchQueue = [];   // group IDs waiting to be persisted in browser cache
 var prefetchDone = new Set();
@@ -817,7 +820,9 @@ function renderVariantSwitch(gid, selected) {
 }
 
 // ---------------------------------------------------------------- WebGL init
-var gl = canvas.getContext("webgl2", { antialias: true, alpha: false });
+var webglOptions = { antialias: !IS_TOUCH_FIRST_DEVICE, alpha: false };
+if (IS_TOUCH_FIRST_DEVICE) webglOptions.powerPreference = "low-power";
+var gl = canvas.getContext("webgl2", webglOptions);
 if (!gl) {
   showLoad("This viewer needs WebGL2, which this browser or device does not support.", true);
 }
@@ -970,6 +975,17 @@ function uploadMesh(geo) {
   gl.bindVertexArray(null);
   meshIndexCount = geo.idx.length;
   meshIndexType = (geo.idx.BYTES_PER_ELEMENT === 2) ? gl.UNSIGNED_SHORT : gl.UNSIGNED_INT;
+}
+
+function releaseMobileCpuGeometry(meshId, geo) {
+  if (!IS_TOUCH_FIRST_DEVICE || IS_LOCAL_MOTE_AUTHORING || !geo) return;
+  // The public viewer no longer needs the decoded position/colour/index arrays
+  // after WebGL has copied them. Callisto alone can otherwise leave well over
+  // 100 MB duplicated between JavaScript and graphics memory on a phone.
+  geo.qv = null;
+  geo.cb = null;
+  geo.idx = null;
+  meshCache.delete(meshId);
 }
 
 // marker vertex: x,y,z, r,g,b,a, weight  => 8 floats
@@ -1141,7 +1157,11 @@ function fpsForward() {
 // ---------------------------------------------------------------- canvas size
 var dpr = 1, vw = 1, vh = 1;
 function resize() {
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // A high-DPR, multisampled WebGL backbuffer alongside the largest arenas can
+  // exceed Android Chrome's graphics budget and corrupt the page compositor.
+  // One CSS pixel per framebuffer pixel is still crisp enough on a phone and
+  // leaves the desktop renderer's existing DPR cap untouched.
+  dpr = IS_TOUCH_FIRST_DEVICE ? 1 : Math.min(window.devicePixelRatio || 1, 2);
   var cssW = canvas.clientWidth || 800;
   var cssH = document.fullscreenElement === viewportEl
     ? Math.max(1, canvas.parentElement.clientHeight)
@@ -1754,8 +1774,16 @@ clipRange.addEventListener("change", function () { clipRange.blur(); });
 
 // ---------------------------------------------------------------- render loop
 var lastT = 0;
+var mobileLastFrameAt = -Infinity;
+var MOBILE_FRAME_INTERVAL_MS = 1000 / 20;
 function frame(t) {
   requestAnimationFrame(frame);
+  // Callisto and the other large arenas are too expensive to redraw at the
+  // phone display's full refresh rate. Capping touch-first devices at 20 fps
+  // keeps camera motion usable without changing desktop animation cadence.
+  if (IS_TOUCH_FIRST_DEVICE &&
+      t - mobileLastFrameAt < MOBILE_FRAME_INTERVAL_MS) return;
+  if (IS_TOUCH_FIRST_DEVICE) mobileLastFrameAt = t;
   var dt = Math.min(0.05, (t - lastT) / 1000 || 0);
   lastT = t;
 
@@ -2109,8 +2137,7 @@ function backgroundPrefetchEnabled() {
   // memory/CPU even though decoded geometry is not retained by meshCache.
   // Keep the established desktop warm-cache behaviour, but let touch-first
   // mobile/tablet browsers fetch a tile only when the visitor selects it.
-  return !(window.matchMedia &&
-    window.matchMedia("(hover: none) and (pointer: coarse)").matches);
+  return !IS_TOUCH_FIRST_DEVICE;
 }
 
 async function pumpBackgroundPrefetch() {
@@ -2585,6 +2612,7 @@ async function loadGroup(gid, variant) {
     clipFromSlider();
 
     frameOn(geo, overlay);
+    releaseMobileCpuGeometry(entry.mesh, geo);
 
     hideLoad();
     startBackgroundPrefetch(mapId);
