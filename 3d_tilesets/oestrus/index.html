@@ -360,36 +360,39 @@
     /* Touch-only first-person controls. They remain absent from the desktop
        interaction path and become visible only after a touch enters FPS. */
     .touch-fps-controls { display: none; position: absolute; inset: 0; z-index: 7; pointer-events: none; }
-    .touch-move-pad, .touch-altitude-pad {
-      position: absolute; bottom: 16px; width: 78px; height: 78px;
+    .touch-move-pad {
+      position: absolute; left: 16px; bottom: 16px; width: 78px; height: 78px;
       border-radius: 50%; border: 1px solid rgba(185, 188, 193, 0.8);
       background: rgba(8, 12, 20, 0.48); box-shadow: 0 2px 10px rgba(0,0,0,0.42);
       pointer-events: auto; touch-action: none; user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
-    .touch-move-pad { left: 16px; }
-    .touch-altitude-pad { right: 16px; }
-    .touch-move-thumb, .touch-altitude-thumb {
+    .touch-move-thumb {
       position: absolute; left: 50%; top: 50%; width: 32px; height: 32px;
       margin: -16px 0 0 -16px; border-radius: 50%;
       border: 1px solid rgba(5, 6, 7, 0.9); background: rgba(114, 199, 255, 0.78);
       box-shadow: 0 1px 5px rgba(0,0,0,0.55); transform: translate(0, 0);
       pointer-events: none;
     }
+    .touch-altitude-controls {
+      position: absolute; right: 14px; bottom: 16px; display: grid; gap: 10px;
+      pointer-events: auto;
+    }
     .touch-camp-buttons {
       position: absolute; left: 12px; top: 12px; display: flex; gap: 8px;
       pointer-events: auto;
     }
-    .touch-camp-buttons button {
-      min-width: 44px; min-height: 42px; padding: 0 10px; border-radius: 10px;
+    .touch-altitude-controls button, .touch-camp-buttons button {
+      min-width: 48px; min-height: 48px; padding: 0 10px; border-radius: 10px;
       border: 1px solid rgba(5, 6, 7, 0.95); background: rgba(55, 62, 72, 0.84);
-      color: #f0f3f7; font-family: inherit; font-size: 13px; font-weight: 700;
+      color: #f0f3f7; font-family: inherit; font-size: 17px; font-weight: 700;
       line-height: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.45);
       touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent;
     }
-    .touch-camp-buttons button:active {
+    .touch-altitude-controls button.is-pressed, .touch-camp-buttons button:active {
       border-color: var(--accent); background: rgba(36, 104, 148, 0.9);
     }
+    .touch-camp-buttons button { min-width: 44px; min-height: 42px; font-size: 13px; }
     .touch-control-help { display: none; }
     .touch-fps-exit { display: none; }
     body.touch-fps-active .touch-fps-controls { display: block; }
@@ -623,8 +626,9 @@
               <div id="touchMovePad" class="touch-move-pad" role="button" aria-label="Move">
                 <span id="touchMoveThumb" class="touch-move-thumb"></span>
               </div>
-              <div id="touchAltitudePad" class="touch-altitude-pad" role="button" aria-label="Rise or descend">
-                <span id="touchAltitudeThumb" class="touch-altitude-thumb"></span>
+              <div class="touch-altitude-controls" aria-label="Vertical movement">
+                <button id="touchRiseBtn" type="button" aria-label="Rise" title="Rise">&#8593;</button>
+                <button id="touchDescendBtn" type="button" aria-label="Descend" title="Descend">&#8595;</button>
               </div>
             </div>
           </div>
@@ -648,7 +652,7 @@
           <div class="help-cols">
             <div class="desktop-control-help"><b>First person:</b> press <kbd>F</kbd> or the button. <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move, <kbd>Space</kbd> to rise, <kbd>Ctrl</kbd> to descend, <kbd>Shift</kbd> to sprint. <kbd>Z</kbd> to lower <kbd>X</kbd> to increase mouse DPI.</div>
             <div class="desktop-control-help"><b>Free camera:</b> left-drag to rotate, right-drag to pan, scroll to zoom. Aim at a spawn to see info.<span id="campTeleportHelp"></span></div>
-            <div class="touch-control-help"><b>First person:</b> tap the camera button, drag to look, use the left stick to move, and use the right stick to rise or descend. Tap a Camp button to teleport.</div>
+            <div class="touch-control-help"><b>First person:</b> tap the camera button, drag to look, use the left stick to move, and hold the arrow buttons to rise or descend. Tap a Camp button to teleport.</div>
             <div class="touch-control-help"><b>Free camera:</b> drag to rotate. Use two fingers to pan and pinch to zoom. Tap a spawn to see info.</div>
             <div><b>Spawn markers:</b> coloured dots are enemy spawn points, coloured by floor height. Size and opacity scale with frequency when recorded samples are available.</div>
             <div><b>Ceiling cutaway:</b> drag the slider to peel away everything above a height, so you can see into a roofed arena. <kbd>Q</kbd> and <kbd>E</kbd> nudge it.</div>
@@ -728,8 +732,8 @@ var tipEl     = document.getElementById("hoverTip");
 var touchFpsControls = document.getElementById("touchFpsControls");
 var touchMovePad = document.getElementById("touchMovePad");
 var touchMoveThumb = document.getElementById("touchMoveThumb");
-var touchAltitudePad = document.getElementById("touchAltitudePad");
-var touchAltitudeThumb = document.getElementById("touchAltitudeThumb");
+var touchRiseBtn = document.getElementById("touchRiseBtn");
+var touchDescendBtn = document.getElementById("touchDescendBtn");
 var touchCampButtonsEl = document.getElementById("touchCampButtons");
 var guideSection = document.getElementById("guideSection");
 
@@ -1217,7 +1221,6 @@ var touchGesture = null;
 var fpsTouchLook = null;
 var fpsTouchMode = false;
 var touchMovePointerId = null;
-var touchAltitudePointerId = null;
 var touchMoveForward = 0;
 var touchMoveStrafe = 0;
 var touchMoveVertical = 0;
@@ -1474,13 +1477,14 @@ function resetTouchFpsMovement() {
   touchPointers.clear();
   touchGesture = null;
   touchMovePointerId = null;
-  touchAltitudePointerId = null;
   touchMoveForward = 0;
   touchMoveStrafe = 0;
   touchMoveVertical = 0;
   fpsTouchLook = null;
   if (touchMoveThumb) touchMoveThumb.style.transform = "translate(0px, 0px)";
-  if (touchAltitudeThumb) touchAltitudeThumb.style.transform = "translate(0px, 0px)";
+  [touchRiseBtn, touchDescendBtn].forEach(function (button) {
+    if (button) button.classList.remove("is-pressed");
+  });
 }
 
 function enterFps(useTouchControls) {
@@ -1597,39 +1601,31 @@ touchMovePad.addEventListener("pointerup", endTouchMove);
 touchMovePad.addEventListener("pointercancel", endTouchMove);
 touchMovePad.addEventListener("lostpointercapture", endTouchMove);
 
-function updateTouchAltitude(e) {
-  var rect = touchAltitudePad.getBoundingClientRect();
-  var radius = Math.max(1, Math.min(rect.width, rect.height) * 0.34);
-  var dy = e.clientY - (rect.top + rect.height * 0.5);
-  dy = Math.max(-radius, Math.min(radius, dy));
-  touchMoveVertical = -dy / radius;
-  touchAltitudeThumb.style.transform = "translate(0px, " + dy.toFixed(1) + "px)";
+function bindTouchAltitude(button, direction) {
+  var activePointer = null;
+  button.addEventListener("pointerdown", function (e) {
+    if (!fps.active || !fpsTouchMode || e.pointerType !== "touch") return;
+    e.preventDefault();
+    activePointer = e.pointerId;
+    touchMoveVertical = direction;
+    button.classList.add("is-pressed");
+    try { button.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  function release(e) {
+    if (activePointer === null || (e.pointerId != null && e.pointerId !== activePointer)) return;
+    e.preventDefault();
+    var pointerId = activePointer;
+    activePointer = null;
+    try { button.releasePointerCapture(pointerId); } catch (_) {}
+    touchMoveVertical = 0;
+    button.classList.remove("is-pressed");
+  }
+  button.addEventListener("pointerup", release);
+  button.addEventListener("pointercancel", release);
+  button.addEventListener("lostpointercapture", release);
 }
-
-touchAltitudePad.addEventListener("pointerdown", function (e) {
-  if (!fps.active || !fpsTouchMode || e.pointerType !== "touch") return;
-  e.preventDefault();
-  touchAltitudePointerId = e.pointerId;
-  try { touchAltitudePad.setPointerCapture(e.pointerId); } catch (_) {}
-  updateTouchAltitude(e);
-});
-touchAltitudePad.addEventListener("pointermove", function (e) {
-  if (e.pointerId !== touchAltitudePointerId) return;
-  e.preventDefault();
-  updateTouchAltitude(e);
-});
-function endTouchAltitude(e) {
-  if (e.pointerId !== touchAltitudePointerId) return;
-  e.preventDefault();
-  var pointerId = touchAltitudePointerId;
-  touchAltitudePointerId = null;
-  try { touchAltitudePad.releasePointerCapture(pointerId); } catch (_) {}
-  touchMoveVertical = 0;
-  touchAltitudeThumb.style.transform = "translate(0px, 0px)";
-}
-touchAltitudePad.addEventListener("pointerup", endTouchAltitude);
-touchAltitudePad.addEventListener("pointercancel", endTouchAltitude);
-touchAltitudePad.addEventListener("lostpointercapture", endTouchAltitude);
+bindTouchAltitude(touchRiseBtn, 1);
+bindTouchAltitude(touchDescendBtn, -1);
 
 var MOVE_KEYS = { KeyW:1, KeyA:1, KeyS:1, KeyD:1, Space:1, ShiftLeft:1, ShiftRight:1, ControlLeft:1, ControlRight:1 };
 var ceilingKeys = { KeyQ:false, KeyE:false };
