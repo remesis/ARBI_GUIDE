@@ -2103,11 +2103,21 @@ async function consumeIntoBrowserCache(name) {
   prefetchDone.add(name);
 }
 
+function backgroundPrefetchEnabled() {
+  // Each WFG2 response is Brotli-decoded while it is consumed. Streaming the
+  // remaining arenas immediately after the active map can overwhelm a phone's
+  // memory/CPU even though decoded geometry is not retained by meshCache.
+  // Keep the established desktop warm-cache behaviour, but let touch-first
+  // mobile/tablet browsers fetch a tile only when the visitor selects it.
+  return !(window.matchMedia &&
+    window.matchMedia("(hover: none) and (pointer: coarse)").matches);
+}
+
 async function pumpBackgroundPrefetch() {
-  if (prefetchRunning || !manifest) return;
+  if (prefetchRunning || !manifest || !backgroundPrefetchEnabled()) return;
   prefetchRunning = true;
   try {
-    while (prefetchQueue.length) {
+    while (prefetchQueue.length && backgroundPrefetchEnabled()) {
       var gid = prefetchQueue.shift();
       var entry = manifest.groups && manifest.groups[gid];
       if (!entry || !entry.mesh) continue;
@@ -2124,12 +2134,19 @@ async function pumpBackgroundPrefetch() {
     }
   } finally {
     prefetchRunning = false;
-    if (prefetchQueue.length) setTimeout(pumpBackgroundPrefetch, 0);
+    if (prefetchQueue.length && backgroundPrefetchEnabled()) {
+      setTimeout(pumpBackgroundPrefetch, 0);
+    }
   }
 }
 
 function startBackgroundPrefetch(activeMapId) {
   if (!manifest) return;
+  if (!backgroundPrefetchEnabled()) {
+    prefetchStarted = false;
+    prefetchQueue = [];
+    return;
+  }
   prefetchStarted = true;
   // Recalculate on every selection so its sibling variants become the next
   // background work. The selected map itself is already loading in foreground.
