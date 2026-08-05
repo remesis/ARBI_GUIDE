@@ -396,6 +396,7 @@
     .touch-control-help { display: none; }
     .touch-fps-exit { display: none; }
     body.touch-fps-active .touch-fps-controls { display: block; }
+    body.touch-viewer-device.fps-active .touch-fps-controls { display: block; }
     body.touch-fps-active #dpiHud { display: none; }
     body.touch-fps-active #fpsExit { top: 10px; padding: 6px 12px; font-size: 11px; }
     body.touch-fps-active #fpsExit .desktop-fps-exit { display: none; }
@@ -507,6 +508,9 @@
       .touch-control-help { display: block; }
       .viewport:fullscreen #floorLegend { display: none; }
     }
+    body.touch-viewer-device .desktop-control-help { display: none; }
+    body.touch-viewer-device .touch-control-help { display: block; }
+    body.touch-viewer-device .viewport:fullscreen #floorLegend { display: none; }
 
     @media (prefers-reduced-motion: reduce) {
       .particle-canvas { display: none !important; }
@@ -744,10 +748,12 @@ var current  = null;      // { group, nodeId, overlay, geo }
 var TOUCH_FIRST_MEDIA_QUERY = window.matchMedia
   ? window.matchMedia("(hover: none) and (pointer: coarse)") : null;
 var IS_TOUCH_FIRST_DEVICE = !!(TOUCH_FIRST_MEDIA_QUERY && TOUCH_FIRST_MEDIA_QUERY.matches);
-var MOBILE_VIEWER_MEDIA_QUERY = window.matchMedia
-  ? window.matchMedia("(max-width: 900px)") : null;
-var IS_MOBILE_VIEWER = IS_TOUCH_FIRST_DEVICE ||
-  !!(MOBILE_VIEWER_MEDIA_QUERY && MOBILE_VIEWER_MEDIA_QUERY.matches);
+var HAS_TOUCH_INPUT = (navigator.maxTouchPoints || 0) > 0 || "ontouchstart" in window;
+// The 3D viewer's mobile path is capability-based, not resolution-based. A
+// high-resolution phone can expose a wide layout viewport, while a narrow
+// desktop window must retain the desktop renderer and pointer-lock controls.
+var IS_MOBILE_VIEWER = IS_TOUCH_FIRST_DEVICE || HAS_TOUCH_INPUT;
+document.body.classList.toggle("touch-viewer-device", IS_MOBILE_VIEWER);
 function prefersTouchViewerControls(event) {
   var pointerType = event && event.pointerType;
   return pointerType === "touch" || pointerType === "pen" ||
@@ -1518,8 +1524,8 @@ function enterFps(useTouchControls) {
   fps.keys = Object.create(null);
   fps.active = true;
   // Some mobile browsers synthesize the camera-button click as a mouse event.
-  // The coarse-pointer and responsive-layout fallbacks keep the touch overlay
-  // deterministic instead of depending on that one event's pointerType.
+  // Device touch capability keeps the overlay deterministic instead of
+  // depending on that one event's pointerType or the viewport resolution.
   fpsTouchMode = !!useTouchControls || prefersTouchViewerControls();
   resetTouchFpsMovement();
   document.body.classList.add("fps-active");
