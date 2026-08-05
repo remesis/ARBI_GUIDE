@@ -480,6 +480,7 @@
     }
     .guide-block img, .guide-block video {
       max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 12px auto;
+      cursor: zoom-in;
     }
     .guide-block p:has(img), .guide-block p:has(video),
     .guide-block h1:has(img), .guide-block h2:has(img), .guide-block h3:has(img),
@@ -489,6 +490,21 @@
       text-align: center !important;
     }
     .guide-block table { max-width: 100%; overflow-x: auto; display: block; }
+
+    /* Match the main guide's tap/click-to-expand media viewer. */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 2000;
+      display: grid; place-items: center;
+      background: rgba(0, 0, 0, 0.85);
+      cursor: zoom-out; overscroll-behavior: contain;
+    }
+    .lightbox[hidden] { display: none !important; }
+    .lightbox img, .lightbox video {
+      max-width: 94vw; max-height: 94vh;
+      border-radius: 12px; box-shadow: var(--shadow);
+      touch-action: auto; transform-origin: center center;
+      will-change: transform; user-select: none; -webkit-user-drag: none;
+    }
 
     @media (max-width: 900px) {
       html, body { max-width: 100%; overflow-x: clip; }
@@ -794,6 +810,11 @@
         </section>
       </div>
     </main>
+  </div>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <img id="lightboxImg" alt="Expanded image" hidden>
+    <video id="lightboxVideo" playsinline loop muted hidden></video>
   </div>
 
   <div id="hoverTip" role="tooltip"></div>
@@ -4007,6 +4028,236 @@ if (mobileSearchNext) mobileSearchNext.addEventListener("click", function () {
   goToHit(searchPos + 1);
   if (mobileSearchBox) mobileSearchBox.focus();
 });
+
+// ------------------------------------------------------ guide media lightbox
+// Routed guide media uses real src attributes already. Event delegation keeps
+// expansion working even after search highlighting rebuilds guide-block HTML.
+(function initGuideLightbox() {
+  var guideBlocks = document.getElementById("guideBlocks");
+  var lightbox = document.getElementById("lightbox");
+  var lightboxImg = document.getElementById("lightboxImg");
+  var lightboxVideo = document.getElementById("lightboxVideo");
+  if (!guideBlocks || !lightbox || !lightboxImg || !lightboxVideo) return;
+
+  var viewportMeta = document.querySelector('meta[name="viewport"]');
+  var defaultViewportContent = viewportMeta
+    ? viewportMeta.getAttribute("content")
+    : "width=device-width, initial-scale=1";
+  var activeMedia = null;
+  var lastCloseAt = 0;
+  var gestureActive = false;
+  var touchMoved = false;
+  var touchStartX = 0;
+  var touchStartY = 0;
+  var scale = 1;
+  var translateX = 0;
+  var translateY = 0;
+  var pinchStartDistance = 0;
+  var pinchStartScale = 1;
+  var panStartX = 0;
+  var panStartY = 0;
+  var panStartTranslateX = 0;
+  var panStartTranslateY = 0;
+
+  function setViewportPinchEnabled(enabled) {
+    if (!viewportMeta) return;
+    viewportMeta.setAttribute("content", enabled
+      ? defaultViewportContent
+      : "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
+  }
+  function applyTransform() {
+    if (!activeMedia) return;
+    activeMedia.style.transform = "translate(" + translateX + "px, " +
+      translateY + "px) scale(" + scale + ")";
+  }
+  function resetTransform() {
+    scale = 1;
+    translateX = 0;
+    translateY = 0;
+    pinchStartDistance = 0;
+    pinchStartScale = 1;
+    panStartX = 0;
+    panStartY = 0;
+    panStartTranslateX = 0;
+    panStartTranslateY = 0;
+    lightboxImg.style.transform = "";
+    lightboxVideo.style.transform = "";
+  }
+  function setActiveMedia(media) {
+    activeMedia = media;
+    resetTransform();
+  }
+  function touchDistance(touches) {
+    if (touches.length < 2) return 0;
+    var dx = touches[0].clientX - touches[1].clientX;
+    var dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+  function closeLightbox() {
+    lastCloseAt = Date.now();
+    setViewportPinchEnabled(true);
+    resetTransform();
+    activeMedia = null;
+    lightbox.hidden = true;
+    lightboxImg.hidden = true;
+    lightboxImg.removeAttribute("src");
+    lightboxVideo.pause();
+    lightboxVideo.hidden = true;
+    lightboxVideo.removeAttribute("src");
+    lightboxVideo.load();
+    gestureActive = false;
+    touchMoved = false;
+  }
+  function openImage(img) {
+    if (!img.src || Date.now() - lastCloseAt < 450) return;
+    lightboxVideo.pause();
+    lightboxVideo.hidden = true;
+    lightboxVideo.removeAttribute("src");
+    setActiveMedia(lightboxImg);
+    setViewportPinchEnabled(false);
+    lightboxImg.src = img.currentSrc || img.src;
+    lightboxImg.hidden = false;
+    lightbox.hidden = false;
+  }
+  function openVideo(video) {
+    var src = video.currentSrc || video.src;
+    if (!src || Date.now() - lastCloseAt < 450) return;
+    lightboxImg.hidden = true;
+    lightboxImg.removeAttribute("src");
+    lightboxVideo.pause();
+    lightboxVideo.src = src;
+    setActiveMedia(lightboxVideo);
+    setViewportPinchEnabled(false);
+    lightboxVideo.hidden = false;
+    lightbox.hidden = false;
+    lightboxVideo.load();
+    lightboxVideo.play().catch(function () { /* Expansion still works without autoplay. */ });
+  }
+
+  closeLightbox();
+
+  guideBlocks.addEventListener("click", function (event) {
+    var target = event.target;
+    if (!target || !target.closest) return;
+    var img = target.closest(".guide-block img");
+    if (img && guideBlocks.contains(img)) { openImage(img); return; }
+    var video = target.closest(".guide-block video");
+    if (video && guideBlocks.contains(video)) openVideo(video);
+  });
+
+  [lightboxImg, lightboxVideo].forEach(function (media) {
+    media.addEventListener("touchstart", function (event) {
+      if (lightbox.hidden || media !== activeMedia) return;
+      if (event.touches.length === 2) {
+        gestureActive = true;
+        touchMoved = true;
+        pinchStartDistance = touchDistance(event.touches);
+        pinchStartScale = scale;
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      if (event.touches.length === 1 && scale > 1) {
+        gestureActive = true;
+        touchMoved = true;
+        panStartX = event.touches[0].clientX;
+        panStartY = event.touches[0].clientY;
+        panStartTranslateX = translateX;
+        panStartTranslateY = translateY;
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }, { passive: false });
+    media.addEventListener("touchmove", function (event) {
+      if (lightbox.hidden || media !== activeMedia) return;
+      if (event.touches.length === 2) {
+        var distance = touchDistance(event.touches);
+        if (!pinchStartDistance) {
+          pinchStartDistance = distance;
+          pinchStartScale = scale;
+        }
+        scale = Math.max(1, Math.min(4,
+          pinchStartScale * (distance / Math.max(pinchStartDistance, 1))));
+        touchMoved = true;
+        event.preventDefault();
+        event.stopPropagation();
+        applyTransform();
+        return;
+      }
+      if (event.touches.length === 1 && scale > 1) {
+        translateX = panStartTranslateX + (event.touches[0].clientX - panStartX);
+        translateY = panStartTranslateY + (event.touches[0].clientY - panStartY);
+        touchMoved = true;
+        event.preventDefault();
+        event.stopPropagation();
+        applyTransform();
+      }
+    }, { passive: false });
+    media.addEventListener("touchend", function (event) {
+      if (lightbox.hidden || media !== activeMedia) return;
+      if (event.touches.length === 1 && scale > 1) {
+        panStartX = event.touches[0].clientX;
+        panStartY = event.touches[0].clientY;
+        panStartTranslateX = translateX;
+        panStartTranslateY = translateY;
+      }
+      if (event.touches.length === 0) {
+        pinchStartDistance = 0;
+        pinchStartScale = scale;
+        if (scale <= 1.01) resetTransform();
+      }
+      if (gestureActive || scale > 1) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }, true);
+  });
+
+  lightbox.addEventListener("click", function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+    closeLightbox();
+  }, true);
+  lightbox.addEventListener("touchstart", function (event) {
+    if (lightbox.hidden) return;
+    gestureActive = event.touches.length > 1;
+    touchMoved = false;
+    if (event.touches.length === 1) {
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+    }
+  }, { passive: true });
+  lightbox.addEventListener("touchmove", function (event) {
+    if (lightbox.hidden) return;
+    if (event.touches.length > 1) {
+      gestureActive = true;
+      touchMoved = true;
+      return;
+    }
+    if (event.touches.length === 1) {
+      var dx = Math.abs(event.touches[0].clientX - touchStartX);
+      var dy = Math.abs(event.touches[0].clientY - touchStartY);
+      if (dx > 10 || dy > 10) touchMoved = true;
+    }
+  }, { passive: true });
+  lightbox.addEventListener("touchend", function (event) {
+    if (lightbox.hidden) return;
+    if (gestureActive) {
+      if (event.touches.length === 0) gestureActive = false;
+      return;
+    }
+    if (!touchMoved && event.changedTouches.length === 1) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeLightbox();
+      return;
+    }
+    if (event.touches.length === 0) touchMoved = false;
+  }, true);
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !lightbox.hidden) closeLightbox();
+  });
+})();
 
 // ------------------------------------------------------ background particles
 // Keep this visually aligned with the main guide's desktop-margin effect:
