@@ -396,6 +396,7 @@
     .touch-control-help { display: none; }
     .touch-fps-exit { display: none; }
     body.touch-fps-active .touch-fps-controls { display: block; }
+    body.touch-viewer-device .touch-fps-controls { display: block; }
     body.touch-fps-active #dpiHud { display: none; }
     body.touch-fps-active #fpsExit { top: 10px; padding: 6px 12px; font-size: 11px; }
     body.touch-fps-active #fpsExit .desktop-fps-exit { display: none; }
@@ -505,6 +506,7 @@
     @media (hover: none) and (pointer: coarse) {
       .desktop-control-help { display: none; }
       .touch-control-help { display: block; }
+      .touch-fps-controls { display: block; }
       .viewport:fullscreen #floorLegend { display: none; }
     }
     body.touch-viewer-device .desktop-control-help { display: none; }
@@ -1599,7 +1601,8 @@ function updateTouchMove(e) {
 }
 
 touchMovePad.addEventListener("pointerdown", function (e) {
-  if (!fps.active || !fpsTouchMode || e.pointerType !== "touch") return;
+  if (!fps.active) enterFps(true);
+  if (!fps.active || !fpsTouchMode) return;
   e.preventDefault();
   touchMovePointerId = e.pointerId;
   try { touchMovePad.setPointerCapture(e.pointerId); } catch (_) {}
@@ -1627,7 +1630,8 @@ touchMovePad.addEventListener("lostpointercapture", endTouchMove);
 function bindTouchAltitude(button, direction) {
   var activePointer = null;
   button.addEventListener("pointerdown", function (e) {
-    if (!fps.active || !fpsTouchMode || e.pointerType !== "touch") return;
+    if (!fps.active) enterFps(true);
+    if (!fps.active || !fpsTouchMode) return;
     e.preventDefault();
     activePointer = e.pointerId;
     touchMoveVertical = direction;
