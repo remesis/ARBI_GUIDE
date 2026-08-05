@@ -664,7 +664,7 @@
     }
 
     /* Tileset notes are routed to the dedicated 3D pages on desktop. Phones
-       cannot enter that viewer, so they retain a responsive copy here. */
+       retain a responsive copy here so loading the data-heavy viewer remains optional. */
     .mobile-tileset-guide-content {
       display: none;
     }
@@ -1041,7 +1041,11 @@
       }
 
       .guide-tab-link {
-        display: none;
+        display: flex;
+        align-items: center;
+        margin-right: 0;
+        padding: 0 8px;
+        font-size: 12.5px;
       }
 
       .mobile-tileset-guide-content {
@@ -1579,9 +1583,9 @@
       <span>Warframe Arbitrations Guide</span>
     </a>
 
-    <a class="guide-tab-link" href="/3d_tilesets/">3D Tilesets</a>
-
     <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Open navigation menu"><svg width="20" height="14" fill="currentColor" aria-hidden="true"><use href="#icon-hamburger"/></svg></button>
+
+    <a class="guide-tab-link" href="/3d_tilesets/">3D Tilesets</a>
 
     <div class="topbar-controls">
       <div class="user-controls">
