@@ -396,7 +396,6 @@
     .touch-control-help { display: none; }
     .touch-fps-exit { display: none; }
     body.touch-fps-active .touch-fps-controls { display: block; }
-    body.touch-viewer-device.fps-active .touch-fps-controls { display: block; }
     body.touch-fps-active #dpiHud { display: none; }
     body.touch-fps-active #fpsExit { top: 10px; padding: 6px 12px; font-size: 11px; }
     body.touch-fps-active #fpsExit .desktop-fps-exit { display: none; }
@@ -754,11 +753,6 @@ var HAS_TOUCH_INPUT = (navigator.maxTouchPoints || 0) > 0 || "ontouchstart" in w
 // desktop window must retain the desktop renderer and pointer-lock controls.
 var IS_MOBILE_VIEWER = IS_TOUCH_FIRST_DEVICE || HAS_TOUCH_INPUT;
 document.body.classList.toggle("touch-viewer-device", IS_MOBILE_VIEWER);
-function prefersTouchViewerControls(event) {
-  var pointerType = event && event.pointerType;
-  return pointerType === "touch" || pointerType === "pen" ||
-    IS_MOBILE_VIEWER;
-}
 var meshCache = new Map(); // meshId -> decoded geometry (LRU-ish, capped)
 var MESH_CACHE_MAX = IS_MOBILE_VIEWER ? 1 : 4;
 var loadToken = 0;        // guards against out-of-order map switches
@@ -1349,17 +1343,13 @@ function endTouchPointer(e, cancelled) {
 }
 
 canvas.addEventListener("pointerdown", function (e) {
-  if (e.pointerType === "touch" || (fps.active && fpsTouchMode)) {
-    beginTouchPointer(e); return;
-  }
+  if (e.pointerType === "touch") { beginTouchPointer(e); return; }
   if (fps.active) return;
   canvas.setPointerCapture(e.pointerId);
   drag = { id: e.pointerId, x: e.clientX, y: e.clientY, btn: e.button, moved: 0 };
 });
 canvas.addEventListener("pointermove", function (e) {
-  if (e.pointerType === "touch" || (fps.active && fpsTouchMode)) {
-    moveTouchPointer(e); return;
-  }
+  if (e.pointerType === "touch") { moveTouchPointer(e); return; }
   // Pointer-lock movement is handled exclusively by the document mousemove
   // listener below. Do not let marker hover perform DOM writes on that path:
   // repeatedly hiding and restoring the crosshair tooltip can stall camera
@@ -1382,9 +1372,7 @@ canvas.addEventListener("pointermove", function (e) {
   }
 });
 function endDrag(e) {
-  if (e.pointerType === "touch" || (fps.active && fpsTouchMode)) {
-    endTouchPointer(e, e.type === "pointercancel"); return;
-  }
+  if (e.pointerType === "touch") { endTouchPointer(e, e.type === "pointercancel"); return; }
   if (drag && e.pointerId === drag.id) {
     try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
     drag = null;
@@ -1523,10 +1511,10 @@ function enterFps(useTouchControls) {
   fps.pitch = Math.atan2(dy, Math.hypot(dx, dz));
   fps.keys = Object.create(null);
   fps.active = true;
-  // Some mobile browsers synthesize the camera-button click as a mouse event.
-  // Device touch capability keeps the overlay deterministic instead of
-  // depending on that one event's pointerType or the viewport resolution.
-  fpsTouchMode = !!useTouchControls || prefersTouchViewerControls();
+  // The working mobile path is driven by the actual touch that entered FPS.
+  // Keep this separate from renderer/performance device detection so desktop
+  // layout sizing cannot accidentally select or suppress the touch overlay.
+  fpsTouchMode = !!useTouchControls;
   resetTouchFpsMovement();
   document.body.classList.add("fps-active");
   document.body.classList.toggle("touch-fps-active", fpsTouchMode);
@@ -1575,10 +1563,10 @@ document.addEventListener("mousemove", function (e) {
 
 var fpsButtonTouchRequested = false;
 fpsBtn.addEventListener("pointerdown", function (e) {
-  fpsButtonTouchRequested = prefersTouchViewerControls(e);
+  fpsButtonTouchRequested = e.pointerType === "touch";
 });
 fpsBtn.addEventListener("click", function (e) {
-  var useTouchControls = fpsButtonTouchRequested || prefersTouchViewerControls(e);
+  var useTouchControls = fpsButtonTouchRequested || e.pointerType === "touch";
   fpsButtonTouchRequested = false;
   fps.active ? exitFps() : enterFps(useTouchControls);
 });
@@ -1600,7 +1588,7 @@ function updateTouchMove(e) {
 }
 
 touchMovePad.addEventListener("pointerdown", function (e) {
-  if (!fps.active || !fpsTouchMode) return;
+  if (!fps.active || !fpsTouchMode || e.pointerType !== "touch") return;
   e.preventDefault();
   touchMovePointerId = e.pointerId;
   try { touchMovePad.setPointerCapture(e.pointerId); } catch (_) {}
@@ -1628,7 +1616,7 @@ touchMovePad.addEventListener("lostpointercapture", endTouchMove);
 function bindTouchAltitude(button, direction) {
   var activePointer = null;
   button.addEventListener("pointerdown", function (e) {
-    if (!fps.active || !fpsTouchMode) return;
+    if (!fps.active || !fpsTouchMode || e.pointerType !== "touch") return;
     e.preventDefault();
     activePointer = e.pointerId;
     touchMoveVertical = direction;
