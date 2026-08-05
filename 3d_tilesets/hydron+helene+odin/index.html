@@ -96,7 +96,8 @@
     .guide-tab-link:hover, .guide-tab-link:focus-visible {
       color: var(--accent); background: var(--panel-2);
     }
-    .mobile-menu-btn, .mobile-sidebar-backdrop { display: none; }
+    .mobile-menu-btn, .mobile-sidebar-backdrop,
+    .mobile-topbar-actions, #mobileSearchBar { display: none; }
 
     /* ---- topbar controls, matching the guide 1:1 ---- */
     .topbar-controls { display: flex; align-items: center; gap: 16px; }
@@ -520,6 +521,49 @@
         padding: 0 10px; border-radius: 0; flex: 0 0 auto; line-height: 1;
       }
       .mobile-menu-btn:active { color: var(--text); }
+      .mobile-topbar-actions {
+        display: flex; align-items: stretch; gap: 0; flex: 0 0 auto;
+      }
+      .mobile-viewer-topbar {
+        display: flex; align-items: center; gap: 4px; padding: 0 8px;
+        font-size: 12px; color: var(--muted); flex-shrink: 0; visibility: hidden;
+      }
+      #mobileTopbarViewerNum {
+        display: inline-block; min-width: 2ch; text-align: right;
+      }
+      .mobile-viewer-topbar.is-ready { visibility: visible; }
+      .mobile-search-nav {
+        display: none; align-items: center; justify-content: center;
+        background: none; border: 1px solid var(--border); border-radius: 6px;
+        color: var(--muted); padding: 0; margin: 9px 3px;
+        width: 40px; height: 40px; flex-shrink: 0; cursor: pointer;
+        font-size: 13px; line-height: 1;
+      }
+      body.mobile-search-active .mobile-search-nav { display: flex; }
+      body.mobile-search-active .mobile-viewer-topbar { display: none; }
+      .mobile-search-toggle {
+        display: flex; align-items: center; justify-content: center;
+        background: none; border: 0; color: var(--muted); cursor: pointer;
+        padding: 0 14px 0 10px; border-radius: 0; line-height: 1;
+      }
+      .mobile-search-toggle:active,
+      body.mobile-search-active .mobile-search-toggle { color: var(--accent); }
+      #mobileSearchBar {
+        position: sticky; top: var(--topbar-offset); z-index: 998;
+        background: var(--panel); border-bottom: 1px solid var(--border);
+        padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+      }
+      #mobileSearchBar[hidden] { display: none !important; }
+      #mobileSearchBar input {
+        flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border);
+        color: var(--text); border-radius: 8px; padding: 7px 10px;
+        font-size: 14px; outline: none;
+      }
+      #mobileSearchBar input:focus { border-color: var(--accent); }
+      .mobile-search-count {
+        min-width: 3.5ch; color: var(--muted); font-size: 12px;
+        white-space: nowrap; flex-shrink: 0; text-align: right;
+      }
       .main, .wrap, .guide-sec, #guideBlocks, .guide-block {
         min-width: 0; max-width: 100%;
       }
@@ -529,7 +573,10 @@
       /* Same call the guide makes: the control cluster and search do not fit a
          phone topbar, so they are desktop-only. */
       .user-controls, .search-wrap { display: none; }
-      .topbar-controls { margin-left: auto; }
+      .topbar-controls {
+        width: auto; min-width: 0; margin-left: auto; flex: 1 1 auto;
+        justify-content: flex-end; align-items: stretch; gap: 0;
+      }
       .guide-tab-link {
         display: flex; align-items: center; margin-right: 0;
         padding: 6px 8px; font-size: 12.5px;
@@ -567,6 +614,7 @@
   <svg style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false"><defs>
     <symbol id="icon-hamburger" viewBox="0 0 20 14"><rect width="20" height="2" rx="1" y="0"/><rect width="20" height="2" rx="1" y="6"/><rect width="20" height="2" rx="1" y="12"/></symbol>
     <symbol id="icon-eye" viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8S4.5 1 11 1s10 7 10 7-3.5 7-10 7S1 8 1 8z"/><circle cx="11" cy="8" r="3"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="5.5"/><line x1="11.5" y1="11.5" x2="16" y2="16"/></symbol>
     <symbol id="icon-chain" viewBox="0 0 24 24" fill="currentColor"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></symbol>
     <symbol id="icon-clipboard" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></symbol>
   </defs></svg>
@@ -619,8 +667,19 @@
         <button id="searchPrevBtn" type="button" aria-label="Previous result">&#8593;</button>
         <button id="searchNextBtn" type="button" aria-label="Next result">&#8595;</button>
       </div>
+      <div class="mobile-topbar-actions">
+        <span id="mobileTopbarViewer" class="mobile-viewer-topbar"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="mobileTopbarViewerNum"></span></span>
+        <button id="mobileSearchPrevBtn" class="mobile-search-nav" type="button" aria-label="Previous result">&#8593;</button>
+        <button id="mobileSearchNextBtn" class="mobile-search-nav" type="button" aria-label="Next result">&#8595;</button>
+        <button id="mobileSearchToggle" class="mobile-search-toggle" type="button" aria-label="Search"><svg width="18" height="18" aria-hidden="true"><use href="#icon-search"/></svg></button>
+      </div>
     </div>
   </header>
+
+  <div id="mobileSearchBar" class="mobile-search-bar" hidden>
+    <input id="mobileSearchBox" type="text" placeholder="Search tilesets" autocomplete="off">
+    <span id="mobileSearchCount" class="mobile-search-count"></span>
+  </div>
 
   <canvas id="particleCanvas" class="particle-canvas" aria-hidden="true"></canvas>
   <div id="mobileSidebarBackdrop" class="mobile-sidebar-backdrop" hidden></div>
@@ -813,7 +872,10 @@ document.addEventListener("keydown", function (e) {
   }
 });
 if (mobileSidebarMediaQuery && mobileSidebarMediaQuery.addEventListener) {
-  mobileSidebarMediaQuery.addEventListener("change", closeMobileSidebar);
+  mobileSidebarMediaQuery.addEventListener("change", function () {
+    closeMobileSidebar();
+    if (!isMobileSidebarLayout()) closeMobileSearch();
+  });
 }
 
 // ---------------------------------------------------------------- state
@@ -3756,6 +3818,8 @@ if (IS_LOCAL_MOTE_AUTHORING) {
 // re-locates the same hit by its ordinal within that group.
 var searchBox   = document.getElementById("searchBox");
 var searchCount = document.getElementById("searchCount");
+var mobileSearchBox = document.getElementById("mobileSearchBox");
+var mobileSearchCount = document.getElementById("mobileSearchCount");
 var searchOriginals = new Map();
 var searchHits = [];
 var searchPos = -1;
@@ -3810,12 +3874,12 @@ function highlightIn(el, re) {
 }
 
 function updateSearchCount() {
-  if (!searchCount) return;
   var term = (searchBox && searchBox.value || "").trim();
-  if (term.length < 2) { searchCount.textContent = ""; return; }
-  searchCount.textContent = searchHits.length
+  var text = term.length < 2 ? "" : (searchHits.length
     ? ((searchPos >= 0 ? searchPos + 1 : 1) + " / " + searchHits.length)
-    : "0 / 0";
+    : "0 / 0");
+  if (searchCount) searchCount.textContent = text;
+  if (mobileSearchCount) mobileSearchCount.textContent = text;
 }
 
 function applySearch() {
@@ -3890,6 +3954,59 @@ var sPrev = document.getElementById("searchPrevBtn");
 var sNext = document.getElementById("searchNextBtn");
 if (sPrev) sPrev.addEventListener("click", function () { goToHit(searchPos - 1); searchBox.focus(); });
 if (sNext) sNext.addEventListener("click", function () { goToHit(searchPos + 1); searchBox.focus(); });
+
+function openMobileSearch() {
+  if (!isMobileSidebarLayout()) return;
+  closeMobileSidebar();
+  document.body.classList.add("mobile-search-active");
+  var bar = document.getElementById("mobileSearchBar");
+  if (bar) bar.hidden = false;
+  if (mobileSearchBox) { mobileSearchBox.focus(); mobileSearchBox.select(); }
+}
+function closeMobileSearch() {
+  document.body.classList.remove("mobile-search-active");
+  var bar = document.getElementById("mobileSearchBar");
+  if (bar) bar.hidden = true;
+  if (mobileSearchBox) mobileSearchBox.value = "";
+  if (searchBox) searchBox.value = "";
+  if (searchTimer) { clearTimeout(searchTimer); searchTimer = null; }
+  clearHighlights();
+  updateSearchCount();
+}
+
+var mobileSearchToggle = document.getElementById("mobileSearchToggle");
+var mobileSearchPrev = document.getElementById("mobileSearchPrevBtn");
+var mobileSearchNext = document.getElementById("mobileSearchNextBtn");
+if (mobileSearchToggle) {
+  mobileSearchToggle.addEventListener("click", function () {
+    if (document.body.classList.contains("mobile-search-active")) closeMobileSearch();
+    else openMobileSearch();
+  });
+}
+if (mobileSearchBox) {
+  mobileSearchBox.addEventListener("input", function () {
+    if (!searchBox) return;
+    searchBox.value = mobileSearchBox.value;
+    searchBox.dispatchEvent(new Event("input", { bubbles: false }));
+  });
+  mobileSearchBox.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { e.preventDefault(); closeMobileSearch(); return; }
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (searchTimer) { clearTimeout(searchTimer); searchTimer = null; applySearch(); }
+    goToHit(searchPos + (e.shiftKey ? -1 : 1));
+  });
+}
+if (mobileSearchPrev) mobileSearchPrev.addEventListener("click", function () {
+  if (searchTimer) { clearTimeout(searchTimer); searchTimer = null; applySearch(); }
+  goToHit(searchPos - 1);
+  if (mobileSearchBox) mobileSearchBox.focus();
+});
+if (mobileSearchNext) mobileSearchNext.addEventListener("click", function () {
+  if (searchTimer) { clearTimeout(searchTimer); searchTimer = null; applySearch(); }
+  goToHit(searchPos + 1);
+  if (mobileSearchBox) mobileSearchBox.focus();
+});
 
 // ------------------------------------------------------ background particles
 // Keep this visually aligned with the main guide's desktop-margin effect:
@@ -4076,6 +4193,8 @@ if (sNext) sNext.addEventListener("click", function () { goToHit(searchPos + 1);
   if (!WORKER_URL) return;
   var numEl = document.getElementById("viewerCountNum");
   var wrapEl = document.getElementById("viewerCount");
+  var mobileNumEl = document.getElementById("mobileTopbarViewerNum");
+  var mobileWrapEl = document.getElementById("mobileTopbarViewer");
   if (!numEl || !wrapEl) return;
 
   function createSessionId() {
@@ -4108,6 +4227,8 @@ if (sNext) sNext.addEventListener("click", function () { goToHit(searchPos + 1);
   function setCount(n) {
     numEl.textContent = n;
     wrapEl.classList.add("is-ready");
+    if (mobileNumEl) mobileNumEl.textContent = n;
+    if (mobileWrapEl) mobileWrapEl.classList.add("is-ready");
   }
   function beat() {
     fetch(WORKER_URL, { method: "POST", body: JSON.stringify({ sid: sid }) })
