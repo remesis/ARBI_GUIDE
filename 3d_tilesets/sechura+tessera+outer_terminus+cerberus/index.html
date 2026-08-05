@@ -867,6 +867,7 @@ var touchRiseBtn = document.getElementById("touchRiseBtn");
 var touchDescendBtn = document.getElementById("touchDescendBtn");
 var touchCampButtonsEl = document.getElementById("touchCampButtons");
 var guideSection = document.getElementById("guideSection");
+var brandLink = document.getElementById("brandLink");
 var mobileMenuBtn = document.getElementById("mobileMenuBtn");
 var mobileSidebarBackdrop = document.getElementById("mobileSidebarBackdrop");
 var mobileSidebarMediaQuery = window.matchMedia
@@ -875,14 +876,33 @@ var mobileSidebarMediaQuery = window.matchMedia
 function isMobileSidebarLayout() {
   return !!(mobileSidebarMediaQuery && mobileSidebarMediaQuery.matches);
 }
+function syncMobileBrandAria() {
+  if (!brandLink) return;
+  if (isMobileSidebarLayout()) {
+    brandLink.setAttribute("aria-controls", "sidebar");
+    brandLink.setAttribute("aria-label", "Toggle tileset navigation");
+    brandLink.setAttribute("aria-expanded",
+      document.body.classList.contains("mobile-sidebar-open") ? "true" : "false");
+  } else {
+    brandLink.removeAttribute("aria-controls");
+    brandLink.removeAttribute("aria-label");
+    brandLink.removeAttribute("aria-expanded");
+  }
+}
 function setMobileSidebarOpen(isOpen) {
   if (!isMobileSidebarLayout()) isOpen = false;
   document.body.classList.toggle("mobile-sidebar-open", isOpen);
   mobileSidebarBackdrop.hidden = !isOpen;
   mobileMenuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  syncMobileBrandAria();
 }
 function closeMobileSidebar() { setMobileSidebarOpen(false); }
 mobileMenuBtn.addEventListener("click", function () {
+  setMobileSidebarOpen(!document.body.classList.contains("mobile-sidebar-open"));
+});
+if (brandLink) brandLink.addEventListener("click", function (e) {
+  if (!isMobileSidebarLayout()) return;
+  e.preventDefault();
   setMobileSidebarOpen(!document.body.classList.contains("mobile-sidebar-open"));
 });
 mobileSidebarBackdrop.addEventListener("click", closeMobileSidebar);
@@ -895,9 +915,11 @@ document.addEventListener("keydown", function (e) {
 if (mobileSidebarMediaQuery && mobileSidebarMediaQuery.addEventListener) {
   mobileSidebarMediaQuery.addEventListener("change", function () {
     closeMobileSidebar();
+    syncMobileBrandAria();
     if (!isMobileSidebarLayout()) closeMobileSearch();
   });
 }
+syncMobileBrandAria();
 
 // ---------------------------------------------------------------- state
 var manifest = null;      // maps.json
