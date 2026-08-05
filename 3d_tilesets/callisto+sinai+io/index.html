@@ -357,6 +357,50 @@
     body.fps-active #dpiHud { display: block; }
     #dpiHud b { color: var(--text); }
 
+    /* Touch-only first-person controls. They remain absent from the desktop
+       interaction path and become visible only after a touch enters FPS. */
+    .touch-fps-controls { display: none; position: absolute; inset: 0; z-index: 7; pointer-events: none; }
+    .touch-move-pad {
+      position: absolute; left: 16px; bottom: 16px; width: 104px; height: 104px;
+      border-radius: 50%; border: 1px solid rgba(185, 188, 193, 0.8);
+      background: rgba(8, 12, 20, 0.48); box-shadow: 0 2px 10px rgba(0,0,0,0.42);
+      pointer-events: auto; touch-action: none; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .touch-move-thumb {
+      position: absolute; left: 50%; top: 50%; width: 42px; height: 42px;
+      margin: -21px 0 0 -21px; border-radius: 50%;
+      border: 1px solid rgba(5, 6, 7, 0.9); background: rgba(114, 199, 255, 0.78);
+      box-shadow: 0 1px 5px rgba(0,0,0,0.55); transform: translate(0, 0);
+      pointer-events: none;
+    }
+    .touch-altitude-controls {
+      position: absolute; right: 14px; bottom: 16px; display: grid; gap: 10px;
+      pointer-events: auto;
+    }
+    .touch-altitude-controls button, .touch-camp-buttons button {
+      min-width: 48px; min-height: 48px; padding: 0 10px; border-radius: 10px;
+      border: 1px solid rgba(5, 6, 7, 0.95); background: rgba(55, 62, 72, 0.84);
+      color: #f0f3f7; font-family: inherit; font-size: 17px; font-weight: 700;
+      line-height: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+      touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent;
+    }
+    .touch-altitude-controls button.is-pressed, .touch-camp-buttons button:active {
+      border-color: var(--accent); background: rgba(36, 104, 148, 0.9);
+    }
+    .touch-camp-buttons {
+      position: absolute; left: 12px; top: 12px; display: flex; gap: 8px;
+      pointer-events: auto;
+    }
+    .touch-camp-buttons button { min-width: 44px; min-height: 42px; font-size: 13px; }
+    .touch-control-help { display: none; }
+    .touch-fps-exit { display: none; }
+    body.touch-fps-active .touch-fps-controls { display: block; }
+    body.touch-fps-active #dpiHud { display: none; }
+    body.touch-fps-active #fpsExit { top: 10px; padding: 6px 12px; font-size: 11px; }
+    body.touch-fps-active #fpsExit .desktop-fps-exit { display: none; }
+    body.touch-fps-active #fpsExit .touch-fps-exit { display: inline; }
+
     #hoverTip {
       position: fixed; z-index: 1200; pointer-events: none; display: none;
       background: rgba(10, 14, 22, 0.96); border: 1px solid rgba(255,255,255,0.16);
@@ -458,6 +502,11 @@
       .guide-tab-link { padding: 6px 8px; font-size: 12.5px; }
     }
 
+    @media (hover: none) and (pointer: coarse) {
+      .desktop-control-help { display: none; }
+      .touch-control-help { display: block; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .particle-canvas { display: none !important; }
     }
@@ -526,7 +575,7 @@
 
   <div class="layout">
     <aside class="sidebar">
-      <div class="sidebar-head"><span>Last updated: 2026-08-03</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
+      <div class="sidebar-head"><span>Last updated: 2026-08-04</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
       <nav class="sidebar-links" id="sidebarLinks" aria-label="Tileset list">
         <a href="/3d_tilesets/callisto+sinai+io" data-group="callisto+sinai+io" class="active"><span class="sidebar-label">Callisto, Sinai, Io</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="22" height="22" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
         <a href="/3d_tilesets/umbriel+stephano" data-group="umbriel+stephano"><span class="sidebar-label">Umbriel, Stephano</span><button type="button" class="sidebar-copy-link" aria-label="Copy link to this tileset"><svg width="22" height="22" aria-hidden="true"><use href="#icon-chain"/></svg></button></a>
@@ -571,9 +620,19 @@
               <svg class="fullscreen-enter-icon" viewBox="0 0 24 24" aria-hidden="true"><path class="fullscreen-icon-outline" d="M9 3H3v6M15 3h6v6M21 15v6h-6M9 21H3v-6"/><path d="M9 3H3v6M15 3h6v6M21 15v6h-6M9 21H3v-6"/></svg>
               <svg class="fullscreen-exit-icon" viewBox="0 0 24 24" aria-hidden="true"><path class="fullscreen-icon-outline" d="M3 9h6V3M21 9h-6V3M15 21v-6h6M9 21v-6H3"/><path d="M3 9h6V3M21 9h-6V3M15 21v-6h6M9 21v-6H3"/></svg>
             </button>
+            <div id="touchFpsControls" class="touch-fps-controls" role="group" aria-label="Touch first-person controls">
+              <div id="touchCampButtons" class="touch-camp-buttons" aria-label="Camp locations"></div>
+              <div id="touchMovePad" class="touch-move-pad" role="button" aria-label="Move">
+                <span id="touchMoveThumb" class="touch-move-thumb"></span>
+              </div>
+              <div class="touch-altitude-controls" aria-label="Vertical movement">
+                <button id="touchRiseBtn" type="button" aria-label="Rise" title="Rise">&#8593;</button>
+                <button id="touchDescendBtn" type="button" aria-label="Descend" title="Descend">&#8595;</button>
+              </div>
+            </div>
           </div>
           <div id="loadOverlay"><div id="loadMsg">Select a map to begin.</div><div id="loadBar"><i></i></div><div id="loadPct"></div></div>
-          <div id="fpsExit">Press <kbd>F</kbd> to toggle camera</div>
+          <div id="fpsExit"><span class="desktop-fps-exit">Press <kbd>F</kbd> to toggle camera</span><span class="touch-fps-exit">Drag to look</span></div>
           <div id="crosshair"></div>
           <div id="dpiHud">Mouse DPI <b id="dpiVal">100%</b></div>
           <div class="ctl-bar">
@@ -590,8 +649,10 @@
         <section class="card ts-help">
           <h2>Controls</h2>
           <div class="help-cols">
-            <div><b>First person:</b> press <kbd>F</kbd> or the button. <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move, <kbd>Space</kbd> to rise, <kbd>Ctrl</kbd> to descend, <kbd>Shift</kbd> to sprint. <kbd>Z</kbd> to lower <kbd>X</kbd> to increase mouse DPI.</div>
-            <div><b>Free camera:</b> left-drag to rotate, right-drag to pan, scroll to zoom. Aim at a spawn to see info.<span id="campTeleportHelp"></span></div>
+            <div class="desktop-control-help"><b>First person:</b> press <kbd>F</kbd> or the button. <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move, <kbd>Space</kbd> to rise, <kbd>Ctrl</kbd> to descend, <kbd>Shift</kbd> to sprint. <kbd>Z</kbd> to lower <kbd>X</kbd> to increase mouse DPI.</div>
+            <div class="desktop-control-help"><b>Free camera:</b> left-drag to rotate, right-drag to pan, scroll to zoom. Aim at a spawn to see info.<span id="campTeleportHelp"></span></div>
+            <div class="touch-control-help"><b>First person:</b> tap the camera button, drag to look, use the left stick to move, and hold the arrow buttons to rise or descend. Tap a Camp button to teleport.</div>
+            <div class="touch-control-help"><b>Free camera:</b> drag to rotate. Use two fingers to pan and pinch to zoom. Tap a spawn to see info.</div>
             <div><b>Spawn markers:</b> coloured dots are enemy spawn points, coloured by floor height. Size and opacity scale with frequency when recorded samples are available.</div>
             <div><b>Ceiling cutaway:</b> drag the slider to peel away everything above a height, so you can see into a roofed arena. <kbd>Q</kbd> and <kbd>E</kbd> nudge it.</div>
           </div>
@@ -667,6 +728,12 @@ var crosshair = document.getElementById("crosshair");
 var dpiHud    = document.getElementById("dpiHud");
 var dpiVal    = document.getElementById("dpiVal");
 var tipEl     = document.getElementById("hoverTip");
+var touchFpsControls = document.getElementById("touchFpsControls");
+var touchMovePad = document.getElementById("touchMovePad");
+var touchMoveThumb = document.getElementById("touchMoveThumb");
+var touchRiseBtn = document.getElementById("touchRiseBtn");
+var touchDescendBtn = document.getElementById("touchDescendBtn");
+var touchCampButtonsEl = document.getElementById("touchCampButtons");
 var guideSection = document.getElementById("guideSection");
 
 // ---------------------------------------------------------------- state
@@ -1124,14 +1191,131 @@ if (viewportEl.requestFullscreen && document.exitFullscreen) {
 
 // ---------------------------------------------------------------- pointer input
 var drag = null;
+var touchPointers = new Map();
+var touchGesture = null;
+var fpsTouchLook = null;
+var fpsTouchMode = false;
+var touchMovePointerId = null;
+var touchMoveForward = 0;
+var touchMoveStrafe = 0;
+var touchMoveVertical = 0;
 canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
 
+function touchGestureSnapshot() {
+  var points = Array.from(touchPointers.values()).slice(0, 2);
+  if (points.length < 2) return null;
+  var dx = points[1].x - points[0].x;
+  var dy = points[1].y - points[0].y;
+  return {
+    x: (points[0].x + points[1].x) * 0.5,
+    y: (points[0].y + points[1].y) * 0.5,
+    distance: Math.max(8, Math.hypot(dx, dy))
+  };
+}
+
+function beginTouchPointer(e) {
+  e.preventDefault();
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+
+  if (fps.active) {
+    if (fpsTouchMode && !fpsTouchLook) {
+      fpsTouchLook = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    }
+    return;
+  }
+
+  touchPointers.set(e.pointerId, {
+    id: e.pointerId,
+    x: e.clientX,
+    y: e.clientY,
+    moved: 0,
+    multi: false
+  });
+  if (touchPointers.size >= 2) {
+    touchPointers.forEach(function (point) { point.multi = true; });
+    touchGesture = touchGestureSnapshot();
+  }
+}
+
+function moveTouchPointer(e) {
+  e.preventDefault();
+
+  if (fps.active) {
+    if (!fpsTouchMode || !fpsTouchLook || fpsTouchLook.id !== e.pointerId) return;
+    var lookDx = e.clientX - fpsTouchLook.x;
+    var lookDy = e.clientY - fpsTouchLook.y;
+    fpsTouchLook.x = e.clientX;
+    fpsTouchLook.y = e.clientY;
+    var lookScale = 0.006 * fps.mouseDpi;
+    fps.yaw -= lookDx * lookScale;
+    fps.pitch = Math.max(-1.5533, Math.min(1.5533, fps.pitch - lookDy * lookScale));
+    fpsLastLookInputAt = performance.now();
+    return;
+  }
+
+  var point = touchPointers.get(e.pointerId);
+  if (!point) return;
+  var dx = e.clientX - point.x;
+  var dy = e.clientY - point.y;
+  point.x = e.clientX;
+  point.y = e.clientY;
+  point.moved += Math.hypot(dx, dy);
+
+  if (touchPointers.size === 1) {
+    touchGesture = null;
+    cam.yaw -= dx * 0.006;
+    cam.pitch = Math.max(-1.5533, Math.min(1.5533, cam.pitch - dy * 0.006));
+    return;
+  }
+
+  touchPointers.forEach(function (activePoint) { activePoint.multi = true; });
+  var nextGesture = touchGestureSnapshot();
+  if (!nextGesture) return;
+  if (touchGesture) {
+    cam.dist = Math.max(cam.minDist, Math.min(
+      cam.maxDist, cam.dist * touchGesture.distance / nextGesture.distance));
+
+    // Two-finger centroid movement pans in the same screen plane and scale as
+    // desktop right-drag, while pinch distance controls zoom independently.
+    var panDx = nextGesture.x - touchGesture.x;
+    var panDy = nextGesture.y - touchGesture.y;
+    var s = cam.dist * 0.0016;
+    var rx = Math.cos(cam.yaw), rz = -Math.sin(cam.yaw);
+    cam.target[0] -= (panDx * rx) * s;
+    cam.target[2] -= (panDx * rz) * s;
+    cam.target[1] -= panDy * s;
+  }
+  touchGesture = nextGesture;
+}
+
+function endTouchPointer(e, cancelled) {
+  e.preventDefault();
+  try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+
+  if (fpsTouchLook && fpsTouchLook.id === e.pointerId) fpsTouchLook = null;
+  if (fps.active) return;
+
+  var point = touchPointers.get(e.pointerId);
+  var wasOnlyPointer = touchPointers.size === 1;
+  touchPointers.delete(e.pointerId);
+  if (!cancelled && point && wasOnlyPointer && !point.multi && point.moved < 10) {
+    maybeHover(e);
+  }
+  if (touchPointers.size < 2) {
+    touchGesture = null;
+  } else {
+    touchGesture = touchGestureSnapshot();
+  }
+}
+
 canvas.addEventListener("pointerdown", function (e) {
+  if (e.pointerType === "touch") { beginTouchPointer(e); return; }
   if (fps.active) return;
   canvas.setPointerCapture(e.pointerId);
   drag = { id: e.pointerId, x: e.clientX, y: e.clientY, btn: e.button, moved: 0 };
 });
 canvas.addEventListener("pointermove", function (e) {
+  if (e.pointerType === "touch") { moveTouchPointer(e); return; }
   // Pointer-lock movement is handled exclusively by the document mousemove
   // listener below. Do not let marker hover perform DOM writes on that path:
   // repeatedly hiding and restoring the crosshair tooltip can stall camera
@@ -1154,6 +1338,7 @@ canvas.addEventListener("pointermove", function (e) {
   }
 });
 function endDrag(e) {
+  if (e.pointerType === "touch") { endTouchPointer(e, e.type === "pointercancel"); return; }
   if (drag && e.pointerId === drag.id) {
     try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
     drag = null;
@@ -1167,7 +1352,8 @@ canvas.addEventListener("click", function (e) {
     localMoteAuthorPlace();
   }
 });
-canvas.addEventListener("pointerleave", function () {
+canvas.addEventListener("pointerleave", function (e) {
+  if (e.pointerType === "touch") return;
   if (fps.active) return;
   hoveredMarkerIndex = -1;
   tipEl.style.display = "none";
@@ -1262,7 +1448,21 @@ function updateFpsMarkerHover() {
 }
 
 // ---------------------------------------------------------------- first person
-function enterFps() {
+function resetTouchFpsMovement() {
+  touchPointers.clear();
+  touchGesture = null;
+  touchMovePointerId = null;
+  touchMoveForward = 0;
+  touchMoveStrafe = 0;
+  touchMoveVertical = 0;
+  fpsTouchLook = null;
+  if (touchMoveThumb) touchMoveThumb.style.transform = "translate(0px, 0px)";
+  [touchRiseBtn, touchDescendBtn].forEach(function (button) {
+    if (button) button.classList.remove("is-pressed");
+  });
+}
+
+function enterFps(useTouchControls) {
   if (!current || !current.geo || fps.active) return;
   if (drag) {
     try { canvas.releasePointerCapture(drag.id); } catch (_) {}
@@ -1277,7 +1477,10 @@ function enterFps() {
   fps.pitch = Math.atan2(dy, Math.hypot(dx, dz));
   fps.keys = Object.create(null);
   fps.active = true;
+  fpsTouchMode = !!useTouchControls;
+  resetTouchFpsMovement();
   document.body.classList.add("fps-active");
+  document.body.classList.toggle("touch-fps-active", fpsTouchMode);
   tipEl.style.display = "none";
   fpsLastLookInputAt = performance.now();
   fpsHoverNextSampleAt = 0;
@@ -1286,7 +1489,7 @@ function enterFps() {
   fpsHoverPaintedDistance = "";
   fpsHoverRect = canvas.getBoundingClientRect();
   refreshFpsZoneMarkers(true);
-  if (canvas.requestPointerLock) {
+  if (!fpsTouchMode && canvas.requestPointerLock) {
     var pointerLockRequest = canvas.requestPointerLock();
     if (pointerLockRequest && pointerLockRequest.catch) {
       pointerLockRequest.catch(function () {});
@@ -1296,9 +1499,12 @@ function enterFps() {
 function exitFps() {
   if (!fps.active) return;
   fps.active = false;
+  fpsTouchMode = false;
   fps.keys = Object.create(null);
+  resetTouchFpsMovement();
   hoveredMarkerIndex = -1;
   document.body.classList.remove("fps-active");
+  document.body.classList.remove("touch-fps-active");
   tipEl.style.display = "none";
   fpsHoverPaintedIndex = -1;
   fpsHoverPaintedDistance = "";
@@ -1308,17 +1514,93 @@ function exitFps() {
 }
 document.addEventListener("pointerlockchange", function () {
   // ESC releases the lock through the browser; mirror that into our state.
-  if (document.pointerLockElement !== canvas && fps.active) exitFps();
+  if (!fpsTouchMode && document.pointerLockElement !== canvas && fps.active) exitFps();
 });
 document.addEventListener("mousemove", function (e) {
-  if (!fps.active || document.pointerLockElement !== canvas) return;
+  if (!fps.active || fpsTouchMode || document.pointerLockElement !== canvas) return;
   var lookScale = 0.0022 * fps.mouseDpi;
   fps.yaw -= (e.movementX || 0) * lookScale;
   fps.pitch = Math.max(-1.5533, Math.min(1.5533, fps.pitch - (e.movementY || 0) * lookScale));
   fpsLastLookInputAt = performance.now();
 });
 
-fpsBtn.addEventListener("click", function () { fps.active ? exitFps() : enterFps(); });
+var fpsButtonTouchRequested = false;
+fpsBtn.addEventListener("pointerdown", function (e) {
+  fpsButtonTouchRequested = e.pointerType === "touch";
+});
+fpsBtn.addEventListener("click", function (e) {
+  var useTouchControls = fpsButtonTouchRequested || e.pointerType === "touch";
+  fpsButtonTouchRequested = false;
+  fps.active ? exitFps() : enterFps(useTouchControls);
+});
+
+function updateTouchMove(e) {
+  var rect = touchMovePad.getBoundingClientRect();
+  var radius = Math.max(1, Math.min(rect.width, rect.height) * 0.34);
+  var dx = e.clientX - (rect.left + rect.width * 0.5);
+  var dy = e.clientY - (rect.top + rect.height * 0.5);
+  var length = Math.hypot(dx, dy);
+  if (length > radius) {
+    dx = dx / length * radius;
+    dy = dy / length * radius;
+  }
+  touchMoveStrafe = -dx / radius;
+  touchMoveForward = -dy / radius;
+  touchMoveThumb.style.transform = "translate(" + dx.toFixed(1) + "px, " +
+    dy.toFixed(1) + "px)";
+}
+
+touchMovePad.addEventListener("pointerdown", function (e) {
+  if (!fps.active || !fpsTouchMode || e.pointerType !== "touch") return;
+  e.preventDefault();
+  touchMovePointerId = e.pointerId;
+  try { touchMovePad.setPointerCapture(e.pointerId); } catch (_) {}
+  updateTouchMove(e);
+});
+touchMovePad.addEventListener("pointermove", function (e) {
+  if (e.pointerId !== touchMovePointerId) return;
+  e.preventDefault();
+  updateTouchMove(e);
+});
+function endTouchMove(e) {
+  if (e.pointerId !== touchMovePointerId) return;
+  e.preventDefault();
+  var pointerId = touchMovePointerId;
+  touchMovePointerId = null;
+  try { touchMovePad.releasePointerCapture(pointerId); } catch (_) {}
+  touchMoveForward = 0;
+  touchMoveStrafe = 0;
+  touchMoveThumb.style.transform = "translate(0px, 0px)";
+}
+touchMovePad.addEventListener("pointerup", endTouchMove);
+touchMovePad.addEventListener("pointercancel", endTouchMove);
+touchMovePad.addEventListener("lostpointercapture", endTouchMove);
+
+function bindTouchAltitude(button, direction) {
+  var activePointer = null;
+  button.addEventListener("pointerdown", function (e) {
+    if (!fps.active || !fpsTouchMode || e.pointerType !== "touch") return;
+    e.preventDefault();
+    activePointer = e.pointerId;
+    touchMoveVertical = direction;
+    button.classList.add("is-pressed");
+    try { button.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  function release(e) {
+    if (activePointer === null || (e.pointerId != null && e.pointerId !== activePointer)) return;
+    e.preventDefault();
+    var pointerId = activePointer;
+    activePointer = null;
+    try { button.releasePointerCapture(pointerId); } catch (_) {}
+    touchMoveVertical = 0;
+    button.classList.remove("is-pressed");
+  }
+  button.addEventListener("pointerup", release);
+  button.addEventListener("pointercancel", release);
+  button.addEventListener("lostpointercapture", release);
+}
+bindTouchAltitude(touchRiseBtn, 1);
+bindTouchAltitude(touchDescendBtn, -1);
 
 var MOVE_KEYS = { KeyW:1, KeyA:1, KeyS:1, KeyD:1, Space:1, ShiftLeft:1, ShiftRight:1, ControlLeft:1, ControlRight:1 };
 var ceilingKeys = { KeyQ:false, KeyE:false };
@@ -1340,6 +1622,20 @@ function updateCampTeleportHelp(mapId) {
       slots.push(String(index + 1));
     }
   });
+  touchCampButtonsEl.innerHTML = "";
+  slots.forEach(function (slotLabel) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Camp " + slotLabel;
+    button.setAttribute("aria-label", "Teleport to camp " + slotLabel);
+    button.addEventListener("click", function () {
+      if (!fps.active) enterFps(true);
+      teleportToCampSlot(parseInt(slotLabel, 10) - 1);
+    });
+    touchCampButtonsEl.appendChild(button);
+  });
+  touchCampButtonsEl.hidden = !slots.length;
+
   if (!slots.length) {
     campTeleportHelpEl.textContent = "";
     return;
@@ -1549,9 +1845,10 @@ function stepCeiling(dt) {
 
 function stepFps(dt) {
   var k = fps.keys;
-  var fwd = (k.KeyW ? 1 : 0) - (k.KeyS ? 1 : 0);
-  var str = (k.KeyA ? 1 : 0) - (k.KeyD ? 1 : 0);
-  var up  = (k.Space ? 1 : 0) - ((k.ControlLeft || k.ControlRight) ? 1 : 0);
+  var fwd = (k.KeyW ? 1 : 0) - (k.KeyS ? 1 : 0) + touchMoveForward;
+  var str = (k.KeyA ? 1 : 0) - (k.KeyD ? 1 : 0) + touchMoveStrafe;
+  var up  = (k.Space ? 1 : 0) - ((k.ControlLeft || k.ControlRight) ? 1 : 0) +
+    touchMoveVertical;
   // Normal flight now equals the former sprint speed. Sprint adds one more
   // former-baseline increment instead of doubling the new baseline.
   var speedMultiplier = (k.ShiftLeft || k.ShiftRight) ? 3.0 : 2.0;
