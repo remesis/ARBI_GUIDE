@@ -210,7 +210,7 @@
       "sourceBytes": 51924056
     },
     "munio": {
-      "mesh": "062643363863cf5e",
+      "mesh": "e697c9f8583040d3",
       "overlay": "102e4c7ea6240cf4.wfo",
       "tileset": "Albrecht's Laboratories",
       "mission": "Mirror Defense",
@@ -225,19 +225,19 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 33702816,
-      "meshTransferBytes": 22767989,
+      "meshBytes": 33704140,
+      "meshTransferBytes": 22777573,
       "meshFiles": [
-        "062643363863cf5e.part00.wfg2.br",
-        "062643363863cf5e.part01.wfg2.br"
+        "e697c9f8583040d3.part00.wfg2.br",
+        "e697c9f8583040d3.part01.wfg2.br"
       ],
       "meshFileBytes": [
         20971520,
-        12731296
+        12732620
       ],
       "meshFileTransferBytes": [
-        13692759,
-        9075230
+        13699558,
+        9078015
       ],
       "sourceBytes": 103861204
     },
@@ -911,8 +911,8 @@
       "sourceBytes": 41816660
     }
   },
-  "generated": "2026-07-27",
+  "generated": "2026-08-06",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "54f9da5c8be80305"
+  "buildHash": "afb1190a951be25f"
 }
