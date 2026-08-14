@@ -39,13 +39,13 @@
     <p>Information is used only to operate Geekbot: responding to commands, enforcing server rules, managing roles and onboarding, validating posts or event submissions, generating requested media, diagnosing failures, and protecting the bot and community from abuse.</p>
 
     <h2>Storage and retention</h2>
-    <p>Persistent Geekbot data is kept in local databases on a secured system controlled by the operator. Newcomer progress is deleted after graduation and stale entries are pruned when no longer needed, subject to short retention for rejoin handling. Duplicate-detection hashes, signatures, message links, and timestamps are retained while needed to prevent repeat submissions. Operational role snapshots and state are retained until restored, replaced, deleted by the operator, or no longer needed. Service logs are limited to operational use and rotated under the host's logging controls. Temporary downloaded or generated media is discarded after processing.</p>
+    <p>Persistent Geekbot data, its temporary processing workspace, and operational service logs are encrypted at rest using native AES-256-GCM filesystem encryption on a secured system controlled by the operator. The decryption key is protected by the host's hardware security module and is not stored in plaintext. Newcomer progress is deleted after graduation and stale entries are pruned when no longer needed, subject to short retention for rejoin handling. Duplicate-detection hashes, signatures, message links, and timestamps are retained while needed to prevent repeat submissions. Operational role snapshots and state are retained until restored, replaced, deleted by the operator, or no longer needed. Service logs are limited to operational use and rotated under the host's logging controls. Temporary downloaded or generated media is discarded after processing.</p>
 
     <h2>Presence data</h2>
     <p>Geekbot does not request the Guild Presences privileged intent and does not track or store members' online status, client status, or activities.</p>
 
     <h2>Security and access</h2>
-    <p>Persistent data and service credentials are stored on operator-controlled infrastructure. Access is limited to the operator and to authorized server staff through permission-restricted Discord commands. Bot credentials are not disclosed in public pages or routine bot output.</p>
+    <p>Persistent data and service credentials are stored on operator-controlled encrypted infrastructure. The bot fails closed and does not start if its encrypted storage cannot be unlocked and verified. Filesystem access is limited to the operator, while authorized server staff can use only permission-restricted Discord commands. Bot credentials and encryption keys are not disclosed in public pages or routine bot output.</p>
 
     <h2>Sharing</h2>
     <p>Geekbot does not sell personal data, serve advertising, profile members, or use member data to train machine-learning or AI models. Data is not shared with third parties for their own marketing. Discord necessarily processes information as the platform hosting the bot; content fetched from a user-supplied media link may also be handled by that link's hosting provider.</p>
@@ -54,10 +54,10 @@
     <p>Geekbot's configured features operate in authorized servers and are not designed to read or archive direct messages. The bot is not offered for arbitrary public installation.</p>
 
     <h2>Your choices</h2>
-    <p>You may ask the staff of the Discord server where Geekbot is operating to review or delete data associated with your Discord account. A request may be limited where data is still needed for security, active moderation, legal obligations, or prevention of ongoing abuse.</p>
+    <p>You may ask the staff of the Discord server where Geekbot is operating to review or delete data associated with your Discord account. Join the <a href="https://discord.gg/8Xr8bgqHyk">Arbitration Goons Discord</a> and contact a moderator or administrator with your Discord user ID so the associated records can be located. A request may be limited where data is still needed for security, active moderation, legal obligations, or prevention of ongoing abuse.</p>
 
     <h2>Changes and contact</h2>
-    <p>This policy may be updated when Geekbot's features or data practices change. The current version will remain available at this URL. For questions or requests, contact the staff of the Discord server where Geekbot is operating.</p>
+    <p>This policy may be updated when Geekbot's features or data practices change. The current version will remain available at this URL. For questions or requests, contact a moderator or administrator through the <a href="https://discord.gg/8Xr8bgqHyk">Arbitration Goons Discord</a>.</p>
 
     <footer>See the <a href="../terms/">Geekbot Terms of Service</a>.</footer>
   </main>
