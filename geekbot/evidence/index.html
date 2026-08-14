@@ -9,34 +9,72 @@
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
     body { margin: 0; background: #0b0c10; color: #e8e8ec; line-height: 1.6; }
-    main { width: min(980px, calc(100% - 40px)); margin: 56px auto; }
+    main { width: min(1040px, calc(100% - 40px)); margin: 56px auto; }
     h1, h2 { color: #fff; line-height: 1.2; }
     h1 { font-size: clamp(2rem, 6vw, 3rem); }
     section { margin: 2.5rem 0; padding: 1.25rem; border: 1px solid #292b33; border-radius: 14px; background: #121319; }
-    img { display: block; max-width: 100%; height: auto; margin: 1rem auto 0; border-radius: 10px; border: 1px solid #353741; }
+    figure { margin: 1.5rem 0 0; }
+    figure + figure { margin-top: 2rem; }
+    img, video { display: block; max-width: 100%; height: auto; margin: 0 auto; border-radius: 10px; border: 1px solid #353741; background: #090a0e; }
+    figcaption { margin-top: 0.65rem; color: #aaaeb8; font-size: 0.95rem; }
     code { color: #f5a623; }
     a { color: #f5a623; }
     .meta { color: #aaaeb8; }
+    .scope { padding: 1rem 1.25rem; border-left: 4px solid #f5a623; background: #171820; border-radius: 8px; }
   </style>
 </head>
 <body>
   <main>
     <h1>Geekbot Privileged Intent Evidence</h1>
-    <p class="meta">Discord application ID <code>1127782614045048942</code></p>
+    <p class="meta">Discord application ID <code>1497299885614039264</code> · Developer team <strong>Geekbot</strong> · Bot user <strong>Geekbot#1682</strong></p>
+    <p class="scope">Geekbot requests only the privileged data needed by its implemented features: <strong>Server Members</strong> for automated onboarding and complete member safety checks, and <strong>Message Content</strong> for configured responses and thread analysis. Geekbot does not request or process Presence data.</p>
 
     <section id="server-members-intent">
       <h2>Server Members Intent</h2>
-      <p>The Discord audit log shows Geekbot automatically updating member roles. The expanded entry records Geekbot adding the <strong>newJoin</strong> role with the reason “New join — gating until 100 msgs + 7 days.” This is the onboarding feature that requires member-join events and member role data.</p>
-      <img src="https://raw.githubusercontent.com/remesis/ARBI_GUIDE/main/geekbot/evidence/guild-members-intent.png" alt="Discord audit log showing Geekbot adding the newJoin role to a member">
+      <p>Geekbot receives member-join events and immediately applies the server's restricted <strong>newJoin</strong> role. This closes the moderation gap that would exist if onboarding depended on the new member running a command.</p>
+      <figure>
+        <img src="guild-members-role-assignment.png" alt="Current Geekbot audit log showing the newJoin role automatically added to a new member">
+        <figcaption>The current bot's audit entry records the added role and the reason “New join — gating until 100 msgs + 7 days.”</figcaption>
+      </figure>
+      <p>Geekbot also needs a complete guild member list for startup recovery and the hourly safety pass. The administrator-only backfill below scanned all 19,172 members, applied the role to two missed recent joiners, recognized 246 members who already had it, skipped bots and older members, and completed with zero failures.</p>
+      <figure>
+        <img src="guild-members-backfill.png" alt="Geekbot member backfill result showing 19,172 members scanned and zero failures">
+        <figcaption>A complete member cache is required to evaluate join timestamps, bot status, and existing member roles reliably.</figcaption>
+      </figure>
     </section>
 
     <section id="message-content-intent">
       <h2>Message Content Intent</h2>
-      <p>A server member asks “what is SP mean?” in a normal Discord message. Geekbot reads the question and immediately posts its configured SP reference response. This keyword-based FAQ behavior requires message content.</p>
-      <img src="message-content-intent.png" alt="Discord conversation showing a member question and Geekbot's automatic response">
+      <p>Geekbot answers configured Warframe community questions posted as ordinary messages without requiring a bot mention or command. It also generates a requested meme from a configured text trigger.</p>
+      <figure>
+        <img src="message-content-auto-responses.png" alt="Current Geekbot responding to ordinary unmentioned messages with configured community answers and media">
+        <figcaption>Current bot responses to “what does SP mean?”, “what is instaloot?”, and a configured meme trigger.</figcaption>
+      </figure>
+      <p>The moderator-only <code>/spartancheck</code> workflow reads image attachments in the current thread, validates Warframe run evidence, detects duplicates, posts a summary, and generates a spreadsheet for staff review.</p>
+      <figure>
+        <img src="message-content-spartancheck.png" alt="Geekbot completing a Spartan screenshot scan and posting a report and spreadsheet">
+        <figcaption>A completed scan of thread attachments with verified-run totals, validation counts, and the generated XLSX report.</figcaption>
+      </figure>
     </section>
 
-    <p class="meta">Data handling for these features is described in the <a href="../privacy/">Geekbot Privacy Policy</a>.</p>
+    <section id="application-overview">
+      <h2>Application overview</h2>
+      <p>The owner-only <code>/cogs</code> command shows the unified bot's loaded moderation, onboarding, validation, media, guide, and voice-channel extensions.</p>
+      <figure>
+        <img src="application-cogs.png" alt="Geekbot cogs command showing every loaded application extension">
+        <figcaption>All production extensions loaded under the current Geekbot application.</figcaption>
+      </figure>
+      <p>As a standard Gateway feature, Geekbot also creates a temporary private Squad voice channel when a member joins the configured creator channel, moves that member into it, and deletes the empty channel after the member leaves.</p>
+      <figure>
+        <video controls preload="metadata" playsinline>
+          <source src="voice-squad-lifecycle.mp4" type="video/mp4">
+          Your browser does not support embedded MP4 video. <a href="voice-squad-lifecycle.mp4">Open the demonstration directly.</a>
+        </video>
+        <figcaption>Complete temporary Squad voice-channel lifecycle.</figcaption>
+      </figure>
+    </section>
+
+    <p class="meta">Data handling is described in the <a href="../privacy/">Geekbot Privacy Policy</a>. Use of the service is governed by the <a href="../terms/">Geekbot Terms of Service</a>.</p>
   </main>
 </body>
 </html>

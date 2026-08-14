@@ -21,26 +21,34 @@
 <body>
   <main>
     <h1>Geekbot Privacy Policy</h1>
-    <p class="meta">Effective August 1, 2026</p>
+    <p class="meta">Effective August 14, 2026</p>
 
-    <p>This policy describes how Geekbot, Discord application ID <code>1127782614045048942</code>, processes information while providing community features in private Discord servers managed by the Arbitration Goons community.</p>
+    <p>This policy describes how Geekbot, Discord application ID <code>1497299885614039264</code>, owned by the Discord developer team <strong>Geekbot</strong>, processes information while providing community features in private Discord servers managed by the Arbitration Goons community.</p>
 
     <h2>Information Geekbot processes</h2>
     <ul>
-      <li><strong>Discord account and server data:</strong> user, role, channel, message, attachment, interaction, and server identifiers and metadata supplied by Discord when needed to run configured features.</li>
-      <li><strong>Message content and attachments:</strong> processed when needed for keyword replies, channel-rule enforcement, message counting, duplicate checks, meme generation, and other commands. This content is normally processed transiently and is not stored as a permanent message archive by Geekbot.</li>
+      <li><strong>Discord account and server data:</strong> user and bot identifiers, membership and join timestamps, member roles, and server, role, channel, message, attachment, and interaction identifiers and metadata supplied by Discord when needed to run configured features.</li>
+      <li><strong>Message content and attachments:</strong> processed when needed for configured replies, channel-rule enforcement, newcomer message counting, duplicate and submission checks, requested media generation, and moderator commands. Geekbot does not maintain a general-purpose archive of message text or original attachments.</li>
       <li><strong>Newcomer progress:</strong> Discord user IDs, message counts, and update timestamps are stored locally to manage onboarding. Message text is not stored in the progress database.</li>
-      <li><strong>Operational configuration:</strong> server and role identifiers, role-color snapshots, and feature state may be stored locally so configured actions can be restored or repeated safely.</li>
+      <li><strong>Duplicate-detection records:</strong> cryptographic image hashes, derived visual-feature signatures, Discord message links, and first-seen timestamps are stored to detect repeated run evidence. Original image files are not retained in this database.</li>
+      <li><strong>Operational configuration:</strong> server and role identifiers, role names and colors, role snapshots, and feature state may be stored locally so configured actions can be restored or repeated safely.</li>
+      <li><strong>Operational logs:</strong> action results, errors, and relevant Discord identifiers may be written to restricted service logs for reliability, abuse prevention, and troubleshooting.</li>
     </ul>
 
     <h2>How the information is used</h2>
     <p>Information is used only to operate Geekbot: responding to commands, enforcing server rules, managing roles and onboarding, validating posts or event submissions, generating requested media, diagnosing failures, and protecting the bot and community from abuse.</p>
 
     <h2>Storage and retention</h2>
-    <p>Persistent Geekbot data is kept in local databases on systems controlled by the operator. Newcomer progress is deleted after graduation and pruned when it is no longer needed, subject to short retention for rejoin handling. Operational role snapshots and state are retained while needed for their feature. Temporary downloaded or generated media is discarded after processing.</p>
+    <p>Persistent Geekbot data is kept in local databases on a secured system controlled by the operator. Newcomer progress is deleted after graduation and stale entries are pruned when no longer needed, subject to short retention for rejoin handling. Duplicate-detection hashes, signatures, message links, and timestamps are retained while needed to prevent repeat submissions. Operational role snapshots and state are retained until restored, replaced, deleted by the operator, or no longer needed. Service logs are limited to operational use and rotated under the host's logging controls. Temporary downloaded or generated media is discarded after processing.</p>
+
+    <h2>Presence data</h2>
+    <p>Geekbot does not request the Guild Presences privileged intent and does not track or store members' online status, client status, or activities.</p>
+
+    <h2>Security and access</h2>
+    <p>Persistent data and service credentials are stored on operator-controlled infrastructure. Access is limited to the operator and to authorized server staff through permission-restricted Discord commands. Bot credentials are not disclosed in public pages or routine bot output.</p>
 
     <h2>Sharing</h2>
-    <p>Geekbot does not sell personal data, serve advertising, or use member data to train machine-learning or AI models. Data is not shared with third parties for their own marketing. Discord necessarily processes information as the platform hosting the bot; content fetched from a user-supplied media link may also be handled by that link's hosting provider.</p>
+    <p>Geekbot does not sell personal data, serve advertising, profile members, or use member data to train machine-learning or AI models. Data is not shared with third parties for their own marketing. Discord necessarily processes information as the platform hosting the bot; content fetched from a user-supplied media link may also be handled by that link's hosting provider.</p>
 
     <h2>Direct messages and public access</h2>
     <p>Geekbot's configured features operate in authorized servers and are not designed to read or archive direct messages. The bot is not offered for arbitrary public installation.</p>
