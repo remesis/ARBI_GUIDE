@@ -448,7 +448,7 @@
     },
     "rhea+lares+sangeru": {
       "mesh": "6e7c99f72c424452",
-      "overlay": "0622657733870641.wfo",
+      "overlay": "c6d332080c5825e7.wfo",
       "tileset": "Grineer Asteroid",
       "mission": "Defense / Interception",
       "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
@@ -617,7 +617,7 @@
     },
     "hyf": {
       "mesh": "ac26a946229d22cc",
-      "overlay": "a9f0a1adee265968.wfo",
+      "overlay": "df063cb14ff6ca6e.wfo",
       "tileset": "Orokin Derelict",
       "mission": "Defense",
       "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
@@ -914,5 +914,5 @@
   "generated": "2026-08-15",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "a80dfe5bf5b35c53"
+  "buildHash": "1789f195f711c639"
 }
