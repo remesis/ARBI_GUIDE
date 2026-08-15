@@ -587,8 +587,8 @@
       "sourceBytes": 52324020
     },
     "gaia": {
-      "mesh": "828a32cbff66dfd7",
-      "overlay": "d2ba15f5085bf665.wfo",
+      "mesh": "f7a55930762c4284",
+      "overlay": "80d0f7d5e2c370c8.wfo",
       "tileset": "Grineer Forest",
       "mission": "Interception",
       "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
@@ -602,18 +602,18 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 20224980,
-      "meshTransferBytes": 15029199,
+      "meshBytes": 15418804,
+      "meshTransferBytes": 11879439,
       "meshFiles": [
-        "828a32cbff66dfd7.wfg2.br"
+        "f7a55930762c4284.wfg2.br"
       ],
       "meshFileBytes": [
-        20224980
+        15418804
       ],
       "meshFileTransferBytes": [
-        15029199
+        11879439
       ],
-      "sourceBytes": 55687524
+      "sourceBytes": 41816660
     },
     "hyf": {
       "mesh": "ac26a946229d22cc",
@@ -882,8 +882,8 @@
       "sourceBytes": 19716300
     },
     "gaia~2": {
-      "mesh": "f7a55930762c4284",
-      "overlay": "80d0f7d5e2c370c8.wfo",
+      "mesh": "828a32cbff66dfd7",
+      "overlay": "d2ba15f5085bf665.wfo",
       "tileset": "Grineer Forest",
       "mission": "Interception",
       "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
@@ -897,22 +897,22 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 15418804,
-      "meshTransferBytes": 11879439,
+      "meshBytes": 20224980,
+      "meshTransferBytes": 15029199,
       "meshFiles": [
-        "f7a55930762c4284.wfg2.br"
+        "828a32cbff66dfd7.wfg2.br"
       ],
       "meshFileBytes": [
-        15418804
+        20224980
       ],
       "meshFileTransferBytes": [
-        11879439
+        15029199
       ],
-      "sourceBytes": 41816660
+      "sourceBytes": 55687524
     }
   },
   "generated": "2026-08-15",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "f0b87958a37eef78"
+  "buildHash": "a80dfe5bf5b35c53"
 }
