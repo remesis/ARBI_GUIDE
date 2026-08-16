@@ -102,3 +102,47 @@ test("calculates time at 15+ active enemies inside an individual phase", () => {
   assert.equal(Parser.helpers.calculateRangeSaturation(run, 0, 5), 60);
   assert.equal(Parser.helpers.calculateRangeSaturation(run, 5, 10), 80);
 });
+
+test("calculates time-weighted enemy occupancy for Defense waves", () => {
+  const run = {
+    startTime: 0,
+    endTime: 10,
+    simCap: 30,
+    liveCounts: [[0, 6, 30], [2, 16, 30], [6, 22, 30], [9, 4, 30], [10, 4, 30]],
+    pauseIntervals: [],
+  };
+  assert.ok(Math.abs(Parser.helpers.calculateRangeOccupancy(run, 0, 10) - 48.6666667) < .0001);
+  assert.ok(Math.abs(Parser.helpers.calculateRangeOccupancy(run, 0, 5) - 40) < .0001);
+  assert.ok(Math.abs(Parser.helpers.calculateRangeOccupancy(run, 5, 10) - 57.3333333) < .0001);
+});
+
+test("matches each Defense wave to one end marker", () => {
+  const phases = Parser.helpers.calculateWavePhases({
+    waveStarts: { 1: 10, 2: 30, 3: 50 },
+    waveEnds: [8, 20, 40, 60],
+    lastReward: 0,
+  });
+  assert.deepEqual(phases, [
+    { label: 1, from: 10, to: 20, seconds: 10 },
+    { label: 2, from: 30, to: 40, seconds: 10 },
+    { label: 3, from: 50, to: 60, seconds: 10 },
+  ]);
+});
+
+test("accepts warning-prefixed Defense wave end timestamps", () => {
+  const lines = [
+    "1.0 Game [Info]: EliteAlertMission at ClanNode6",
+    "1.1 Game [Info]: Level=/Lotus/Levels/Proc/Corpus/CorpusIcePlanetDefense/CPkY.lp",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Arbitration: Larzac (Europa) - Defense",
+    "3.0 WaveDefend.lua: Defense wave: 1",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    lines.push(`${(4 + index * .1).toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+  lines.push("!10.0 Script [Info]: WaveDefend.lua: _SleepBetweenWaves(3)");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.deepEqual(run.waveDurations, [[1, 7]]);
+});

@@ -167,8 +167,8 @@ test("clear maps display per-wave and per-rotation saturation", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
-  assert.match(parser, /run\.saturationPerWave = wavePhases\.map/);
-  assert.match(parser, /run\.saturationPerRotation = rotationPhases\.map/);
+  assert.match(parser, /run\.saturationPerWave = wavePhases\.map\(\(phase\) => calculateRangeOccupancy/);
+  assert.match(parser, /run\.saturationPerRotation = rotationPhases\.map\(\(phase\) => calculateRangeSaturation/);
   assert.match(js, /class="phase-saturation"/);
   assert.match(js, /Number\.isFinite\(item\.saturation\)/);
   assert.match(js, /##\.#% is Saturation per round/);

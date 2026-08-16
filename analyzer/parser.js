@@ -67,22 +67,22 @@
     Object.entries(ARBI_NODES).map(([token, info]) => [info[0].toLocaleLowerCase(), token])
   );
 
-  const P_TIMESTAMP = /^(\d+\.\d+)/;
+  const P_TIMESTAMP = /^!?(\d+\.\d+)/;
   const P_MISSION = /ThemedSquadOverlay\.lua: Mission name: (.*)/;
   const P_AGENT_FULL = /OnAgentCreated.*?\/Npc\/(.+?)(\d+)\s+.*?MonitoredTicking\s+(\d+)/;
   const P_NPC = /\/Npc\/([A-Za-z0-9_]+)/;
-  const P_WAVE_LINE = /^(\d+\.\d+).*WaveDefend\.lua: Starting wave (\d+)/;
-  const P_WAVE_DEF = /^(\d+\.\d+).*WaveDefend\.lua: Defense wave: (\d+)/;
+  const P_WAVE_LINE = /^!?(\d+\.\d+).*WaveDefend\.lua: Starting wave (\d+)/;
+  const P_WAVE_DEF = /^!?(\d+\.\d+).*WaveDefend\.lua: Defense wave: (\d+)/;
   const P_WAVE_CAP = /WaveDefend\.lua: Starting wave \d+.*?\((\d+) simultaneous/;
   const P_MONITORED = /AI \[Info\]: .*?MonitoredTicking (\d+)/;
   const P_LIVE = /AI \[Info\]:.*?Live (\d+)/;
   const P_LOADOUT = /Game \[Info\]: (\S+) loadout loader finished\./;
   const P_UNREGISTERED = /Player=([^,]+),\s*change=UNREGISTERED/;
   const P_INT_INIT = /TerritoryMission\.lua: .*?(?:control|captured)/i;
-  const P_SPAWN_POINT = /^(\d+\.\d+).*WaveDefend\.lua: Spawned a \/Npc\/([A-Za-z0-9_]+?)\d* @ Vector\(([^)]+)\), spawn point: (\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+) @ Vector\(([^)]+)\)/;
-  const P_AI_AGENT_INIT = /^(\d+\.\d+).*AI Agent Initialize\s+\/Npc\/([A-Za-z0-9_]+?)\d*\s+at NpcAiDirector\s+(\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+)/i;
-  const P_ELITE_ALERT = /^(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
-  const P_LEVEL = /^(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
+  const P_SPAWN_POINT = /^!?(\d+\.\d+).*WaveDefend\.lua: Spawned a \/Npc\/([A-Za-z0-9_]+?)\d* @ Vector\(([^)]+)\), spawn point: (\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+) @ Vector\(([^)]+)\)/;
+  const P_AI_AGENT_INIT = /^!?(\d+\.\d+).*AI Agent Initialize\s+\/Npc\/([A-Za-z0-9_]+?)\d*\s+at NpcAiDirector\s+(\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+)/i;
+  const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
+  const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_RELEVANT_TOKEN = /OnAgentCreated|Mission name:|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|Starting wave|Defense wave:|TerritoryMission\.lua|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
@@ -217,7 +217,7 @@
 
       const cur = this.cur;
       let ts = 0;
-      if (/^\d/.test(line)) {
+      if (/^!?\d/.test(line)) {
         const match = line.match(P_TIMESTAMP);
         if (match) ts = Number(match[1]);
       }
@@ -522,7 +522,7 @@
     const rotationPhases = calculateRotationPhases(run);
     run.waveDurations = wavePhases.map((phase) => [phase.label, phase.seconds]);
     run.rotationDurations = rotationPhases.map((phase) => phase.seconds);
-    run.saturationPerWave = wavePhases.map((phase) => calculateRangeSaturation(run, phase.from, phase.to));
+    run.saturationPerWave = wavePhases.map((phase) => calculateRangeOccupancy(run, phase.from, phase.to));
     run.saturationPerRotation = rotationPhases.map((phase) => calculateRangeSaturation(run, phase.from, phase.to));
     run.rotations = run.rewardTimestamps.length || Math.floor(Object.keys(run.waveStarts).length / 3);
     run.dronesPerRotation = calculateDronesPerRotation(run);
@@ -553,9 +553,14 @@
     let endIndex = 0;
     waves.forEach((wave, index) => {
       const from = run.waveStarts[wave];
+      const nextStart = index + 1 < waves.length ? run.waveStarts[waves[index + 1]] : null;
       while (endIndex < ends.length && ends[endIndex] <= from) endIndex += 1;
-      let to = ends[endIndex];
-      if (!Number.isFinite(to) && index + 1 < waves.length) to = run.waveStarts[waves[index + 1]];
+      const candidate = ends[endIndex];
+      let to = Number.isFinite(candidate) && (!Number.isFinite(nextStart) || candidate < nextStart)
+        ? candidate
+        : null;
+      if (Number.isFinite(to)) endIndex += 1;
+      if (!Number.isFinite(to) && Number.isFinite(nextStart)) to = nextStart;
       if (!Number.isFinite(to) && run.lastReward > from) to = run.lastReward;
       if (Number.isFinite(to)) result.push({ label: wave, from, to, seconds: Math.max(0, to - from) });
     });
@@ -619,7 +624,7 @@
       const from = Math.max(sampledFrom, rangeStart);
       const to = Math.min(sampledTo, rangeEnd);
       const duration = to - from;
-      if (duration > 0) segments.push({ count: current[1], duration });
+      if (duration > 0) segments.push({ count: current[1], cap: current[2], duration });
     }
     return segments;
   }
@@ -630,6 +635,19 @@
     if (!total) return null;
     const above = segments.reduce((sum, segment) => sum + (segment.count >= threshold ? segment.duration : 0), 0);
     return above / total * 100;
+  }
+
+  function calculateRangeOccupancy(run, rangeStart, rangeEnd) {
+    const segments = liveSegments(run, rangeStart, rangeEnd);
+    const total = segments.reduce((sum, segment) => sum + segment.duration, 0);
+    if (!total) return null;
+    const fallbackCap = Number(run.simCap) > 0 ? Number(run.simCap) : 32;
+    const occupied = segments.reduce((sum, segment) => {
+      const cap = Number(segment.cap) > 0 ? Number(segment.cap) : fallbackCap;
+      const ratio = Math.max(0, Math.min(1, Number(segment.count) / cap));
+      return sum + ratio * segment.duration;
+    }, 0);
+    return occupied / total * 100;
   }
 
   function calculateSaturation(run, step = 3, maxValue = 30) {
@@ -925,6 +943,14 @@
     fingerprintRun,
     buildContribution,
     stableStringify,
-    helpers: { calculateCadence, calculateSaturation, calculateRangeSaturation, longestGaps, tileFromPath },
+    helpers: {
+      calculateCadence,
+      calculateSaturation,
+      calculateRangeSaturation,
+      calculateRangeOccupancy,
+      calculateWavePhases,
+      longestGaps,
+      tileFromPath,
+    },
   };
 });
