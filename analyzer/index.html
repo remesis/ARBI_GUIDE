@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script>
+    if (matchMedia("(hover: none) and (pointer: coarse)").matches) location.replace("/");
+  </script>
+  <meta name="theme-color" content="#0b0d10">
+  <title>Arbitration Analyzer · Warframe Arbitrations Guide</title>
+  <link rel="icon" href="../logo.webp">
+  <link rel="stylesheet" href="./analyzer.css?v=20260816-43">
+</head>
+<body>
+  <canvas id="particleField" class="particle-field" aria-hidden="true"></canvas>
+
+  <svg width="0" height="0" class="svg-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="icon-hamburger" viewBox="0 0 20 14"><rect width="20" height="2" rx="1"/><rect width="20" height="2" rx="1" y="6"/><rect width="20" height="2" rx="1" y="12"/></symbol>
+      <symbol id="icon-search" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="5.5"/><line x1="11.5" y1="11.5" x2="16" y2="16"/></symbol>
+      <symbol id="icon-eye" viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 8s4-7 11-7 11 7 11 7-4 7-11 7S1 8 1 8Z"/><circle cx="12" cy="8" r="3"/></symbol>
+      <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+      <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/></symbol>
+      <symbol id="icon-close" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m4 4 12 12M16 4 4 16"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="topbar">
+    <a id="brandLink" class="brand" href="https://discord.gg/Arbitrations" target="_blank" rel="noopener noreferrer">
+      <img src="../logo.webp" alt="Arbitrations Logo" class="brand-logo" width="42" height="42" decoding="async" fetchpriority="high">
+      <span>Warframe Arbitrations Guide</span>
+    </a>
+
+    <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Open Analyzer runs"><svg width="20" height="14" fill="currentColor" aria-hidden="true"><use href="#icon-hamburger"></use></svg></button>
+
+    <nav class="guide-tab-links" aria-label="Guide sections">
+      <a class="guide-tab-link" href="/3d_tilesets/callisto+sinai+io">3D Tilesets</a>
+      <a class="guide-tab-link" href="../">Return to Guide</a>
+    </nav>
+
+    <div class="topbar-controls">
+      <div class="user-controls">
+        <button id="resetControlsBtn" class="reset-button" type="button" aria-label="Reset display controls">↺</button>
+
+        <div class="control-group">
+          <span class="control-label">Font</span>
+          <div class="control-buttons">
+            <button id="fontIncreaseBtn" type="button" aria-label="Increase font size">˄</button>
+            <button id="fontDecreaseBtn" type="button" aria-label="Decrease font size">˅</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <span class="control-label">Spacing</span>
+          <div class="control-buttons">
+            <button id="spacingIncreaseBtn" type="button" aria-label="Increase spacing">˄</button>
+            <button id="spacingDecreaseBtn" type="button" aria-label="Decrease spacing">˅</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <span class="control-label">Width</span>
+          <div class="control-buttons">
+            <button id="widthIncreaseBtn" type="button" aria-label="Increase dashboard zoom">˄</button>
+            <button id="widthDecreaseBtn" type="button" aria-label="Decrease dashboard zoom">˅</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="search-wrap">
+        <div class="search-box-wrap">
+          <input id="runSearch" type="search" placeholder="Filter runs" autocomplete="off" aria-label="Filter analyzed runs">
+          <span id="searchCount" class="search-count"></span>
+        </div>
+        <button id="searchPrevBtn" type="button" aria-label="Previous run">↑</button>
+        <button id="searchNextBtn" type="button" aria-label="Next run">↓</button>
+      </div>
+
+      <div class="mobile-topbar-actions">
+        <span id="mobileTopbarViewer" class="mobile-viewer-topbar"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"></use></svg><span id="mobileTopbarViewerNum"></span></span>
+        <button id="mobileSearchPrevBtn" class="mobile-search-nav" type="button" aria-label="Previous run">↑</button>
+        <button id="mobileSearchNextBtn" class="mobile-search-nav" type="button" aria-label="Next run">↓</button>
+        <button id="mobileSearchToggle" class="mobile-search-toggle" type="button" aria-label="Filter runs"><svg width="18" height="18" aria-hidden="true"><use href="#icon-search"></use></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <div id="mobileSearchBar" class="mobile-search-bar" hidden>
+    <input id="mobileRunSearch" type="search" placeholder="Filter runs" autocomplete="off">
+    <span id="mobileSearchCount" class="mobile-search-count"></span>
+  </div>
+
+  <div class="app-shell">
+    <aside id="runSidebar" class="run-sidebar" aria-label="Analyzer runs">
+      <div class="sidebar-meta">
+        <span>Last updated: 2026-08-16</span>
+        <span class="viewer-count" id="viewerCount" aria-label="Current guide viewers">
+          <svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"></use></svg>
+          <span id="viewerCountNum"></span>
+        </span>
+      </div>
+      <div class="sidebar-heading">
+        <div>
+          <span class="eyebrow">ANALYZER</span>
+        </div>
+        <div class="sidebar-heading-actions">
+          <button id="clearRunsBtn" class="clear-runs-button" type="button">Clear</button>
+          <button id="sidebarCloseBtn" class="icon-button sidebar-close" type="button" aria-label="Close run list">
+            <svg width="18" height="18"><use href="#icon-close"></use></svg>
+          </button>
+        </div>
+      </div>
+      <label class="import-zone" for="logFileInput">
+        <svg width="26" height="26" aria-hidden="true"><use href="#icon-upload"></use></svg>
+        <strong>Analyze EE.log</strong>
+        <span>Choose .log, .txt, or .gz</span>
+        <input id="logFileInput" type="file" accept=".log,.txt,.gz,text/plain,application/gzip">
+      </label>
+      <div class="log-path-row">
+        <code>%localappdata%\Warframe\</code>
+        <button id="copyLogPathBtn" class="log-path-copy" type="button">Copy</button>
+      </div>
+      <div id="parseStatus" class="parse-status" role="status"></div>
+
+      <div class="run-list-header">
+        <span>ANALYZED ARBIS IN EE.LOG</span>
+        <span id="runCount">0</span>
+      </div>
+      <div id="runList" class="run-list"></div>
+    </aside>
+
+    <button id="sidebarScrim" class="sidebar-scrim" type="button" aria-label="Close run list"></button>
+
+    <main class="analyzer-main">
+      <section id="emptyState" class="empty-state" hidden>
+        <img src="../logo.webp" alt="" width="96" height="96">
+        <span class="eyebrow">LOCAL ARBITRATION ANALYZER</span>
+        <h2>Drop in an EE.log</h2>
+        <p>All log parsing and report generation happen locally in your browser. Only the reduced SolNode spawn counts and coordinates needed for future aggregate metrics are submitted; no player names, raw log lines, or unrelated data are uploaded.</p>
+        <p>This tool analyzes your Warframe EE.log (which is meant to be player-readable) and returns useful insight about your Arbitration efficiency. Multiple Arbitration missions become separate entries in the run list.</p>
+        <p>A discrepancy between EE.log numbers and in-game stats is expected. The game's UI is known to misreport kills due to client/server desync. This tool considers the raw EE.log data the true data.</p>
+        <button id="emptyImportBtn" class="primary-button" type="button">Choose EE.log</button>
+      </section>
+
+      <div id="reportViewport" class="report-viewport">
+        <article id="reportRoot" class="report-sheet" aria-live="polite"></article>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <div id="minimapLightbox" class="minimap-lightbox" role="dialog" aria-modal="true" aria-label="Expanded tile layout" hidden>
+    <div id="minimapLightboxBody" class="minimap-lightbox-body"></div>
+  </div>
+
+  <script src="./html2canvas.min.js"></script>
+  <script src="./minimaps/catalog.js?v=20260816-43"></script>
+  <script src="./parser.js?v=20260816-43"></script>
+  <script src="./spawn-alignment.js"></script>
+  <script src="./submission.js?v=20260816-43"></script>
+  <script src="./analyzer.js?v=20260816-43"></script>
+</body>
+</html>

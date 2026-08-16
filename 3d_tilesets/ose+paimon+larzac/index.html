@@ -40,6 +40,15 @@
 
     * { box-sizing: border-box; }
 
+    @view-transition { navigation: auto; }
+    .topbar { view-transition-name: arbi-site-topbar; }
+    .sidebar { view-transition-name: arbi-site-sidebar; }
+    .particle-canvas { view-transition-name: arbi-site-background; }
+    ::view-transition-old(arbi-site-topbar),
+    ::view-transition-new(arbi-site-topbar) { animation: none; mix-blend-mode: normal; }
+    ::view-transition-group(arbi-site-sidebar),
+    ::view-transition-group(arbi-site-background) { animation-duration: 160ms; animation-timing-function: ease-out; }
+
     body {
       margin: 0;
       background: var(--bg);
@@ -83,18 +92,21 @@
       color: var(--text); text-decoration: none; font-weight: 700;
     }
     .brand-logo { width: 42px; height: 42px; object-fit: contain; flex: 0 0 auto; }
+    .guide-tab-links { display: flex; align-items: center; gap: 2px; margin-right: auto; }
 
-    /* Mirror of the guide's cross-link. `margin-right: auto` keeps it hugging
-       the brand because .topbar is space-between. */
+    /* Match the homepage's grouped guide navigation beside the brand. */
     .guide-tab-link {
       color: var(--muted); text-decoration: none;
       font-size: 13.5px; font-weight: 700;
       padding: 6px 10px; border: 0; border-radius: 8px; background: transparent;
-      white-space: nowrap; flex: 0 0 auto; margin-right: auto;
+      white-space: nowrap; flex: 0 0 auto; margin-right: 0;
       transition: color 0.15s ease, background 0.15s ease;
     }
     .guide-tab-link:hover, .guide-tab-link:focus-visible {
       color: var(--accent); background: var(--panel-2);
+    }
+    @media (hover: none) and (pointer: coarse) {
+      .guide-tab-link[href="/analyzer/"] { display: none; }
     }
     .mobile-menu-btn, .mobile-sidebar-backdrop,
     .mobile-topbar-actions, #mobileSearchBar { display: none; }
@@ -597,6 +609,7 @@
         display: flex; align-items: center; margin-right: 0;
         padding: 6px 8px; font-size: 12.5px;
       }
+      .guide-tab-link[href="/analyzer/"] { display: none; }
       .sidebar-copy-link { display: none !important; }
       .guide-block span[style*="display: inline-block"],
       .guide-block div, .guide-block p, .guide-block table {
@@ -647,7 +660,10 @@
       <span>Warframe Arbitrations Guide</span>
     </a>
     <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Open tileset navigation" aria-controls="sidebar" aria-expanded="false"><svg width="20" height="14" fill="currentColor" aria-hidden="true"><use href="#icon-hamburger"/></svg></button>
-    <a class="guide-tab-link" href="/">Return to Guide</a>
+    <nav class="guide-tab-links" aria-label="Guide sections">
+      <a class="guide-tab-link" href="/">Return to Guide</a>
+      <a class="guide-tab-link" href="/analyzer/">Analyzer</a>
+    </nav>
 
     <div class="topbar-controls">
       <div class="user-controls">

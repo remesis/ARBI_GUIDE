@@ -195,6 +195,26 @@
       box-sizing: border-box;
     }
 
+    @view-transition {
+      navigation: auto;
+    }
+
+    .topbar { view-transition-name: arbi-site-topbar; }
+    .sidebar { view-transition-name: arbi-site-sidebar; }
+    .particle-canvas { view-transition-name: arbi-site-background; }
+
+    ::view-transition-old(arbi-site-topbar),
+    ::view-transition-new(arbi-site-topbar) {
+      animation: none;
+      mix-blend-mode: normal;
+    }
+
+    ::view-transition-group(arbi-site-sidebar),
+    ::view-transition-group(arbi-site-background) {
+      animation-duration: 160ms;
+      animation-timing-function: ease-out;
+    }
+
     body {
       margin: 0;
       background: var(--bg);
@@ -311,9 +331,14 @@
       margin-right: auto;
     }
 
-    /* Borderless cross-link to the 3D tileset viewer, sitting immediately right
-       of the brand. `margin-right: auto` is what keeps it hugging the brand:
-       .topbar is space-between, so without it the link would drift to centre. */
+    /* Borderless cross-links immediately right of the brand. */
+    .guide-tab-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-right: auto;
+    }
+
     .guide-tab-link {
       color: var(--muted);
       text-decoration: none;
@@ -325,7 +350,6 @@
       background: transparent;
       white-space: nowrap;
       flex: 0 0 auto;
-      margin-right: auto;
       transition: color 0.15s ease, background 0.15s ease;
     }
 
@@ -333,6 +357,10 @@
     .guide-tab-link:focus-visible {
       color: var(--accent);
       background: var(--panel-2);
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .guide-tab-link[href="/analyzer/"] { display: none; }
     }
 
     .topbar-controls {
@@ -1056,9 +1084,12 @@
       .guide-tab-link {
         display: flex;
         align-items: center;
-        margin-right: 0;
         padding: 0 8px;
         font-size: 12.5px;
+      }
+
+      .guide-tab-link[href="/analyzer/"] {
+        display: none;
       }
 
       .mobile-tileset-guide-content {
@@ -1598,7 +1629,10 @@
 
     <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Open navigation menu"><svg width="20" height="14" fill="currentColor" aria-hidden="true"><use href="#icon-hamburger"/></svg></button>
 
-    <a class="guide-tab-link" href="/3d_tilesets/">3D Tilesets</a>
+    <nav class="guide-tab-links" aria-label="Guide sections">
+      <a class="guide-tab-link" href="/3d_tilesets/callisto+sinai+io">3D Tilesets</a>
+      <a class="guide-tab-link" href="/analyzer/">Analyzer</a>
+    </nav>
 
     <div class="topbar-controls">
       <div class="user-controls">

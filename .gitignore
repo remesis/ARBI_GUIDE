@@ -1,3 +1,7 @@
 # Cloudflare Workers — deployed separately, never part of the Pages bundle.
 # Kept inside this repo for workspace tidiness only.
 /workers/
+
+# Local Python build/test artifacts.
+__pycache__/
+*.py[cod]
