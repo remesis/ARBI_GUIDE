@@ -38,6 +38,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /function clearRuns\(\)/);
   assert.match(js, /SpawnSubmission\.submitRuns\(runs, Parser\.buildContribution\)/);
   assert.doesNotMatch(js, /Spawn metrics:|Spawn metrics updated:|without usable spawn coordinates/);
+  assert.match(js, /function setupDpmTooltips\(root\)/);
+  assert.match(js, /data-label="\$\{h\(label\)\}"/);
   assert.match(js, /renderReport\(null\)/);
   assert.match(js, /document\.addEventListener\("drop"/);
   assert.match(js, /if\(state\.runs\.length\|\|zone\.contains\(event\.target\)\) return/);
@@ -89,6 +91,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.dashboard-no-spawns \.clear-heat-map\s*\{[^}]*repeat\(10/);
   assert.match(css, /\.dashboard-layout \.clear-heat-map \.heat-cell small\s*\{[^}]*font-size:\s*11px/);
   assert.match(css, /\.dashboard-no-spawns \.dashboard-dpm \.line-chart\s*\{[^}]*height:\s*125px/);
+  assert.match(css, /\.chart-average-label\s*\{[^}]*font-size:\s*16px/);
+  assert.match(css, /\.chart-tooltip\s*\{[^}]*position:\s*absolute/);
   assert.match(css, /\.dashboard-no-spawns \.dashboard-cadence-card\s*\{[^}]*height:\s*auto/);
   assert.match(js, /function prepareDashboardLayout/);
   assert.match(js, /left\.replaceChildren\(coreKpis, vitus, bottlenecks, composition\)/);

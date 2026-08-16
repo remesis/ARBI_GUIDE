@@ -293,6 +293,7 @@
       <footer class="report-footer"><span>Arbitration Goons · discord.gg/arbitrations</span><span>green = better / more &nbsp;·&nbsp; red = worse / less</span></footer>`;
 
     prepareDashboardLayout($("#reportRoot"));
+    setupDpmTooltips($("#reportRoot"));
     scheduleReportFit();
     $("#copyImageBtn").addEventListener("click", () => copyReportImage());
     const vitusInput = $("#actualVitusInput");
@@ -330,7 +331,39 @@
     const points = values.map((value, index) => `${x(index)},${y(value)}`).join(" ");
     const mean = avg(values);
     const best = Math.max(...values), worst = Math.min(...values);
-    return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">Per rotation, against the run average.</p><svg class="line-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Drones per minute line chart"><line class="chart-grid" x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${height-pad.b}"/><line class="chart-grid" x1="${pad.l}" y1="${height-pad.b}" x2="${width-pad.r}" y2="${height-pad.b}"/><line class="chart-average" x1="${pad.l}" y1="${y(mean)}" x2="${width-pad.r}" y2="${y(mean)}"/><polyline class="chart-line" points="${points}"/>${values.map((value,index) => `<circle class="chart-dot" cx="${x(index)}" cy="${y(value)}" r="3"/>`).join("")}<text class="chart-label" x="${pad.l}" y="${height-5}">R1</text><text class="chart-label" x="${width-pad.r-18}" y="${height-5}">R${values.length}</text><text class="chart-label" x="${width-pad.r-54}" y="${y(mean)-6}">AVG ${fmt(mean,1)}</text></svg><div class="heat-legend"><span class="chart-accent">best R${values.indexOf(best)+1} · ${fmt(best,1)}</span><span>worst R${values.indexOf(worst)+1} · ${fmt(worst,1)}</span></div></section>`;
+    const dots = values.map((value,index) => {
+      const pointX = x(index), pointY = y(value);
+      const label = `Rotation ${index + 1}: ${fmt(value, 1)} DPM`;
+      return `<g class="chart-point"><circle class="chart-dot" cx="${pointX}" cy="${pointY}" r="3"/><circle class="chart-hit" cx="${pointX}" cy="${pointY}" r="10" tabindex="0" role="img" aria-label="${h(label)}" data-label="${h(label)}" data-x="${pointX}" data-y="${pointY}" data-chart-width="${width}" data-chart-height="${height}"><title>${h(label)}</title></circle></g>`;
+    }).join("");
+    return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">Per rotation, against the run average.</p><div class="line-chart-wrap"><svg class="line-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Drones per minute line chart"><line class="chart-grid" x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${height-pad.b}"/><line class="chart-grid" x1="${pad.l}" y1="${height-pad.b}" x2="${width-pad.r}" y2="${height-pad.b}"/><line class="chart-average" x1="${pad.l}" y1="${y(mean)}" x2="${width-pad.r}" y2="${y(mean)}"/><polyline class="chart-line" points="${points}"/>${dots}<text class="chart-label" x="${pad.l}" y="${height-5}">R1</text><text class="chart-label" x="${width-pad.r-18}" y="${height-5}">R${values.length}</text><text class="chart-label chart-average-label" x="${width-pad.r-67}" y="${y(mean)-7}">AVG ${fmt(mean,1)}</text></svg><div class="chart-tooltip" role="status" hidden data-html2canvas-ignore="true"></div></div><div class="heat-legend"><span class="chart-accent">best R${values.indexOf(best)+1} · ${fmt(best,1)}</span><span>worst R${values.indexOf(worst)+1} · ${fmt(worst,1)}</span></div></section>`;
+  }
+
+  function setupDpmTooltips(root) {
+    $$(".chart-hit", root).forEach((hit) => {
+      const wrap = hit.closest(".line-chart-wrap");
+      const tooltip = $(".chart-tooltip", wrap);
+      if (!tooltip) return;
+      const show = () => {
+        const chartWidth = Number(hit.dataset.chartWidth) || 1;
+        const chartHeight = Number(hit.dataset.chartHeight) || 1;
+        const left = Number(hit.dataset.x) / chartWidth * 100;
+        tooltip.textContent = hit.dataset.label || "";
+        tooltip.style.left = `${left}%`;
+        tooltip.style.top = `${Number(hit.dataset.y) / chartHeight * 100}%`;
+        tooltip.dataset.align = left < 14 ? "start" : left > 86 ? "end" : "center";
+        tooltip.hidden = false;
+        hit.classList.add("active");
+      };
+      const hide = () => {
+        tooltip.hidden = true;
+        hit.classList.remove("active");
+      };
+      hit.addEventListener("pointerenter", show);
+      hit.addEventListener("pointerleave", hide);
+      hit.addEventListener("focus", show);
+      hit.addEventListener("blur", hide);
+    });
   }
 
   function renderPerRotation(run) {
