@@ -127,6 +127,12 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(minimapBuilder, /text_height - baseline\) \/ 2 \+ 4/);
 });
 
+test("production Analyzer starts cleared instead of loading bundled demo runs", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  assert.doesNotMatch(js, /prepareRuns\(makeDemoRuns\(\)/);
+  assert.match(js, /renderRunList\(\);\s*renderReport\(null\);/);
+});
+
 test("analyzer uses the full composition list and green performance scale", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");

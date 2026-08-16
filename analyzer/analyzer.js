@@ -10,7 +10,7 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-  const state = { runs: [], activeIndex: 0, query: "", sourceName: "Local demo", toastTimer: 0, fontStep: 0, spacingStep: 0, widthStep: 0 };
+  const state = { runs: [], activeIndex: 0, query: "", sourceName: "", toastTimer: 0, fontStep: 0, spacingStep: 0, widthStep: 0 };
   let topbarResizeObserver = null;
   let reportResizeObserver = null;
   let reportFitFrame = 0;
@@ -910,5 +910,6 @@
   applyDisplayControls();
   startParticles();
   initViewerCount();
-  prepareRuns(makeDemoRuns(),"Bundled local demo",new Date());
+  renderRunList();
+  renderReport(null);
 })();
