@@ -37,7 +37,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /id="clearRunsBtn"[^>]*>Clear</);
   assert.match(js, /function clearRuns\(\)/);
   assert.match(js, /SpawnSubmission\.submitRuns\(runs, Parser\.buildContribution\)/);
-  assert.match(js, /not submitted; retrying on the next analysis/);
+  assert.doesNotMatch(js, /Spawn metrics:|Spawn metrics updated:|without usable spawn coordinates/);
   assert.match(js, /renderReport\(null\)/);
   assert.match(js, /document\.addEventListener\("drop"/);
   assert.match(js, /if\(state\.runs\.length\|\|zone\.contains\(event\.target\)\) return/);

@@ -551,24 +551,18 @@
       await prepareRuns(runs,file.name,new Date(file.lastModified));
       status.className="parse-status success"; status.textContent=`${runs.length} run${runs.length===1?"":"s"} parsed.`;
       showToast(`Loaded ${runs.length} local run${runs.length===1?"":"s"}.`);
-      void reportSpawnMetrics(runs, status);
+      void reportSpawnMetrics(runs);
     } catch(error) {
       status.className="parse-status error"; status.textContent=error.message||String(error); showToast(status.textContent,true);
     } finally { $("#logFileInput").value=""; }
   }
 
-  async function reportSpawnMetrics(runs, status) {
-    const result = await SpawnSubmission.submitRuns(runs, Parser.buildContribution);
-    if (result.disabled) return;
-    const retained = result.accepted + result.duplicate + result.cached;
-    const parts = [];
-    if (result.accepted) parts.push(`${result.accepted} new spawn run${result.accepted===1?"":"s"} submitted`);
-    if (result.duplicate + result.cached) parts.push(`${result.duplicate + result.cached} already collected`);
-    if (result.ineligible) parts.push(`${result.ineligible} without usable spawn coordinates`);
-    if (result.failed) parts.push(`${result.failed} not submitted; retrying on the next analysis`);
-    if (!parts.length) return;
-    status.textContent = `${runs.length} run${runs.length===1?"":"s"} parsed. Spawn metrics: ${parts.join(" · ")}.`;
-    if (retained) showToast(`Spawn metrics updated: ${retained} run${retained===1?"":"s"} accounted for.`);
+  async function reportSpawnMetrics(runs) {
+    try {
+      await SpawnSubmission.submitRuns(runs, Parser.buildContribution);
+    } catch {
+      // Spawn contributions are best-effort and intentionally silent in the UI.
+    }
   }
 
   function prepareDashboardLayout(report) {
