@@ -313,10 +313,8 @@
         ? { color: good ? SVES_SUCCESS : SVES_DANGER, ink: "#121212" }
         : heatColor(good);
       const saturation = Number.isFinite(item.saturation) ? `${fmt(item.saturation, 1)}%` : "—";
-      const content = phase.defense
-        ? `<span class="clear-cell-content"><strong>${h(item.label)}</strong><small class="phase-saturation">${h(saturation)}</small></span>`
-        : `<span class="clear-cell-content"><small>${shortDuration(item.seconds)}</small><small class="phase-saturation">${h(saturation)}</small></span>`;
-      const tooltip = phase.defense ? `Saturation: ${saturation}` : `Round ${item.label} - Saturation ${saturation}`;
+      const content = `<span class="clear-cell-content"><small>${shortDuration(item.seconds)}</small><small class="phase-saturation">${h(saturation)}</small></span>`;
+      const tooltip = `Round ${item.label} - Saturation ${saturation}`;
       return `<div class="heat-cell" title="${h(tooltip)}" aria-label="${h(tooltip)}" style="--heat:${color.color};--ink:${color.ink}">${content}</div>`;
     }).join("");
     return `<section class="card"><h3 class="card-title">${h(phase.noun)} clear map</h3><p class="card-subtitle">${phase.defense ? "Fight time per wave, downtime excluded. Greener = faster." : "Time per rotation. Greener = faster for this local comparison."}</p><div class="heat-map clear-heat-map" style="--heat-cols:${Math.min(12, phase.items.length)};--mobile-heat-cols:${Math.min(8, phase.items.length)}">${cells}</div><div class="heat-legend"><span class="legend-chip"><i style="--swatch:${SVES_SUCCESS}"></i>${phase.defense ? `≤${threshold}s` : `fastest ${shortDuration(low)}`}</span><span class="legend-chip"><i style="--swatch:${SVES_DANGER}"></i>${phase.defense ? `>${threshold}s` : `slowest ${shortDuration(high)}`}</span><span class="round-saturation-legend">##.#% is Saturation per round</span></div></section>`;
