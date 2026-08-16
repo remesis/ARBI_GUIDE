@@ -41,6 +41,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /renderReport\(null\)/);
   assert.match(js, /document\.addEventListener\("drop"/);
   assert.match(js, /if\(state\.runs\.length\|\|zone\.contains\(event\.target\)\) return/);
+  assert.match(js, /window\.showOpenFilePicker/);
+  assert.match(js, /id: "arbi-analyzer-ee-log"/);
+  assert.match(js, /if \(typeof window\.showOpenFilePicker !== "function" \|\| !window\.isSecureContext\) \{\s*input\.click\(\)/);
   assert.doesNotMatch(js, /downloadBlob|\.media_cache/);
   assert.doesNotMatch(html, /local prototype|Upload disabled/i);
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");

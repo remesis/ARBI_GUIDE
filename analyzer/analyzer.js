@@ -815,13 +815,39 @@
     tick();
   }
 
+  async function chooseLogFile(input) {
+    if (typeof window.showOpenFilePicker !== "function" || !window.isSecureContext) {
+      input.click();
+      return;
+    }
+    try {
+      const [handle] = await window.showOpenFilePicker({
+        id: "arbi-analyzer-ee-log",
+        multiple: false,
+        types: [{
+          description: "Warframe EE.log",
+          accept: {
+            "text/plain": [".log", ".txt"],
+            "application/gzip": [".gz"],
+          },
+        }],
+      });
+      if (handle) await importFile(await handle.getFile());
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        showToast(`File chooser failed: ${error.message || error}`, true);
+      }
+    }
+  }
+
   function bindEvents() {
     const input=$("#logFileInput"), zone=$(".import-zone");
     const isFileDrag=(event)=>Array.from(event.dataTransfer?.types||[]).includes("Files");
     let pageDragDepth=0;
     input.addEventListener("change",()=>importFile(input.files[0]));
     $("#clearRunsBtn").addEventListener("click", clearRuns);
-    $("#emptyImportBtn").addEventListener("click",()=>input.click());
+    zone.addEventListener("click",(event)=>{event.preventDefault();void chooseLogFile(input);});
+    $("#emptyImportBtn").addEventListener("click",()=>void chooseLogFile(input));
     ["dragenter","dragover"].forEach((name)=>zone.addEventListener(name,(event)=>{event.preventDefault();zone.classList.add("dragging");}));
     ["dragleave","drop"].forEach((name)=>zone.addEventListener(name,(event)=>{event.preventDefault();zone.classList.remove("dragging");}));
     zone.addEventListener("drop",(event)=>importFile(event.dataTransfer.files[0]));
