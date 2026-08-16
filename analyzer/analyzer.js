@@ -472,7 +472,7 @@
 
   function renderRankList(points,total) {
     const top = points.slice(0,12);
-    return `<section class="card"><h3 class="card-title">Busiest spawn points</h3><p class="card-subtitle">Enemies produced per point.</p><div class="rank-list">${top.map((point,index)=>{ const heat=heatColor(1-index/Math.max(1,top.length-1)); const spawnId=pointNumber(point); return `<div class="rank-row" data-spawn-id="${h(spawnId)}"><span>#${h(spawnId)}</span><div class="bar-track"><div class="bar-fill" style="--width:${point.count/top[0].count*100}%;--color:${heat.color}"></div></div><strong>${fmt(point.count)}</strong><em>${fmt(point.count/total*100,1)}%</em></div>`; }).join("")}</div>${points.length>top.length?`<p class="card-subtitle">+${points.length-top.length} more sharing ${fmt(sum(points.slice(top.length).map((point)=>point.count))/total*100)}%</p>`:""}</section>`;
+    return `<section class="card"><h3 class="card-title">Most Active</h3><p class="card-subtitle">Enemies produced per point.</p><div class="rank-list">${top.map((point,index)=>{ const heat=heatColor(1-index/Math.max(1,top.length-1)); const spawnId=pointNumber(point); return `<div class="rank-row" data-spawn-id="${h(spawnId)}"><span>#${h(spawnId)}</span><div class="bar-track"><div class="bar-fill" style="--width:${point.count/top[0].count*100}%;--color:${heat.color}"></div></div><strong>${fmt(point.count)}</strong><em>${fmt(point.count/total*100,1)}%</em></div>`; }).join("")}</div>${points.length>top.length?`<p class="card-subtitle">+${points.length-top.length} more sharing ${fmt(sum(points.slice(top.length).map((point)=>point.count))/total*100)}%</p>`:""}</section>`;
   }
 
   function renderActivity(points) {

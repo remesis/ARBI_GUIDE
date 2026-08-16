@@ -131,6 +131,8 @@ test("production Analyzer starts cleared instead of loading bundled demo runs", 
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.doesNotMatch(js, /prepareRuns\(makeDemoRuns\(\)/);
   assert.match(js, /renderRunList\(\);\s*renderReport\(null\);/);
+  assert.match(js, />Most Active</);
+  assert.doesNotMatch(js, />Busiest spawn points</i);
 });
 
 test("analyzer uses the full composition list and green performance scale", () => {
