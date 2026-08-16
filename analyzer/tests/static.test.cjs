@@ -173,6 +173,7 @@ test("clear maps display per-wave and per-rotation saturation", () => {
   assert.match(js, /Number\.isFinite\(item\.saturation\)/);
   assert.match(js, /label: String\(index \+ 1\)/);
   assert.match(js, /Round \$\{item\.label\} - Saturation \$\{saturation\}/);
+  assert.doesNotMatch(js, /<strong>\$\{h\(item\.label\)\}<\/strong><small>\$\{shortDuration\(item\.seconds\)\}/);
   assert.match(js, /##\.#% is Saturation per round/);
   assert.match(css, /\.clear-cell-content \.phase-saturation/);
   assert.match(css, /\.round-saturation-legend\s*\{[^}]*margin-left:\s*auto/);

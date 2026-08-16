@@ -315,7 +315,7 @@
       const saturation = Number.isFinite(item.saturation) ? `${fmt(item.saturation, 1)}%` : "—";
       const content = phase.defense
         ? `<span class="clear-cell-content"><strong>${h(item.label)}</strong><small class="phase-saturation">${h(saturation)}</small></span>`
-        : `<span class="clear-cell-content"><strong>${h(item.label)}</strong><small>${shortDuration(item.seconds)}</small><small class="phase-saturation">${h(saturation)}</small></span>`;
+        : `<span class="clear-cell-content"><small>${shortDuration(item.seconds)}</small><small class="phase-saturation">${h(saturation)}</small></span>`;
       const tooltip = phase.defense ? `Saturation: ${saturation}` : `Round ${item.label} - Saturation ${saturation}`;
       return `<div class="heat-cell" title="${h(tooltip)}" aria-label="${h(tooltip)}" style="--heat:${color.color};--ink:${color.ink}">${content}</div>`;
     }).join("");
