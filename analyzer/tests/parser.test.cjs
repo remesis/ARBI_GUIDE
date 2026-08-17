@@ -80,8 +80,12 @@ test("classifies unranked Survival and Disruption nodes from stable SolNode meta
   assert.equal(runs.length, 2);
   assert.equal(runs[0].node, "Elara");
   assert.equal(runs[0].missionType, "SURVIVAL");
+  assert.equal(runs[0].saturation.threshold, 30);
+  assert.deepEqual(runs[0].saturation.rows.slice(0, 5).map((row) => row.label), ["0-14", "15-29", "30-32", "33-35", "36-38"]);
   assert.equal(runs[1].node, "Olympus");
   assert.equal(runs[1].missionType, "DISRUPTION");
+  assert.equal(runs[1].saturation.threshold, 30);
+  assert.deepEqual(runs[1].saturation.rows.slice(0, 5).map((row) => row.label), ["0-14", "15-29", "30-32", "33-35", "36-38"]);
 });
 
 test("uses Survival mission events for active timing, reward cycles, extraction, and saturation", () => {
@@ -94,7 +98,7 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   for (let index = 0; index < 48; index += 1) {
     const time = 11 + index * 2;
     const npc = index < 7 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
-    const monitored = index < 24 ? 9 : 18;
+    const monitored = index < 24 ? 9 : 34;
     lines.push(`${time.toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} Live ${monitored + 5} Spawned ${index + 1} Ticking ${monitored} Paused 0 IgnoredTicking 0 MonitoredTicking ${monitored}`);
   }
   lines.push("70.0 Sys [Info]: Created /Lotus/Interface/SurvivalReward.swf");
@@ -115,6 +119,8 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   assert.equal(run.dronesPerRotation.length, 2);
   assert.equal(run.dpmPerRotation.length, 2);
   assert.equal(run.liveCounts.length, 48);
+  assert.equal(run.saturation.threshold, 30);
+  assert.equal(run.saturation.rows[2].label, "30-32");
   assert.ok(run.saturation.abovePercent > 0);
   assert.ok(run.saturationPerRotation.every(Number.isFinite));
 });

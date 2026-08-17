@@ -16,6 +16,9 @@
   // after the one-time completion/transmission asset markers are cached.
   const DEFENSE_VOTE_TRANSITION_SECONDS = 5;
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
+  const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
+  const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
+  const HIGH_DENSITY_SATURATION_EDGES = [15, 30, 33, 36, 39, 42, 45, 48, 51];
   const FORCED_VALID_AGENTS = new Set(["CorpusEliteShieldDroneAgent"]);
   const EXCLUDED_AGENT = /Replicant|RJCrew|petavatar|VoidClone|Turret|Dropship|CatbrowPetAgent|AllyAgent|AutoTurretAgentShipRemaster|Summon\s*Motorcycle/i;
   const NON_MISSION_LEVEL = ["/proc/playership/", "/levels/hub/", "/levels/clandojo/", "/levels/railjack/"];
@@ -654,19 +657,22 @@
         : (run.isInterception ? "INTERCEPTION" : "UNKNOWN"));
     run.faction = node ? node[3] : "Unknown";
     run.tileset = node ? node[4] : tileFromPath(run.levelPath);
+    const saturationScale = HIGH_DENSITY_SATURATION_TYPES.has(run.missionType)
+      ? { edges: HIGH_DENSITY_SATURATION_EDGES, threshold: 30 }
+      : { edges: DEFAULT_SATURATION_EDGES, threshold: 15 };
     const wavePhases = calculateWavePhases(run);
     const rotationPhases = calculateRotationPhases(run);
     run.waveDurations = wavePhases.map((phase) => [phase.label, phase.seconds]);
     run.rotationDurations = rotationPhases.map((phase) => phase.seconds);
     run.saturationPerWave = wavePhases.map((phase) => calculateRangeOccupancy(run, phase.from, phase.to));
-    run.saturationPerRotation = rotationPhases.map((phase) => calculateRangeSaturation(run, phase.from, phase.to));
+    run.saturationPerRotation = rotationPhases.map((phase) => calculateRangeSaturation(run, phase.from, phase.to, saturationScale.threshold));
     run.rotations = run.rewardTimestamps.length || Math.floor(Object.keys(run.waveStarts).length / 3);
     run.dronesPerRotation = calculateDronesPerRotation(run);
     run.dpmPerRotation = calculateDpmPerRotation(run);
     run.avgDroneInterval = run.droneTimestamps.length > 1
       ? (run.droneTimestamps[run.droneTimestamps.length - 1] - run.droneTimestamps[0]) / (run.droneTimestamps.length - 1)
       : 0;
-    run.saturation = calculateSaturation(run);
+    run.saturation = calculateSaturation(run, saturationScale.edges, saturationScale.threshold);
     run.cadence = calculateCadence(run);
     run.longestDroneGaps = longestGaps(run.droneTimestamps, run.pauseIntervals, 5, run.startTime, run.endTime);
     run.longestSpawnGaps = longestGaps(run.enemyTimestamps, run.pauseIntervals, 5, run.startTime, run.endTime);
@@ -805,32 +811,40 @@
     return occupied / total * 100;
   }
 
-  function calculateSaturation(run, step = 3, maxValue = 30) {
-    const size = Math.ceil(maxValue / step);
+  function calculateSaturation(run, edges = DEFAULT_SATURATION_EDGES, threshold = 15) {
+    const size = edges.length + 1;
     const buckets = Array(size).fill(0);
+    const bucketIndex = (count) => {
+      const index = edges.findIndex((edge) => count < edge);
+      return index < 0 ? size - 1 : index;
+    };
     let total = 0;
     let above = 0;
     const live = run.liveCounts;
     if (live.length > 1 && run.endTime > run.startTime) {
       liveSegments(run).forEach((segment) => {
-        const bucket = segment.count >= maxValue ? size - 1 : Math.floor(segment.count / step);
+        const bucket = bucketIndex(segment.count);
         buckets[bucket] += segment.duration;
         total += segment.duration;
-        if (segment.count >= 15) above += segment.duration;
+        if (segment.count >= threshold) above += segment.duration;
       });
     } else if (live.length) {
       live.forEach((entry) => {
-        const bucket = entry[1] >= maxValue ? size - 1 : Math.floor(entry[1] / step);
+        const bucket = bucketIndex(entry[1]);
         buckets[bucket] += 1;
         total += 1;
-        if (entry[1] >= 15) above += 1;
+        if (entry[1] >= threshold) above += 1;
       });
     }
-    const rows = buckets.map((duration, index) => ({
-      label: index === size - 1 ? `${index * step}+` : `${index * step}-${index * step + step - 1}`,
-      percent: total ? duration / total * 100 : 0,
-    }));
-    return { rows, abovePercent: total ? above / total * 100 : 0 };
+    let lower = 0;
+    const labels = edges.map((edge) => {
+      const label = `${lower}-${edge - 1}`;
+      lower = edge;
+      return label;
+    });
+    labels.push(`${lower}+`);
+    const rows = buckets.map((duration, index) => ({ label: labels[index], percent: total ? duration / total * 100 : 0 }));
+    return { rows, abovePercent: total ? above / total * 100 : 0, threshold };
   }
 
   function calculateCadence(run, edges = [1, 2, 3, 5, 8, 12]) {

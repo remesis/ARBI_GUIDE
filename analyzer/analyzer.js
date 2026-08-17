@@ -240,7 +240,7 @@
 
   function demoSaturation(values) {
     const labels = ["0-2", "3-5", "6-8", "9-11", "12-14", "15-17", "18-20", "21-23", "24-26", "27+"];
-    return { rows: labels.map((label, index) => ({ label, percent: values[index] || 0 })), abovePercent: sum(values.slice(5)) };
+    return { rows: labels.map((label, index) => ({ label, percent: values[index] || 0 })), abovePercent: sum(values.slice(5)), threshold: 15 };
   }
 
   function demoCadence(values) {
@@ -515,8 +515,9 @@
 
   function renderSaturation(run) {
     const saturation = run.saturation || { rows: [], abovePercent: 0 };
+    const threshold = Number.isFinite(saturation.threshold) ? saturation.threshold : 15;
     const max = Math.max(1, ...saturation.rows.map((row) => row.percent));
-    return `<section class="card saturation-card"><h3 class="card-title">Enemy saturation</h3><p class="card-subtitle">Share of run time at each enemy count.</p><div class="metric-bars">${saturation.rows.map((row,index) => { const heat=heatColor(1-index/Math.max(1,saturation.rows.length-1)); return `<div class="metric-row"><span>${h(row.label)}</span><div class="bar-track"><div class="bar-fill" style="--width:${row.percent/max*100}%;--color:${heat.color}"></div></div><strong>${fmt(row.percent,1)}%</strong></div>`; }).join("")}</div><div class="highlight-panel" style="margin-top:13px"><span class="mini">Time at 15+ enemies</span><div class="big">${fmt(saturation.abovePercent,1)}%</div></div></section>`;
+    return `<section class="card saturation-card"><h3 class="card-title">Enemy saturation</h3><p class="card-subtitle">Share of run time at each enemy count.</p><div class="metric-bars">${saturation.rows.map((row,index) => { const heat=heatColor(1-index/Math.max(1,saturation.rows.length-1)); return `<div class="metric-row"><span>${h(row.label)}</span><div class="bar-track"><div class="bar-fill" style="--width:${row.percent/max*100}%;--color:${heat.color}"></div></div><strong>${fmt(row.percent,1)}%</strong></div>`; }).join("")}</div><div class="highlight-panel" style="margin-top:13px"><span class="mini">Time at ${threshold}+ enemies</span><div class="big">${fmt(saturation.abovePercent,1)}%</div></div></section>`;
   }
 
   function renderCadence(run) {

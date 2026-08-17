@@ -205,6 +205,16 @@ test("clear maps display per-wave and per-rotation saturation", () => {
   assert.match(css, /\.round-saturation-legend\s*\{[^}]*margin-left:\s*auto/);
 });
 
+test("saturation labels use each mission mode's configured threshold", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
+  assert.match(parser, /HIGH_DENSITY_SATURATION_TYPES = new Set\(\["SURVIVAL", "DISRUPTION"\]\)/);
+  assert.match(parser, /HIGH_DENSITY_SATURATION_EDGES = \[15, 30, 33, 36, 39, 42, 45, 48, 51\]/);
+  assert.match(parser, /\? \{ edges: HIGH_DENSITY_SATURATION_EDGES, threshold: 30 \}/);
+  assert.match(parser, /calculateRangeSaturation\(run, phase\.from, phase\.to, saturationScale\.threshold\)/);
+  assert.match(js, /Time at \$\{threshold\}\+ enemies/);
+});
+
 test("report timestamps use readable mission-relative elapsed time", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /function elapsedAt\(run, timestamp\)/);
