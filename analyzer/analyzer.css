@@ -258,8 +258,37 @@ body.empty-page-drag::after {
 .report-badges { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
 .badge { display: inline-flex; padding: 6px 10px; border-radius: 5px; background: #29292f; color: #c5c5cd; font-size: 11px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
 .badge.mission { background: var(--red); color: white; }
-.squad-line { margin-top: 8px; color: var(--muted); font-size: 13px; }
-.squad-line span + span::before { content: " · "; margin: 0 6px; color: #64656f; }
+.squad-line { display: flex; align-items: center; flex-wrap: wrap; margin-top: 8px; color: var(--muted); font-size: 13px; }
+.squad-player + .squad-player::before,
+.squad-player + .squad-phase::before { content: " · "; margin: 0 6px; color: #64656f; }
+.squad-privacy-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 20px;
+  margin: 0 7px 0 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #f4f5f7;
+  cursor: pointer;
+}
+.squad-privacy-toggle svg { width: 18px; height: 12px; }
+.squad-privacy-toggle:hover { color: var(--accent); }
+.squad-privacy-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.squad-privacy-toggle.is-hidden { color: var(--red-hot); }
+.squad-privacy-toggle.is-hidden::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  box-shadow: 0 0 0 1px #0b0d10;
+  transform: rotate(-42deg);
+}
 .run-identity { display: none; min-width: 230px; text-align: right; align-self: start; }
 .export-run-identity { display: none; }
 .goons-label { color: var(--red-hot); font-size: 13px; font-weight: 950; letter-spacing: .27em; }
@@ -548,6 +577,8 @@ body.minimap-lightbox-open { overflow: hidden; }
 .export-stage .activity-axis-label { font-size: 12px; }
 .export-stage .activity-card { display: none !important; }
 .export-stage .report-actions { display: none !important; }
+.export-stage .squad-privacy-toggle { display: none !important; }
+.export-stage .squad-label { margin-right: 7px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }

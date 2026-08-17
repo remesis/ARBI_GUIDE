@@ -47,6 +47,12 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /id="vitusRate" class="vitus-rate"/);
   assert.match(js, /actual \* 60 \/ seconds/);
   assert.match(js, /\$\("#vitusRate"\)\.textContent = formatVitusRate\(run\)/);
+  assert.match(js, /PLAYER_PRIVACY_TTL_MS = 365 \* 24 \* 60 \* 60 \* 1000/);
+  assert.match(js, /hidePlayerNames: loadPlayerNamePrivacy\(\)/);
+  assert.match(js, /expiresAt: Date\.now\(\) \+ PLAYER_PRIVACY_TTL_MS/);
+  assert.match(js, /names\.map\(\(_, index\) => `Player \$\{index \+ 1\}`\)/);
+  assert.match(js, /id="squadPrivacyToggle"/);
+  assert.match(js, /savePlayerNamePrivacy\(\)/);
   assert.match(js, /renderReport\(null\)/);
   assert.match(js, /document\.addEventListener\("drop"/);
   assert.match(js, /if\(state\.runs\.length\|\|zone\.contains\(event\.target\)\) return/);
@@ -115,6 +121,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.export-stage \.clear-heat-map\s*\{[^}]*repeat\(23/);
   assert.match(css, /\.export-stage \.dashboard-no-spawns \.clear-heat-map\s*\{[^}]*repeat\(10/);
   assert.match(css, /\.export-stage \.activity-card\s*\{[^}]*display:\s*none\s*!important/);
+  assert.match(css, /\.squad-privacy-toggle\.is-hidden\s*\{[^}]*color:\s*var\(--red-hot\)/);
+  assert.match(css, /\.squad-privacy-toggle\.is-hidden::after/);
+  assert.match(css, /\.export-stage \.squad-privacy-toggle\s*\{[^}]*display:\s*none\s*!important/);
   assert.match(css, /\.saturation-card/);
   assert.match(js, /saturation\.rows\.map\(\(row,index\) => \{ const heat=heatColor\(1-index\/Math\.max\(1,saturation\.rows\.length-1\)\)/);
   assert.match(css, /\.clear-heat-map/);

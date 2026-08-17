@@ -10,7 +10,13 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-  const state = { runs: [], activeIndex: 0, query: "", sourceName: "", toastTimer: 0, fontStep: 0, spacingStep: 0, widthStep: 0 };
+  const PLAYER_PRIVACY_KEY = "arbi-analyzer-player-privacy-v1";
+  const PLAYER_PRIVACY_TTL_MS = 365 * 24 * 60 * 60 * 1000;
+  const state = {
+    runs: [], activeIndex: 0, query: "", sourceName: "", toastTimer: 0,
+    fontStep: 0, spacingStep: 0, widthStep: 0,
+    hidePlayerNames: loadPlayerNamePrivacy(),
+  };
   let topbarResizeObserver = null;
   let reportResizeObserver = null;
   let reportFitFrame = 0;
@@ -24,6 +30,35 @@
 
   function h(value) {
     return String(value ?? "").replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
+  }
+
+  function loadPlayerNamePrivacy() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(PLAYER_PRIVACY_KEY) || "null");
+      if (!saved || !Number.isFinite(saved.expiresAt) || saved.expiresAt <= Date.now()) {
+        localStorage.removeItem(PLAYER_PRIVACY_KEY);
+        return false;
+      }
+      return saved.hidden === true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function savePlayerNamePrivacy() {
+    try {
+      localStorage.setItem(PLAYER_PRIVACY_KEY, JSON.stringify({
+        hidden: state.hidePlayerNames,
+        expiresAt: Date.now() + PLAYER_PRIVACY_TTL_MS,
+      }));
+    } catch (_) {
+      // Privacy still works for this page load when browser storage is unavailable.
+    }
+  }
+
+  function squadNames(run) {
+    const names = [run.host || "Unknown", ...(run.squadmates || [])];
+    return state.hidePlayerNames ? names.map((_, index) => `Player ${index + 1}`) : names;
   }
 
   function syncTopbarHeight() {
@@ -262,7 +297,14 @@
               <button id="copyImageBtn" class="copy-image-button" type="button"><svg width="17" height="17"><use href="#icon-copy"></use></svg> COPY RUN IMAGE</button>
             </div>
           </div>
-          <div class="squad-line"><span>Squad ${h(run.host || "Unknown")}</span>${(run.squadmates || []).map((name) => `<span>${h(name)}</span>`).join("")}<span>${phase.items.length} ${phase.noun}${phase.items.length === 1 ? "" : "s"}</span></div>
+          <div class="squad-line">
+            <span class="squad-label">Squad</span>
+            <button id="squadPrivacyToggle" class="squad-privacy-toggle${state.hidePlayerNames ? " is-hidden" : ""}" type="button" aria-pressed="${state.hidePlayerNames}" aria-label="${state.hidePlayerNames ? "Show" : "Hide"} squad names" data-tooltip="${state.hidePlayerNames ? "Show" : "Hide"} squad names">
+              <svg aria-hidden="true"><use href="#icon-eye"></use></svg>
+            </button>
+            ${squadNames(run).map((name) => `<span class="squad-player">${h(name)}</span>`).join("")}
+            <span class="squad-phase">${phase.items.length} ${phase.noun}${phase.items.length === 1 ? "" : "s"}</span>
+          </div>
         </div>
         <div class="run-identity">
           <div class="export-run-identity">
@@ -303,6 +345,11 @@
     setupAnalyzerTooltips($("#reportRoot"));
     scheduleReportFit();
     $("#copyImageBtn").addEventListener("click", () => copyReportImage());
+    $("#squadPrivacyToggle").addEventListener("click", () => {
+      state.hidePlayerNames = !state.hidePlayerNames;
+      savePlayerNamePrivacy();
+      renderReport(run);
+    });
     const vitusInput = $("#actualVitusInput");
     if (vitusInput) vitusInput.addEventListener("input", () => { run.actualVitus = vitusInput.value; updateVitusActual(run); });
   }
