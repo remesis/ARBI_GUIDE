@@ -412,10 +412,10 @@ body.empty-page-drag::after {
 .minimap-wrap img { display: block; width: 100%; height: auto; object-fit: contain; opacity: 1; }
 .minimap-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .spawn-bubble { fill: var(--bubble-fill, rgba(240,29,39,.28)); stroke: var(--bubble-stroke, #ff333d); stroke-width: 2; vector-effect: non-scaling-stroke; }
-.spawn-label { fill: white; font-size: 15px; font-weight: 900; text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: #1a090b; stroke-width: 3px; }
-.spawn-bubble, .spawn-label { transform-box: fill-box; transform-origin: center; transition: transform .14s ease, fill .14s ease, stroke .14s ease, filter .14s ease; }
+.spawn-label { visibility: hidden; opacity: 0; fill: white; font-size: 15px; font-weight: 900; text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: #1a090b; stroke-width: 3px; }
+.spawn-bubble, .spawn-label { transform-box: fill-box; transform-origin: center; transition: transform .14s ease, fill .14s ease, stroke .14s ease, filter .14s ease, opacity .14s ease; }
 .spawn-bubble.is-rank-highlighted { fill: rgba(255,255,255,.82); stroke: #fff; stroke-width: 3; transform: scale(1.28); filter: drop-shadow(0 0 7px rgba(255,255,255,.95)); }
-.spawn-label.is-rank-highlighted { fill: #111318; stroke: #fff; stroke-width: 4px; transform: scale(1.08); }
+.spawn-label.is-rank-highlighted { visibility: visible; opacity: 1; fill: #111318; stroke: #fff; stroke-width: 4px; transform: scale(1.08); }
 .minimap-status { margin-top: 9px; display: flex; align-items: flex-start; gap: 7px; color: var(--muted); font-size: 10px; line-height: 1.45; }
 .minimap-status i { flex: 0 0 auto; width: 8px; height: 8px; margin-top: 3px; border-radius: 50%; background: #efb432; }
 .minimap-status.calibrated i { background: #35d78a; }

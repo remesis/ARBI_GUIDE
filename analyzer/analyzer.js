@@ -890,7 +890,8 @@
 
   async function chooseLogFile(input) {
     if (typeof window.showOpenFilePicker !== "function" || !window.isSecureContext) {
-      input.click();
+      if (typeof input.showPicker === "function") input.showPicker();
+      else input.click();
       return;
     }
     try {
@@ -919,7 +920,11 @@
     let pageDragDepth=0;
     input.addEventListener("change",()=>importFile(input.files[0]));
     $("#clearRunsBtn").addEventListener("click", clearRuns);
-    zone.addEventListener("click",(event)=>{event.preventDefault();void chooseLogFile(input);});
+    zone.addEventListener("click",(event)=>{
+      if(event.target===input) return;
+      event.preventDefault();
+      void chooseLogFile(input);
+    });
     $("#emptyImportBtn").addEventListener("click",()=>void chooseLogFile(input));
     ["dragenter","dragover"].forEach((name)=>zone.addEventListener(name,(event)=>{event.preventDefault();zone.classList.add("dragging");}));
     ["dragleave","drop"].forEach((name)=>zone.addEventListener(name,(event)=>{event.preventDefault();zone.classList.remove("dragging");}));

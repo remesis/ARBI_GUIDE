@@ -39,6 +39,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /SpawnSubmission\.submitRuns\(runs, Parser\.buildContribution\)/);
   assert.doesNotMatch(js, /Spawn metrics:|Spawn metrics updated:|without usable spawn coordinates/);
   assert.match(js, /function setupDpmTooltips\(root\)/);
+  assert.match(js, /typeof input\.showPicker === "function"/);
+  assert.match(js, /if\(event\.target===input\) return/);
   assert.match(js, /function setupAnalyzerTooltips\(root\)/);
   assert.match(js, /data-tooltip="\$\{h\(tooltip\)\}"/);
   assert.match(js, /data-label="\$\{h\(label\)\}"/);
@@ -47,7 +49,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /if\(state\.runs\.length\|\|zone\.contains\(event\.target\)\) return/);
   assert.match(js, /window\.showOpenFilePicker/);
   assert.match(js, /id: "arbi-analyzer-ee-log"/);
-  assert.match(js, /if \(typeof window\.showOpenFilePicker !== "function" \|\| !window\.isSecureContext\) \{\s*input\.click\(\)/);
+  assert.match(js, /if \(typeof window\.showOpenFilePicker !== "function" \|\| !window\.isSecureContext\) \{\s*if \(typeof input\.showPicker === "function"\) input\.showPicker\(\);\s*else input\.click\(\)/);
   assert.doesNotMatch(js, /downloadBlob|\.media_cache/);
   assert.doesNotMatch(html, /local prototype|Upload disabled/i);
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
@@ -67,6 +69,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /setupReportFitObserver\(\)/);
   assert.match(css, /\.minimap-lightbox/);
   assert.match(css, /\.spawn-bubble\.is-rank-highlighted/);
+  assert.match(css, /\.spawn-label\s*\{[^}]*visibility:\s*hidden[^}]*opacity:\s*0/);
+  assert.match(css, /\.spawn-label\.is-rank-highlighted\s*\{[^}]*visibility:\s*visible[^}]*opacity:\s*1/);
   assert.match(css, /\.spawn-bubble\s*\{[^}]*--bubble-fill[^}]*--bubble-stroke/);
   assert.match(js, /function spawnBubbleHeatColor/);
   assert.match(js, /--bubble-fill:\$\{heat\.fill\};--bubble-stroke:\$\{heat\.stroke\}/);
