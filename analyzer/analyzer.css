@@ -356,10 +356,12 @@ body.empty-page-drag::after {
 .chart-point:has(.chart-hit.active) .chart-dot { fill: var(--orange); stroke: #fff; stroke-width: 2; }
 .chart-average { stroke: #9798a1; stroke-dasharray: 5 5; }
 .chart-label { fill: #858691; font-size: 9px; }
-.chart-average-label { fill: #f1f1f4; stroke: #14151a; stroke-width: 3px; paint-order: stroke fill; font-size: 16px; font-weight: 850; }
+.chart-average-badge { position: absolute; top: var(--average-top); right: 15px; transform: translateY(calc(-100% - 4px)); color: #f1f1f4; font-size: 16px; font-weight: 850; line-height: 1; text-shadow: -1px -1px 0 #14151a, 1px -1px 0 #14151a, -1px 1px 0 #14151a, 1px 1px 0 #14151a; white-space: nowrap; pointer-events: none; }
 .chart-tooltip { position: absolute; z-index: 5; transform: translate(-50%, calc(-100% - 10px)); padding: 7px 10px; border: 1px solid #5f6069; border-radius: 5px; background: #050506; box-shadow: 0 4px 14px #000b; color: #fff; font-size: 15px; font-weight: 750; line-height: 1.1; white-space: nowrap; pointer-events: none; }
 .chart-tooltip[data-align="start"] { transform: translate(-8%, calc(-100% - 10px)); }
 .chart-tooltip[data-align="end"] { transform: translate(-92%, calc(-100% - 10px)); }
+.analyzer-hover-tooltip { position: fixed; z-index: 10000; transform: translate(-50%, calc(-100% - 10px)); }
+.analyzer-hover-tooltip[data-placement="below"] { transform: translate(-50%, 10px); }
 .chart-accent { color: var(--good); fill: var(--good); font-size: 10px; }
 
 .metric-bars { display: grid; gap: 8px; }

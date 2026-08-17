@@ -232,6 +232,8 @@
     if (!run) {
       $("#reportRoot").innerHTML = "";
       $("#emptyState").hidden = false;
+      const hoverTooltip = document.querySelector("#analyzerHoverTooltip");
+      if (hoverTooltip) hoverTooltip.hidden = true;
       return;
     }
     $("#emptyState").hidden = true;
@@ -251,7 +253,7 @@
           <div class="report-badges">
             <span class="badge mission">${h(run.missionType)}</span><span class="badge">${h(run.planet)}</span>
             <span class="badge">${h(run.faction)}</span><span class="badge">${h(run.tileset)}</span>
-            ${run.levelPath ? `<span class="badge" title="${h(run.levelPath)}">${h(run.levelPath.split("/").pop().replace(/\.level$/i, ""))}</span>` : ""}
+            ${run.levelPath ? `<span class="badge" data-tooltip="${h(run.levelPath)}">${h(run.levelPath.split("/").pop().replace(/\.level$/i, ""))}</span>` : ""}
             <div class="report-actions">
               <button id="copyImageBtn" class="copy-image-button" type="button"><svg width="17" height="17"><use href="#icon-copy"></use></svg> COPY RUN IMAGE</button>
             </div>
@@ -294,6 +296,7 @@
 
     prepareDashboardLayout($("#reportRoot"));
     setupDpmTooltips($("#reportRoot"));
+    setupAnalyzerTooltips($("#reportRoot"));
     scheduleReportFit();
     $("#copyImageBtn").addEventListener("click", () => copyReportImage());
     const vitusInput = $("#actualVitusInput");
@@ -315,7 +318,7 @@
       const saturation = Number.isFinite(item.saturation) ? `${fmt(item.saturation, 1)}%` : "—";
       const content = `<span class="clear-cell-content"><small>${shortDuration(item.seconds)}</small><small class="phase-saturation">${h(saturation)}</small></span>`;
       const tooltip = `Round ${item.label} - Saturation ${saturation}`;
-      return `<div class="heat-cell" title="${h(tooltip)}" aria-label="${h(tooltip)}" style="--heat:${color.color};--ink:${color.ink}">${content}</div>`;
+      return `<div class="heat-cell" data-tooltip="${h(tooltip)}" aria-label="${h(tooltip)}" style="--heat:${color.color};--ink:${color.ink}">${content}</div>`;
     }).join("");
     return `<section class="card"><h3 class="card-title">${h(phase.noun)} clear map</h3><p class="card-subtitle">${phase.defense ? "Fight time per wave, downtime excluded. Greener = faster." : "Time per rotation. Greener = faster for this local comparison."}</p><div class="heat-map clear-heat-map" style="--heat-cols:${Math.min(12, phase.items.length)};--mobile-heat-cols:${Math.min(8, phase.items.length)}">${cells}</div><div class="heat-legend"><span class="legend-chip"><i style="--swatch:${SVES_SUCCESS}"></i>${phase.defense ? `≤${threshold}s` : `fastest ${shortDuration(low)}`}</span><span class="legend-chip"><i style="--swatch:${SVES_DANGER}"></i>${phase.defense ? `>${threshold}s` : `slowest ${shortDuration(high)}`}</span><span class="round-saturation-legend">##.#% is Saturation per round</span></div></section>`;
   }
@@ -333,9 +336,10 @@
     const dots = values.map((value,index) => {
       const pointX = x(index), pointY = y(value);
       const label = `Rotation ${index + 1}: ${fmt(value, 1)} DPM`;
-      return `<g class="chart-point"><circle class="chart-dot" cx="${pointX}" cy="${pointY}" r="3"/><circle class="chart-hit" cx="${pointX}" cy="${pointY}" r="10" tabindex="0" role="img" aria-label="${h(label)}" data-label="${h(label)}" data-x="${pointX}" data-y="${pointY}" data-chart-width="${width}" data-chart-height="${height}"><title>${h(label)}</title></circle></g>`;
+      return `<g class="chart-point"><circle class="chart-dot" cx="${pointX}" cy="${pointY}" r="3"/><circle class="chart-hit" cx="${pointX}" cy="${pointY}" r="10" tabindex="0" role="img" aria-label="${h(label)}" data-label="${h(label)}" data-x="${pointX}" data-y="${pointY}" data-chart-width="${width}" data-chart-height="${height}"></circle></g>`;
     }).join("");
-    return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">Per rotation, against the run average.</p><div class="line-chart-wrap"><svg class="line-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Drones per minute line chart"><line class="chart-grid" x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${height-pad.b}"/><line class="chart-grid" x1="${pad.l}" y1="${height-pad.b}" x2="${width-pad.r}" y2="${height-pad.b}"/><line class="chart-average" x1="${pad.l}" y1="${y(mean)}" x2="${width-pad.r}" y2="${y(mean)}"/><polyline class="chart-line" points="${points}"/>${dots}<text class="chart-label" x="${pad.l}" y="${height-5}">R1</text><text class="chart-label" x="${width-pad.r-18}" y="${height-5}">R${values.length}</text><text class="chart-label chart-average-label" x="${width-pad.r-67}" y="${y(mean)-7}">AVG ${fmt(mean,1)}</text></svg><div class="chart-tooltip" role="status" hidden data-html2canvas-ignore="true"></div></div><div class="heat-legend"><span class="chart-accent">best R${values.indexOf(best)+1} · ${fmt(best,1)}</span><span>worst R${values.indexOf(worst)+1} · ${fmt(worst,1)}</span></div></section>`;
+    const averageTop = y(mean) / height * 100;
+    return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">Per rotation, against the run average.</p><div class="line-chart-wrap"><svg class="line-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Drones per minute line chart"><line class="chart-grid" x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${height-pad.b}"/><line class="chart-grid" x1="${pad.l}" y1="${height-pad.b}" x2="${width-pad.r}" y2="${height-pad.b}"/><line class="chart-average" x1="${pad.l}" y1="${y(mean)}" x2="${width-pad.r}" y2="${y(mean)}"/><polyline class="chart-line" points="${points}"/>${dots}<text class="chart-label" x="${pad.l}" y="${height-5}">R1</text><text class="chart-label" x="${width-pad.r-18}" y="${height-5}">R${values.length}</text></svg><span class="chart-average-badge" style="--average-top:${averageTop.toFixed(2)}%">AVG ${fmt(mean,1)}</span><div class="chart-tooltip" role="status" hidden data-html2canvas-ignore="true"></div></div><div class="heat-legend"><span class="chart-accent">best R${values.indexOf(best)+1} · ${fmt(best,1)}</span><span>worst R${values.indexOf(worst)+1} · ${fmt(worst,1)}</span></div></section>`;
   }
 
   function setupDpmTooltips(root) {
@@ -365,11 +369,53 @@
     });
   }
 
+  function setupAnalyzerTooltips(root) {
+    let tooltip = document.querySelector("#analyzerHoverTooltip");
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.id = "analyzerHoverTooltip";
+      tooltip.className = "chart-tooltip analyzer-hover-tooltip";
+      tooltip.setAttribute("role", "status");
+      tooltip.dataset.html2canvasIgnore = "true";
+      tooltip.hidden = true;
+      document.body.append(tooltip);
+    }
+    tooltip.hidden = true;
+
+    $$('[data-tooltip]', root).forEach((target) => {
+      const show = () => {
+        const label = target.dataset.tooltip || "";
+        if (!label) return;
+        tooltip.textContent = label;
+        tooltip.hidden = false;
+        tooltip.style.visibility = "hidden";
+
+        const targetRect = target.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const margin = 8;
+        const centered = targetRect.left + targetRect.width / 2;
+        const halfWidth = tooltipRect.width / 2;
+        const left = Math.min(window.innerWidth - halfWidth - margin, Math.max(halfWidth + margin, centered));
+        const fitsAbove = targetRect.top - tooltipRect.height - 10 >= margin;
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${fitsAbove ? targetRect.top : targetRect.bottom}px`;
+        tooltip.dataset.placement = fitsAbove ? "above" : "below";
+        tooltip.style.visibility = "";
+      };
+      const hide = () => { tooltip.hidden = true; };
+      target.addEventListener("pointerenter", show);
+      target.addEventListener("pointerleave", hide);
+      target.addEventListener("focus", show);
+      target.addEventListener("blur", hide);
+    });
+  }
+
   function renderPerRotation(run) {
     const values = run.dronesPerRotation || [];
     if (!values.length) return `<section class="card"><h3 class="card-title">Drones per rotation</h3><p class="card-subtitle">No complete rotations found.</p></section>`;
     const low = Math.min(...values), high = Math.max(...values);
-    return `<section class="card"><h3 class="card-title">Drones per rotation</h3><p class="card-subtitle">Greener is a stronger rotation.</p><div class="heat-map" style="--heat-cols:${Math.min(4, values.length)};--mobile-heat-cols:${Math.min(4,values.length)}">${values.map((value) => { const heat=heatColor((value-low)/Math.max(1,high-low)); return `<div class="heat-cell" style="--heat:${heat.color};--ink:${heat.ink}">${fmt(value)}</div>`; }).join("")}</div><div class="heat-legend"><span>low ${fmt(low)}</span><span>avg ${fmt(avg(values),1)}</span><span>high ${fmt(high)}</span></div></section>`;
+    return `<section class="card"><h3 class="card-title">Drones per rotation</h3><p class="card-subtitle">Greener is a stronger rotation.</p><div class="heat-map" style="--heat-cols:${Math.min(4, values.length)};--mobile-heat-cols:${Math.min(4,values.length)}">${values.map((value, index) => { const heat=heatColor((value-low)/Math.max(1,high-low)); const tooltip=`Rotation ${index+1}: ${fmt(value)} drones`; return `<div class="heat-cell" data-tooltip="${h(tooltip)}" aria-label="${h(tooltip)}" style="--heat:${heat.color};--ink:${heat.ink}">${fmt(value)}</div>`; }).join("")}</div><div class="heat-legend"><span>low ${fmt(low)}</span><span>avg ${fmt(avg(values),1)}</span><span>high ${fmt(high)}</span></div></section>`;
   }
 
   function renderVitus(run) {
@@ -417,7 +463,7 @@
       .sort((a,b) => b[1]-a[1]);
     if (!entries.length) return `<section class="card"><h3 class="card-title">Enemy composition</h3><p class="card-subtitle">Unit names were unavailable in this log.</p></section>`;
     const total = sum(entries.map((entry) => entry[1]));
-    return `<section class="card"><h3 class="card-title">Enemy composition</h3><p class="card-subtitle">Share of locally parsed spawns by unit.</p><div class="composition-bar">${entries.map(([name,count],index) => { const heat=heatColor(1-index/Math.max(1,entries.length-1)); return `<div class="composition-segment" style="width:${count/total*100}%;--segment:${heat.color}" title="${h(name)}: ${fmt(count)}">${count/total>.1 ? `${fmt(count/total*100)}%` : ""}</div>`; }).join("")}</div><div class="composition-list">${entries.map(([name,count],index) => { const heat=heatColor(1-index/Math.max(1,entries.length-1)); return `<div class="composition-item" style="--segment:${heat.color}"><i></i><span title="${h(name)}">${h(prettyNpc(name))}</span><strong>${fmt(count)}</strong></div>`; }).join("")}</div></section>`;
+    return `<section class="card"><h3 class="card-title">Enemy composition</h3><p class="card-subtitle">Share of locally parsed spawns by unit.</p><div class="composition-bar">${entries.map(([name,count],index) => { const heat=heatColor(1-index/Math.max(1,entries.length-1)); const tooltip=`${prettyNpc(name)}: ${fmt(count)}`; return `<div class="composition-segment" style="width:${count/total*100}%;--segment:${heat.color}" data-tooltip="${h(tooltip)}">${count/total>.1 ? `${fmt(count/total*100)}%` : ""}</div>`; }).join("")}</div><div class="composition-list">${entries.map(([name,count],index) => { const heat=heatColor(1-index/Math.max(1,entries.length-1)); return `<div class="composition-item" style="--segment:${heat.color}"><i></i><span data-tooltip="${h(name)}">${h(prettyNpc(name))}</span><strong>${fmt(count)}</strong></div>`; }).join("")}</div></section>`;
   }
 
   function prettyNpc(value) {
@@ -489,7 +535,8 @@
         const radius = 8 + Math.sqrt(point.count/max)*13;
         const heat = spawnBubbleHeatColor(max === min ? .65 : (point.count - min) / (max - min));
         const spawnId = pointNumber(point);
-        return `<circle class="spawn-bubble" data-spawn-id="${h(spawnId)}" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${radius.toFixed(2)}" style="--bubble-fill:${heat.fill};--bubble-stroke:${heat.stroke}"><title>${h(point.ident || point.key)} · ${fmt(point.count)} spawns</title></circle><text class="spawn-label" data-spawn-id="${h(spawnId)}" x="${x.toFixed(2)}" y="${y.toFixed(2)}">${h(spawnId)}</text>`;
+        const tooltip = `${point.ident || point.key} · ${fmt(point.count)} spawns`;
+        return `<circle class="spawn-bubble" data-spawn-id="${h(spawnId)}" data-tooltip="${h(tooltip)}" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${radius.toFixed(2)}" style="--bubble-fill:${heat.fill};--bubble-stroke:${heat.stroke}"></circle><text class="spawn-label" data-spawn-id="${h(spawnId)}" x="${x.toFixed(2)}" y="${y.toFixed(2)}">${h(spawnId)}</text>`;
       }).join("");
     }
     const subtitle = exactTileMatch
@@ -514,7 +561,7 @@
     let content = "";
     top.forEach((point)=>{
       content += `<span class="activity-row-label">#${h(pointNumber(point))}</span>`;
-      for(let wave=1;wave<=waves;wave+=1){ const value=Number((point.waveCounts||{})[wave]||0); content += `<i class="activity-cell" style="--heat:${activityHeatColor(value/max)}" title="#${h(pointNumber(point))} · wave ${wave} · ${fmt(value)}"></i>`; }
+      for(let wave=1;wave<=waves;wave+=1){ const value=Number((point.waveCounts||{})[wave]||0); const tooltip=`#${pointNumber(point)} · wave ${wave} · ${fmt(value)}`; content += `<i class="activity-cell" style="--heat:${activityHeatColor(value/max)}" data-tooltip="${h(tooltip)}"></i>`; }
     });
     const tickStep = Math.max(1, Math.floor((waves - 1) / 11));
     content += `<span class="activity-row-label" aria-hidden="true"></span>`;
