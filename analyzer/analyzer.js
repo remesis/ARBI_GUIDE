@@ -244,12 +244,16 @@
     const hasSpawnPoints = Object.values(run.spawnPoints || {}).some((point) => point.count > 0);
     const date = run.sourceDate instanceof Date && !Number.isNaN(run.sourceDate.valueOf())
       ? run.sourceDate.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "Local log";
+    const tier = globalThis.ArbitrationTierData?.findTier(run.node);
+    const tierBadge = tier
+      ? `<span class="tier-badge" style="--tier-rgb:${tier.color.join(",")}"${tier.subname ? ` data-tooltip="${h(tier.subname)}"` : ""}>${h(tier.name)}</span>`
+      : "";
 
     $("#reportRoot").innerHTML = `
       <header class="report-header">
         <img class="report-logo" src="../logo.webp" alt="Arbitration Goons logo" width="78" height="78">
         <div>
-          <div class="report-title-row"><h2 class="report-title">${h(run.node)}</h2></div>
+          <div class="report-title-row"><h2 class="report-title">${h(run.node)}</h2>${tierBadge}</div>
           <div class="report-badges">
             <span class="badge mission">${h(run.missionType)}</span><span class="badge">${h(run.planet)}</span>
             <span class="badge">${h(run.faction)}</span><span class="badge">${h(run.tileset)}</span>

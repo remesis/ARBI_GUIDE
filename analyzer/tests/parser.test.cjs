@@ -59,6 +59,55 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.doesNotMatch(serialized, /npc_types|wave_counts/i);
 });
 
+test("starts the run clock at the last early squad rejoin", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Alpha loadout loader finished.",
+    "0.3 Game [Info]: Beta loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at ClanNode6",
+    "1.1 Game [Info]: Level=/Lotus/Levels/Proc/Corpus/CorpusIcePlanetDefense/CPkY.lp",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Arbitration: Larzac (Europa) - Defense",
+    "7.0 Net [Info]: Player=Alpha, change=UNREGISTERED",
+    "8.0 Net [Info]: Player=Beta, change=UNREGISTERED",
+    "12.0 Game [Info]: Alpha loadout loader finished.",
+    "17.0 WaveDefend.lua: Defense wave: 1",
+    "18.0 Game [Info]: Beta loadout loader finished.",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    lines.push(`${(20 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+  lines.push("70.0 Created /Lotus/Interface/DefenseReward.swf");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.equal(run.openingRejoinTime, 18);
+  assert.equal(run.startTime, 18);
+  assert.equal(run.totalDuration, 52);
+});
+
+test("does not move the run clock for a late reconnect", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Alpha loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at ClanNode6",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Arbitration: Larzac (Europa) - Defense",
+    "3.0 WaveDefend.lua: Defense wave: 1",
+    "250.0 Net [Info]: Player=Alpha, change=UNREGISTERED",
+    "260.0 Game [Info]: Alpha loadout loader finished.",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    lines.push(`${(330 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+  lines.push("380.0 Created /Lotus/Interface/DefenseReward.swf");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.equal(run.openingRejoinTime, 0);
+  assert.equal(run.startTime, 3);
+});
+
 test("streaming parser ignores non-Arbitration mission noise", async () => {
   const lines = [
     "1.0 ThemedSquadOverlay.lua: Mission name: Kronia Relay (Saturn)",

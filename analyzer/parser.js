@@ -11,6 +11,8 @@
   const RETRIEVER_CHANCE = 0.18;
   const ROTATION_CHANCE = 0.10;
   const WAVES_PER_ROTATION = 3;
+  const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
+  const OPENING_REJOIN_ACTIVE_GRACE_SECONDS = 10;
   const FORCED_VALID_AGENTS = new Set(["CorpusEliteShieldDroneAgent"]);
   const EXCLUDED_AGENT = /Replicant|RJCrew|petavatar|VoidClone|Turret|Dropship|CatbrowPetAgent|AllyAgent|AutoTurretAgentShipRemaster|Summon\s*Motorcycle/i;
   const NON_MISSION_LEVEL = ["/proc/playership/", "/levels/hub/", "/levels/clandojo/", "/levels/railjack/"];
@@ -113,6 +115,8 @@
       squadmates: [],
       missionStart: 0,
       preciseStart: null,
+      openingRejoinTime: 0,
+      openingDepartures: [],
       lastActivity: 0,
       lastReward: 0,
       simCap: 32,
@@ -130,7 +134,8 @@
   }
 
   function startTime(run) {
-    return run.preciseStart || run.missionStart || run.droneTimestamps[0] || 0;
+    const base = run.preciseStart || run.missionStart || run.droneTimestamps[0] || 0;
+    return Math.max(base, run.openingRejoinTime || 0);
   }
 
   function endTime(run) {
@@ -211,8 +216,11 @@
         }
         return;
       }
-      if (hasPlayerJoin) this.playerJoin(line);
-      if (hasPlayerLeave) this.playerLeave(line);
+      const lineTimestamp = (hasPlayerJoin || hasPlayerLeave)
+        ? Number((line.match(P_TIMESTAMP) || [])[1]) || 0
+        : 0;
+      if (hasPlayerJoin) this.playerJoin(line, lineTimestamp);
+      if (hasPlayerLeave) this.playerLeave(line, lineTimestamp);
       if (!this.cur.isArbitration) return;
 
       const cur = this.cur;
@@ -401,12 +409,24 @@
       point.waveCounts[wave] = (point.waveCounts[wave] || 0) + 1;
     }
 
-    playerJoin(line) {
+    playerJoin(line, timestamp = 0) {
       const match = line.match(P_LOADOUT);
       if (!match) return;
       const name = cleanName(match[1]);
       if (!name) return;
       const cur = this.cur;
+      const departureIndex = cur.openingDepartures.indexOf(name);
+      const isOpeningRejoin = cur.isArbitration
+        && departureIndex >= 0
+        && timestamp >= cur.missionStart
+        && timestamp - cur.missionStart <= OPENING_REJOIN_WINDOW_SECONDS
+        && (cur.preciseStart === null || timestamp <= cur.preciseStart + OPENING_REJOIN_ACTIVE_GRACE_SECONDS);
+      if (departureIndex >= 0) {
+        cur.openingDepartures.splice(departureIndex, 1);
+      }
+      if (isOpeningRejoin) {
+        cur.openingRejoinTime = Math.max(cur.openingRejoinTime, timestamp);
+      }
       if (!cur.host) cur.host = name;
       else if (name !== cur.host) {
         if (!cur.inMission.includes(name)) cur.inMission.push(name);
@@ -414,11 +434,20 @@
       }
     }
 
-    playerLeave(line) {
+    playerLeave(line, timestamp = 0) {
       const match = line.match(P_UNREGISTERED);
       if (!match) return;
       const name = cleanName(match[1]);
-      if (name !== this.cur.host) this.cur.inMission = this.cur.inMission.filter((item) => item !== name);
+      const cur = this.cur;
+      if (name === cur.host) return;
+      const wasInOpeningSquad = cur.inMission.includes(name) || cur.squadmates.includes(name);
+      const isOpeningDeparture = cur.isArbitration
+        && wasInOpeningSquad
+        && timestamp >= cur.missionStart
+        && timestamp - cur.missionStart <= OPENING_REJOIN_WINDOW_SECONDS
+        && (cur.preciseStart === null || timestamp <= cur.preciseStart);
+      if (isOpeningDeparture && !cur.openingDepartures.includes(name)) cur.openingDepartures.push(name);
+      cur.inMission = cur.inMission.filter((item) => item !== name);
     }
 
     pushCurrent() {
@@ -507,7 +536,7 @@
     run.startTime = startTime(run);
     run.endTime = endTime(run);
     run.totalDuration = run.endTime > run.startTime ? run.endTime - run.startTime : 0;
-    const paused = run.pauseIntervals.reduce((sum, pair) => sum + Math.max(0, pair[1] - pair[0]), 0);
+    const paused = pauseSeconds(run, run.startTime, run.endTime);
     run.activeDuration = Math.max(0, run.totalDuration - paused);
     const node = ARBI_NODES[canonicalNode(run.nodeKey)];
     const fallbackName = run.missionName.split(/[\-(]/)[0].trim() || "Unknown Node";
