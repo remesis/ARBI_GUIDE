@@ -20,8 +20,9 @@
   const EXCLUDED_AGENT = /Replicant|RJCrew|petavatar|VoidClone|Turret|Dropship|CatbrowPetAgent|AllyAgent|AutoTurretAgentShipRemaster|Summon\s*Motorcycle/i;
   const NON_MISSION_LEVEL = ["/proc/playership/", "/levels/hub/", "/levels/clandojo/", "/levels/railjack/"];
 
-  // Stable log tokens are the primary identity. Display metadata is deliberately
-  // small and local; unknown nodes still parse and use the mission-name fallback.
+  // Stable log tokens are the primary identity. This catalog covers every
+  // Arbitration-capable star-chart node, independently from the curated tier
+  // list and the smaller set of nodes with custom 3D-viewer data.
   const ARBI_NODES = {
     SolNode25: ["Callisto", "Jupiter", "Interception", "Corpus", "Corpus Gas City"],
     ClanNode4: ["Sinai", "Jupiter", "Defense", "Infested", "Corpus Gas City"],
@@ -66,7 +67,60 @@
     SolNode85: ["Gaia", "Earth", "Interception", "Grineer", "Grineer Forest"],
     SolNode707: ["Hyf", "Deimos", "Defense", "Infested", "Deimos"],
     SolNode305: ["Stöfler", "Lua", "Defense", "Grineer", "Lua"],
+    ClanNode1: ["Malva", "Venus", "Survival", "Infested", "Corpus Ship"],
+    ClanNode3: ["Tikal", "Earth", "Excavation", "Infested", "Grineer Forest"],
+    ClanNode5: ["Cameria", "Jupiter", "Survival", "Infested", "Corpus Gas City"],
+    ClanNode7: ["Cholistan", "Europa", "Excavation", "Infested", "Corpus Ice Planet"],
+    ClanNode9: ["Wahiba", "Mars", "Survival", "Infested", "Corpus Ship"],
+    ClanNode10: ["Memphis", "Phobos", "Defection", "Infested", "Grineer Asteroid"],
+    ClanNode11: ["Zeugma", "Phobos", "Survival", "Infested", "Grineer Asteroid"],
+    ClanNode12: ["Caracol", "Saturn", "Defection", "Infested", "Grineer Asteroid"],
+    ClanNode13: ["Piscinas", "Saturn", "Survival", "Infested", "Grineer Asteroid"],
+    ClanNode14: ["Amarna", "Sedna", "Survival", "Infested", "Grineer Asteroid"],
+    ClanNode16: ["Ur", "Uranus", "Disruption", "Infested", "Grineer Galleon"],
+    ClanNode17: ["Assur", "Uranus", "Survival", "Infested", "Grineer Galleon"],
+    ClanNode19: ["Zabala", "Eris", "Survival", "Infested", "Infested Ship"],
+    ClanNode20: ["Yursa", "Neptune", "Defection", "Infested", "Infested Ship"],
+    ClanNode21: ["Kelashin", "Neptune", "Survival", "Infested", "Infested Ship"],
+    ClanNode23: ["Gabii", "Ceres", "Survival", "Infested", "Grineer Galleon"],
+    ClanNode25: ["Hieracon", "Pluto", "Excavation", "Infested", "Corpus Outpost"],
+    SettlementNode3: ["Stickney", "Phobos", "Survival", "Corpus", "Corpus Ship"],
+    SolNode6: ["Despina", "Neptune", "Excavation", "Corpus", "Corpus Outpost"],
+    SolNode16: ["Augustus", "Mars", "Excavation", "Grineer", "Grineer Settlement"],
+    SolNode30: ["Olympus", "Mars", "Disruption", "Grineer", "Grineer Settlement"],
+    SolNode39: ["Everest", "Earth", "Excavation", "Grineer", "Grineer Forest"],
+    SolNode69: ["Ophelia", "Uranus", "Survival", "Grineer", "Grineer Sealab"],
+    SolNode81: ["Palus", "Pluto", "Survival", "Corpus", "Corpus Ship"],
+    SolNode87: ["Ganymede", "Jupiter", "Disruption", "Corpus", "Corpus Gas City"],
+    SolNode94: ["Apollodorus", "Mercury", "Survival", "Infested", "Grineer Galleon"],
+    SolNode96: ["Titan", "Saturn", "Survival", "Grineer", "Grineer Galleon"],
+    SolNode100: ["Elara", "Jupiter", "Survival", "Corpus", "Corpus Gas City"],
+    SolNode101: ["Kiliken", "Venus", "Excavation", "Corpus", "Corpus Outpost"],
+    SolNode118: ["Laomedeia", "Neptune", "Disruption", "Corpus", "Corpus Outpost"],
+    SolNode123: ["V Prime", "Venus", "Survival", "Corpus", "Corpus Ship"],
+    SolNode146: ["Draco", "Ceres", "Survival", "Grineer", "Grineer Asteroid"],
+    SolNode166: ["Nimus", "Eris", "Survival", "Infested", "Infested Ship"],
+    SolNode177: ["Kappa", "Sedna", "Disruption", "Grineer", "Grineer Galleon"],
+    SolNode187: ["Selkie", "Sedna", "Survival", "Grineer", "Grineer Asteroid"],
+    SolNode216: ["Valefor", "Europa", "Excavation", "Corpus", "Corpus Ice Planet"],
+    SolNode302: ["Tycho", "Lua", "Survival", "Corpus", "Orokin Moon"],
+    SolNode308: ["Apollo", "Lua", "Disruption", "Corpus", "Orokin Moon"],
+    SolNode309: ["Yuvarium", "Lua", "Survival", "Corrupted", "Orokin Moon"],
+    SolNode405: ["Ani", "Void", "Survival", "Orokin", "Orokin Tower"],
+    SolNode409: ["Mot", "Void", "Survival", "Orokin", "Orokin Tower"],
+    SolNode711: ["Terrorem", "Deimos", "Survival", "Infested", "Orokin Derelict"],
+    SolNode744: ["Taveuni", "Kuva Fortress", "Survival", "Grineer", "Grineer Asteroid Fortress"],
+    SolNode745: ["Tamu", "Kuva Fortress", "Disruption", "Grineer", "Grineer Asteroid Fortress"],
   };
+
+  // Mission classification is intentionally broader than the curated tier
+  // list and the 3D-viewer catalog above. Every Arbitration-capable star-chart
+  // node needs its real endless mission type even when it has no tier badge or
+  // custom tile metadata. Keep this keyed by the stable SolNode token emitted
+  // by EE.log; never infer an unrecognized endless mode as Survival.
+  const MISSION_TYPE_BY_NODE = Object.freeze(
+    Object.fromEntries(Object.entries(ARBI_NODES).map(([token, info]) => [token, info[2]]))
+  );
 
   const NODE_BY_NAME = Object.fromEntries(
     Object.entries(ARBI_NODES).map(([token, info]) => [info[0].toLocaleLowerCase(), token])
@@ -484,7 +538,7 @@
   }
 
   function canonicalNode(token) {
-    const found = Object.keys(ARBI_NODES).find((key) => key.toLocaleLowerCase() === String(token || "").toLocaleLowerCase());
+    const found = Object.keys(MISSION_TYPE_BY_NODE).find((key) => key.toLocaleLowerCase() === String(token || "").toLocaleLowerCase());
     return found || token || "";
   }
 
@@ -553,13 +607,17 @@
     run.totalDuration = run.endTime > run.startTime ? run.endTime - run.startTime : 0;
     const paused = pauseSeconds(run, run.startTime, run.endTime);
     run.activeDuration = Math.max(0, run.totalDuration - paused);
-    const node = ARBI_NODES[canonicalNode(run.nodeKey)];
+    const nodeKey = canonicalNode(run.nodeKey);
+    const node = ARBI_NODES[nodeKey];
     const fallbackName = run.missionName.split(/[\-(]/)[0].trim() || "Unknown Node";
     run.node = node ? node[0] : fallbackName;
     run.planet = node ? node[1] : ((run.missionName.match(/\(([^)]+)\)/) || [])[1] || "Unknown");
-    run.missionType = Object.keys(run.waveStarts).length || run.isDefense ? "DEFENSE" : (run.isInterception ? "INTERCEPTION" : "SURVIVAL");
-    if (node && node[2] === "Mirror Defense") run.missionType = "MIRROR DEFENSE";
-    if (node && node[2] === "Infested Salvage") run.missionType = "INFESTED SALVAGE";
+    const catalogMissionType = MISSION_TYPE_BY_NODE[nodeKey];
+    run.missionType = catalogMissionType
+      ? catalogMissionType.toLocaleUpperCase()
+      : (Object.keys(run.waveStarts).length || run.isDefense
+        ? "DEFENSE"
+        : (run.isInterception ? "INTERCEPTION" : "UNKNOWN"));
     run.faction = node ? node[3] : "Unknown";
     run.tileset = node ? node[4] : tileFromPath(run.levelPath);
     const wavePhases = calculateWavePhases(run);
@@ -998,6 +1056,7 @@
 
   return {
     ARBI_NODES,
+    MISSION_TYPE_BY_NODE,
     Parser,
     parseText,
     parseFile,

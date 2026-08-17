@@ -59,6 +59,31 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.doesNotMatch(serialized, /npc_types|wave_counts/i);
 });
 
+test("classifies unranked Survival and Disruption nodes from stable SolNode metadata", () => {
+  const lines = [];
+  addRun(lines, {
+    offset: 1,
+    node: "SolNode100",
+    name: "Elara (Jupiter) - Arbitration",
+    level: "/Lotus/Levels/Proc/Corpus/CorpusGasCity/CorpusGasCitySurvival.level",
+    defense: false,
+  });
+  addRun(lines, {
+    offset: 100,
+    node: "SolNode30",
+    name: "Olympus (Mars) - Arbitration",
+    level: "/Lotus/Levels/Proc/Grineer/GrineerSettlement/GrineerSettlementDisruption.level",
+    defense: false,
+  });
+
+  const runs = Parser.parseText(lines.join("\n"));
+  assert.equal(runs.length, 2);
+  assert.equal(runs[0].node, "Elara");
+  assert.equal(runs[0].missionType, "SURVIVAL");
+  assert.equal(runs[1].node, "Olympus");
+  assert.equal(runs[1].missionType, "DISRUPTION");
+});
+
 test("starts the run clock at the last early squad rejoin", () => {
   const lines = [
     "0.1 Game [Info]: Host loadout loader finished.",
