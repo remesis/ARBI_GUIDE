@@ -181,6 +181,35 @@ test("matches each Defense wave to one end marker", () => {
   ]);
 });
 
+test("excludes the extraction-vote transition from every third Defense wave", () => {
+  const phases = Parser.helpers.calculateWavePhases({
+    waveStarts: { 1: 10, 2: 30, 3: 50, 4: 90 },
+    waveEnds: [20, 40, 80, 100],
+    waveCountdowns: [75],
+    lastReward: 75,
+  });
+  assert.deepEqual(phases, [
+    { label: 1, from: 10, to: 20, seconds: 10 },
+    { label: 2, from: 30, to: 40, seconds: 10 },
+    { label: 3, from: 50, to: 70, seconds: 20 },
+    { label: 4, from: 90, to: 100, seconds: 10 },
+  ]);
+});
+
+test("excludes reward-screen pauses from rotation clear times", () => {
+  const phases = Parser.helpers.calculateRotationPhases({
+    preciseStart: 10,
+    missionStart: 10,
+    openingRejoinTime: 0,
+    rewardTimestamps: [100, 200],
+    pauseIntervals: [[100, 120]],
+  });
+  assert.deepEqual(phases, [
+    { label: 1, from: 10, to: 100, seconds: 90 },
+    { label: 2, from: 100, to: 200, seconds: 80 },
+  ]);
+});
+
 test("accepts warning-prefixed Defense wave end timestamps", () => {
   const lines = [
     "1.0 Game [Info]: EliteAlertMission at ClanNode6",

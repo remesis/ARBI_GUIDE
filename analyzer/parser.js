@@ -11,6 +11,10 @@
   const RETRIEVER_CHANCE = 0.18;
   const ROTATION_CHANCE = 0.10;
   const WAVES_PER_ROTATION = 3;
+  // Defense opens its extraction vote after a deterministic five-second
+  // post-wave transition. EE.log keeps emitting the vote-screen marker even
+  // after the one-time completion/transmission asset markers are cached.
+  const DEFENSE_VOTE_TRANSITION_SECONDS = 5;
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
   const FORCED_VALID_AGENTS = new Set(["CorpusEliteShieldDroneAgent"]);
   const EXCLUDED_AGENT = /Replicant|RJCrew|petavatar|VoidClone|Turret|Dropship|CatbrowPetAgent|AllyAgent|AutoTurretAgentShipRemaster|Summon\s*Motorcycle/i;
@@ -84,7 +88,7 @@
   const P_AI_AGENT_INIT = /^!?(\d+\.\d+).*AI Agent Initialize\s+\/Npc\/([A-Za-z0-9_]+?)\d*\s+at NpcAiDirector\s+(\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+)/i;
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Mission name:|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|Starting wave|Defense wave:|TerritoryMission\.lua|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Mission name:|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|TerritoryMission\.lua|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -107,6 +111,7 @@
       enemyTimestamps: [],
       waveStarts: {},
       waveEnds: [],
+      waveCountdowns: [],
       liveCounts: [],
       pauseIntervals: [],
       spawnPoints: {},
@@ -196,13 +201,14 @@
       const hasLevel = line.includes("Game [Info]: Level=");
       const hasSleep = line.includes("WaveDefend.lua: _SleepBetweenWaves");
       const hasReward = line.includes("Created /Lotus/Interface/DefenseReward.swf");
+      const hasCountdown = line.includes("Created /Lotus/Interface/ProjectionsCountdown.swf");
       const hasWaveStart = line.includes("WaveDefend.lua: Starting wave");
       const hasWaveDef = line.includes("WaveDefend.lua: Defense wave:");
       const hasTerritory = line.includes("TerritoryMission.lua");
       const hasPlayerJoin = line.includes("loadout loader finished");
       const hasPlayerLeave = line.includes("change=UNREGISTERED");
       const hasLiveCount = line.includes("MonitoredTicking") || (line.includes("AI [Info]:") && line.includes("Live "));
-      if (!(hasAgent || hasMission || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasWaveStart || hasWaveDef || hasTerritory || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
+      if (!(hasAgent || hasMission || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasTerritory || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
 
       if (hasMission) {
         const match = line.match(P_MISSION);
@@ -324,6 +330,7 @@
         cur.lastActivity = Math.max(cur.lastActivity, ts);
       }
       if (hasSleep && line.includes("_SleepBetweenWaves(3)") && ts) cur.waveEnds.push(ts);
+      if (hasCountdown && ts) cur.waveCountdowns.push(ts);
     }
 
     startMission(raw, ts) {
@@ -586,17 +593,35 @@
   function calculateWavePhases(run) {
     const waves = Object.keys(run.waveStarts).map(Number).sort((a, b) => a - b);
     const ends = [...run.waveEnds].sort((a, b) => a - b);
+    const countdowns = [...(run.waveCountdowns || [])].sort((a, b) => a - b);
     const result = [];
     let endIndex = 0;
+    let countdownIndex = 0;
     waves.forEach((wave, index) => {
       const from = run.waveStarts[wave];
       const nextStart = index + 1 < waves.length ? run.waveStarts[waves[index + 1]] : null;
       while (endIndex < ends.length && ends[endIndex] <= from) endIndex += 1;
-      const candidate = ends[endIndex];
-      let to = Number.isFinite(candidate) && (!Number.isFinite(nextStart) || candidate < nextStart)
-        ? candidate
-        : null;
-      if (Number.isFinite(to)) endIndex += 1;
+      while (countdownIndex < countdowns.length && countdowns[countdownIndex] <= from) countdownIndex += 1;
+      let to = null;
+
+      // Every third Defense wave opens the extraction vote. The later sleep
+      // marker occurs after players answer it, so anchor the fight end to the
+      // logged vote event minus the game's scripted post-wave transition.
+      if (wave % WAVES_PER_ROTATION === 0) {
+        const countdown = countdowns[countdownIndex];
+        if (Number.isFinite(countdown) && (!Number.isFinite(nextStart) || countdown < nextStart)) {
+          to = Math.max(from, countdown - DEFENSE_VOTE_TRANSITION_SECONDS);
+          countdownIndex += 1;
+        }
+      }
+
+      if (!Number.isFinite(to)) {
+        const candidate = ends[endIndex];
+        to = Number.isFinite(candidate) && (!Number.isFinite(nextStart) || candidate < nextStart)
+          ? candidate
+          : null;
+        if (Number.isFinite(to)) endIndex += 1;
+      }
       if (!Number.isFinite(to) && Number.isFinite(nextStart)) to = nextStart;
       if (!Number.isFinite(to) && run.lastReward > from) to = run.lastReward;
       if (Number.isFinite(to)) result.push({ label: wave, from, to, seconds: Math.max(0, to - from) });
@@ -614,7 +639,8 @@
     return run.rewardTimestamps.map((timestamp, index) => {
       const from = previous;
       previous = timestamp;
-      return { label: index + 1, from, to: timestamp, seconds: Math.max(0, timestamp - from) };
+      const downtime = pauseSeconds(run, from, timestamp);
+      return { label: index + 1, from, to: timestamp, seconds: Math.max(0, timestamp - from - downtime) };
     });
   }
 
@@ -986,6 +1012,7 @@
       calculateRangeSaturation,
       calculateRangeOccupancy,
       calculateWavePhases,
+      calculateRotationPhases,
       longestGaps,
       tileFromPath,
     },
