@@ -154,10 +154,9 @@
 
   function rotationHeatColor(intensity) {
     const t = clamp(Number(intensity || 0), 0, 1);
-    const low = [156, 163, 175];
-    const high = [0, 230, 118];
-    const rgb = low.map((channel, index) => Math.round(channel + (high[index] - channel) * t));
-    return { color: `rgb(${rgb.join(",")})`, ink: "#121212" };
+    const saturation = 12 + 63 * t;
+    const lightness = 44 + 8 * t;
+    return { color: `hsl(150,${saturation.toFixed(1)}%,${lightness.toFixed(1)}%)`, ink: "#121212" };
   }
 
   function spawnBubbleHeatColor(intensity) {

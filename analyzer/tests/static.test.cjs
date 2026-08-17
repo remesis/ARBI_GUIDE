@@ -176,7 +176,9 @@ test("analyzer uses the full composition list and green performance scale", () =
   assert.match(js, /`hsl\(\$\{hue\},100%,50%\)`/);
   assert.match(js, /return \{ color: `hsl\(\$\{hue\},100%,50%\)`, ink: "#121212" \}/);
   assert.match(js, /function rotationHeatColor/);
-  assert.match(js, /const low = \[156, 163, 175\]/);
+  assert.match(js, /const saturation = 12 \+ 63 \* t/);
+  assert.match(js, /const lightness = 44 \+ 8 \* t/);
+  assert.match(js, /`hsl\(150,\$\{saturation\.toFixed\(1\)\}%,\$\{lightness\.toFixed\(1\)\}%\)`/);
   assert.match(js, /const heat=rotationHeatColor\(\(value-low\)\/Math\.max\(1,high-low\)\)/);
   assert.match(js, /phase\.defense\s*\? Number\(item\.seconds <= threshold\)/);
   assert.match(css, /--good:\s*#00e676/);
