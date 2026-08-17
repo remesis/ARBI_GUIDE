@@ -152,6 +152,14 @@
     return `rgb(${rgb.join(",")})`;
   }
 
+  function rotationHeatColor(intensity) {
+    const t = clamp(Number(intensity || 0), 0, 1);
+    const low = [156, 163, 175];
+    const high = [0, 230, 118];
+    const rgb = low.map((channel, index) => Math.round(channel + (high[index] - channel) * t));
+    return { color: `rgb(${rgb.join(",")})`, ink: "#121212" };
+  }
+
   function spawnBubbleHeatColor(intensity) {
     const t = clamp(Number(intensity || 0), 0, 1);
     const hue = performanceHue(t);
@@ -466,7 +474,7 @@
     const values = run.dronesPerRotation || [];
     if (!values.length) return `<section class="card"><h3 class="card-title">Drones per rotation</h3><p class="card-subtitle">No complete rotations found.</p></section>`;
     const low = Math.min(...values), high = Math.max(...values);
-    return `<section class="card"><h3 class="card-title">Drones per rotation</h3><p class="card-subtitle">Greener is a stronger rotation.</p><div class="heat-map" style="--heat-cols:${Math.min(4, values.length)};--mobile-heat-cols:${Math.min(4,values.length)}">${values.map((value, index) => { const heat=heatColor((value-low)/Math.max(1,high-low)); const tooltip=`Rotation ${index+1}: ${fmt(value)} drones`; return `<div class="heat-cell" data-tooltip="${h(tooltip)}" aria-label="${h(tooltip)}" style="--heat:${heat.color};--ink:${heat.ink}">${fmt(value)}</div>`; }).join("")}</div><div class="heat-legend"><span>low ${fmt(low)}</span><span>avg ${fmt(avg(values),1)}</span><span>high ${fmt(high)}</span></div></section>`;
+    return `<section class="card"><h3 class="card-title">Drones per rotation</h3><p class="card-subtitle">Greener is a stronger rotation.</p><div class="heat-map" style="--heat-cols:${Math.min(4, values.length)};--mobile-heat-cols:${Math.min(4,values.length)}">${values.map((value, index) => { const heat=rotationHeatColor((value-low)/Math.max(1,high-low)); const tooltip=`Rotation ${index+1}: ${fmt(value)} drones`; return `<div class="heat-cell" data-tooltip="${h(tooltip)}" aria-label="${h(tooltip)}" style="--heat:${heat.color};--ink:${heat.ink}">${fmt(value)}</div>`; }).join("")}</div><div class="heat-legend"><span>low ${fmt(low)}</span><span>avg ${fmt(avg(values),1)}</span><span>high ${fmt(high)}</span></div></section>`;
   }
 
   function renderVitus(run) {
