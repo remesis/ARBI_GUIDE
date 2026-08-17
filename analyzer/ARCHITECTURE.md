@@ -16,6 +16,13 @@ browser. The Pages bundle never uploads an `EE.log` or arbitrary log lines.
    `arbi-solnode-spawns/v1` and submitted to `POST /api/analyzer/spawns` only on
    the canonical `arbi.guide` host.
 
+For Survival, the parser anchors active time to `Survival: Starting survival`,
+uses the one-per-cycle `Survival: Gave reward tier` mission event for reward
+boundaries, and ends the run at `EOM: All players extracting`. The frequently
+created `SurvivalReward.swf` UI asset is deliberately ignored because it is not
+a reward-cycle marker. Live enemy counters are retained for every Arbitration
+mode so Survival saturation is measurable even without wave events.
+
 The exact submitted fields are:
 
 - schema version;

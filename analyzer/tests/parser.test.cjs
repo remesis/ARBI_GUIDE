@@ -84,6 +84,41 @@ test("classifies unranked Survival and Disruption nodes from stable SolNode meta
   assert.equal(runs[1].missionType, "DISRUPTION");
 });
 
+test("uses Survival mission events for active timing, reward cycles, extraction, and saturation", () => {
+  const lines = [
+    "1.0 Game [Info]: EliteAlertMission at ClanNode23",
+    "1.1 Game [Info]: Level=/Lotus/Levels/Proc/Grineer/GrineerGalleonSurvivalRaid/Test.lp",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Gabii (Ceres) - Arbitration",
+    "10.0 Script [Info]: SurvivalMission.lua: Survival: Starting survival",
+  ];
+  for (let index = 0; index < 48; index += 1) {
+    const time = 11 + index * 2;
+    const npc = index < 7 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    const monitored = index < 24 ? 9 : 18;
+    lines.push(`${time.toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} Live ${monitored + 5} Spawned ${index + 1} Ticking ${monitored} Paused 0 IgnoredTicking 0 MonitoredTicking ${monitored}`);
+  }
+  lines.push("70.0 Sys [Info]: Created /Lotus/Interface/SurvivalReward.swf");
+  lines.push("70.1 Script [Info]: SurvivalMission.lua: Survival: Gave reward tier 1 at 300.1");
+  lines.push("130.1 Script [Info]: SurvivalMission.lua: Survival: Gave reward tier 2 at 600.1");
+  lines.push("140.0 Script [Info]: ExtractionTimer.lua: EOM: All players extracting");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.equal(run.missionType, "SURVIVAL");
+  assert.equal(run.startTime, 10);
+  assert.equal(run.endTime, 140);
+  assert.equal(run.totalDuration, 130);
+  assert.equal(run.rotations, 2);
+  assert.deepEqual(run.rewardTimestamps, [70.1, 130.1]);
+  assert.ok(Math.abs(run.rotationDurations[0] - 60.1) < .0001);
+  assert.equal(run.rotationDurations[1], 60);
+  assert.equal(run.dronesPerRotation.length, 2);
+  assert.equal(run.dpmPerRotation.length, 2);
+  assert.equal(run.liveCounts.length, 48);
+  assert.ok(run.saturation.abovePercent > 0);
+  assert.ok(run.saturationPerRotation.every(Number.isFinite));
+});
+
 test("starts the run clock at the last early squad rejoin", () => {
   const lines = [
     "0.1 Game [Info]: Host loadout loader finished.",

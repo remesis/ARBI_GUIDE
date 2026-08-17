@@ -142,7 +142,7 @@
   const P_AI_AGENT_INIT = /^!?(\d+\.\d+).*AI Agent Initialize\s+\/Npc\/([A-Za-z0-9_]+?)\d*\s+at NpcAiDirector\s+(\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+)/i;
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Mission name:|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|TerritoryMission\.lua|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Mission name:|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -173,6 +173,7 @@
       squadmates: [],
       missionStart: 0,
       preciseStart: null,
+      extractionTime: 0,
       openingRejoinTime: 0,
       openingDepartures: [],
       lastActivity: 0,
@@ -206,6 +207,7 @@
   }
 
   function endTime(run) {
+    if (run.extractionTime > 0) return run.extractionTime;
     return Math.max(run.lastActivity || 0, run.lastReward || 0);
   }
 
@@ -259,10 +261,13 @@
       const hasWaveStart = line.includes("WaveDefend.lua: Starting wave");
       const hasWaveDef = line.includes("WaveDefend.lua: Defense wave:");
       const hasTerritory = line.includes("TerritoryMission.lua");
+      const hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival");
+      const hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier");
+      const hasExtraction = line.includes("ExtractionTimer.lua: EOM: All players extracting");
       const hasPlayerJoin = line.includes("loadout loader finished");
       const hasPlayerLeave = line.includes("change=UNREGISTERED");
       const hasLiveCount = line.includes("MonitoredTicking") || (line.includes("AI [Info]:") && line.includes("Live "));
-      if (!(hasAgent || hasMission || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasTerritory || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
+      if (!(hasAgent || hasMission || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
 
       if (hasMission) {
         const match = line.match(P_MISSION);
@@ -299,7 +304,7 @@
       }
 
       if (hasAgent) {
-        if (ts && (cur.isDefense || cur.isInterception)) {
+        if (ts) {
           const mon = line.match(P_MONITORED);
           if (mon) cur.liveCounts.push([ts, Number(mon[1]), cur.simCap]);
         }
@@ -319,6 +324,35 @@
         } else {
           const npc = line.match(P_NPC);
           cur.allSpawns.push({ name: npc ? this.intern(npc[1].trim()) : null, tick: null, timestamp: ts });
+        }
+        return;
+      }
+
+      if (hasSurvivalStart) {
+        if (ts) {
+          cur.preciseStart = ts;
+          cur.lastActivity = Math.max(cur.lastActivity, ts);
+        }
+        return;
+      }
+
+      // SurvivalReward.swf is created repeatedly during normal play and is not
+      // a rotation boundary. The mission-script line below is emitted once for
+      // each completed five-minute reward cycle.
+      if (hasSurvivalReward) {
+        if (ts && ts - cur.lastReward > 30) {
+          cur.rounds += 1;
+          cur.lastReward = ts;
+          cur.rewardTimestamps.push(ts);
+          cur.lastActivity = Math.max(cur.lastActivity, ts);
+        }
+        return;
+      }
+
+      if (hasExtraction) {
+        if (ts) {
+          cur.extractionTime = ts;
+          cur.lastActivity = Math.max(cur.lastActivity, ts);
         }
         return;
       }
@@ -370,7 +404,7 @@
         if (cap) cur.simCap = Number(cap[1]);
       }
 
-      if (ts && (cur.isDefense || cur.isInterception)) {
+      if (ts) {
         let monitored = null;
         if (line.includes("MonitoredTicking")) monitored = line.match(P_MONITORED);
         else if (line.includes("AI [Info]:") && line.includes("Live ")) monitored = line.match(P_LIVE);
