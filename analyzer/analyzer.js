@@ -496,11 +496,21 @@
   }
 
   function analyzerSpawnPoints(run) {
-    const floorFilter = (MINIMAPS[run.nodeKey] || [])
-      .map((config) => config.floorFilter)
-      .find(Boolean);
-    return Object.values(run.spawnPoints || {})
-      .filter((point) => point.count > 0)
+    const floorConfig = (MINIMAPS[run.nodeKey] || [])
+      .find((config) => config.floorFilter);
+    const floorFilter = floorConfig?.floorFilter;
+    let points = Object.values(run.spawnPoints || {})
+      .filter((point) => point.count > 0);
+    if (Number.isFinite(floorFilter?.minWave)) {
+      points = points.map((point) => {
+        const waveCounts = Object.fromEntries(Object.entries(point.waveCounts || {})
+          .filter(([wave]) => Number(wave) >= floorFilter.minWave));
+        return { ...point, waveCounts, count: sum(Object.values(waveCounts)) };
+      }).filter((point) => point.count > 0);
+      const aligned = SpawnAlignment.matchingSubset(points, floorConfig);
+      points = aligned.matches.map(({ point }) => point);
+    } else {
+      points = points
       .filter((point) => {
         if (!floorFilter) return true;
         const y = Number(point.y);
@@ -508,8 +518,9 @@
         if (Number.isFinite(floorFilter.minY) && y < floorFilter.minY) return false;
         if (Number.isFinite(floorFilter.maxY) && y > floorFilter.maxY) return false;
         return true;
-      })
-      .sort((a,b) => b.count-a.count);
+      });
+    }
+    return points.sort((a,b) => b.count-a.count);
   }
 
   function renderMinimap(run, points) {

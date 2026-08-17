@@ -99,6 +99,73 @@
     return best?.matches || [];
   }
 
+  function evaluateSubsetTransform(points, reference, transform, offset, tolerance) {
+    const used = new Set();
+    const matches = [];
+    let error = 0;
+    for (const point of points) {
+      const [flatX, flatZ] = transform(point);
+      const mapped = [flatX + offset[0], point.y + offset[1], flatZ + offset[2]];
+      const match = reference
+        .filter((candidate) => !used.has(`${candidate.id}:${candidate.index}`))
+        .map((candidate) => ({ candidate, distance: distance(mapped, candidate.position) }))
+        .sort((left, right) => left.distance - right.distance)[0];
+      if (!match || match.distance > tolerance) continue;
+      used.add(`${match.candidate.id}:${match.candidate.index}`);
+      error += match.distance;
+      matches.push({ point, position: match.candidate.position });
+    }
+    return { matches, error };
+  }
+
+  // Some multi-stage Defense maps retain spawn records from earlier arenas in
+  // the same run. Find the coordinate-consistent subset for a floor-specific
+  // minimap instead of trusting an absolute world height, since procedural
+  // compositions may translate the whole tile vertically.
+  function matchingSubset(points, config, tolerance = .25) {
+    if (!points.length || !config?.spawnPoints) return { mode: "none", matches: [] };
+    const reference = referencePoints(config);
+    if (!reference.length) return { mode: "none", matches: [] };
+    let best = null;
+    const binSize = .05;
+
+    for (const transform of PLANAR_TRANSFORMS) {
+      const bins = new Map();
+      for (const point of points) {
+        const [flatX, flatZ] = transform(point);
+        for (const candidate of reference) {
+          const offset = [
+            candidate.position[0] - flatX,
+            candidate.position[1] - point.y,
+            candidate.position[2] - flatZ,
+          ];
+          const key = offset.map((value) => Math.round(value / binSize)).join(",");
+          const bin = bins.get(key) || { count: 0, sums: [0, 0, 0] };
+          bin.count += 1;
+          bin.sums[0] += offset[0];
+          bin.sums[1] += offset[1];
+          bin.sums[2] += offset[2];
+          bins.set(key, bin);
+        }
+      }
+
+      const candidates = [...bins.values()]
+        .sort((left, right) => right.count - left.count)
+        .slice(0, 32);
+      for (const candidate of candidates) {
+        const offset = candidate.sums.map((sum) => sum / candidate.count);
+        const result = evaluateSubsetTransform(points, reference, transform, offset, tolerance);
+        if (result.matches.length < 4) continue;
+        if (!best
+          || result.matches.length > best.matches.length
+          || (result.matches.length === best.matches.length && result.error < best.error)) {
+          best = result;
+        }
+      }
+    }
+    return best ? { mode: "subset", matches: best.matches } : { mode: "none", matches: [] };
+  }
+
   function verifySpawnPositions(points, config, tolerance = .25) {
     if (!points.length || !config?.spawnPoints) return { mode: "none", matches: [] };
     const direct = directMatches(points, config, tolerance);
@@ -108,5 +175,5 @@
     return { mode: "none", matches: [] };
   }
 
-  return { verifySpawnPositions };
+  return { verifySpawnPositions, matchingSubset };
 });

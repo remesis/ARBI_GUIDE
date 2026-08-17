@@ -40,3 +40,15 @@ test("withholds a procedural overlay when any point does not fit the tile", () =
   assert.equal(result.mode, "none");
   assert.deepEqual(result.matches, []);
 });
+
+test("finds a floor-specific subset inside a translated multi-floor run", () => {
+  const bottom = referencePositions.map(proceduralPoint);
+  const upper = [
+    { ident: "NpcSpawnPoint90", x: 400, y: 100, z: 400 },
+    { ident: "NpcSpawnPoint91", x: 410, y: 110, z: 410 },
+  ];
+  const result = Alignment.matchingSubset([...upper, ...bottom], config);
+  assert.equal(result.mode, "subset");
+  assert.equal(result.matches.length, bottom.length);
+  assert.deepEqual(result.matches.map((match) => match.position), referencePositions);
+});

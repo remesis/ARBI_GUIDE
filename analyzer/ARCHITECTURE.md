@@ -84,10 +84,13 @@ image_x = a * world_x + b * world_z + c
 image_y = d * world_x + e * world_z + f
 ```
 
-The Analyzer requires every logged spawn-point ID and XYZ position to match the
+The Analyzer requires every displayed spawn-point XYZ position to match the
 selected tile catalog before drawing bubbles. If one coordinate-bearing point
 does not match, the full overlay is withheld rather than drawn on a potentially
-wrong variation. Rebuild map assets with
+wrong variation. Multi-floor Defense tiles first select the configured mission
+phase and then retain only the coordinate-consistent subset for the displayed
+floor; this handles procedural world offsets without leaking other floors into
+the overlay. Rebuild map assets with
 `python analyzer/tools/build_game_minimaps.py` from the repository root after
 tile data changes.
 

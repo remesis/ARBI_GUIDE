@@ -219,14 +219,17 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   assert.deepEqual(Array.from(bundle.nodes.SolNode305), ["stofler"]);
   assert.equal(bundle.catalog.stofler.floorFilter.label, "bottom");
   assert.equal(bundle.catalog.stofler.floorFilter.maxY, -50);
+  assert.equal(bundle.catalog.stofler.floorFilter.minWave, 7);
   assert.equal(Object.keys(bundle.catalog.stofler.spawnPoints).length, 66);
   assert.match(bundle.catalog.stofler.src, /bottom-floor-20260816/);
   assert.equal(bundle.nodes.SolNode85.length, 2);
 });
 
-test("Stofler spawn analysis applies the minimap floor filter before every spawn-data card", () => {
+test("Stofler spawn analysis keeps wave 7+ points that align to the bottom-floor minimap", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /function analyzerSpawnPoints\(run\)/);
-  assert.match(js, /Number\.isFinite\(floorFilter\.maxY\) && y > floorFilter\.maxY/);
+  assert.match(js, /Number\.isFinite\(floorFilter\?\.minWave\)/);
+  assert.match(js, /Number\(wave\) >= floorFilter\.minWave/);
+  assert.match(js, /SpawnAlignment\.matchingSubset\(points, floorConfig\)/);
   assert.match(js, /function renderSpawnColumn\(run\) \{\s*const points = analyzerSpawnPoints\(run\);/);
 });

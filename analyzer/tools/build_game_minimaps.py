@@ -160,7 +160,15 @@ def display_overlay(group_id: str, overlay: dict) -> dict:
         item for item in overlay.get("objective", [])
         if float(item.get("y", 0.0)) <= STOFLER_BOTTOM_MAX_Y
     ]
-    result["floorFilter"] = {"label": "bottom", "maxY": STOFLER_BOTTOM_MAX_Y}
+    result["floorFilter"] = {
+        "label": "bottom",
+        "maxY": STOFLER_BOTTOM_MAX_Y,
+        # Stofler reaches its permanent bottom arena after the two introductory
+        # three-wave floors. The browser uses this phase boundary before doing
+        # coordinate alignment because procedural compositions can translate
+        # the canonical floor height.
+        "minWave": 7,
+    }
     return result
 
 
