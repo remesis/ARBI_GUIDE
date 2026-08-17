@@ -427,13 +427,22 @@
     const actual = Number(run.actualVitus);
     let nearest = result.scenarios[3];
     if (Number.isFinite(actual) && actual > 0) nearest = [...result.scenarios].sort((a,b) => Math.abs(a.total-actual)-Math.abs(b.total-actual))[0];
-    return `<section class="card vitus-card"><h3 class="card-title">Expected Vitus</h3><p class="card-subtitle">100% pickup, all buffs, Resourceful Retriever on.</p><div class="highlight-panel vitus-entry-panel"><div class="vitus-entry-group"><span class="vitus-entry-label">Actual Vitus</span><input id="actualVitusInput" class="vitus-input" type="number" min="0" placeholder="enter" value="${h(run.actualVitus || "")}"></div><div id="vitusLuck" class="vitus-luck"><strong>${h(nearest.label)}</strong><div class="mini">expected ${fmt(result.mean)}</div></div></div><table class="vitus-table"><thead><tr><th>CHANCE</th><th>TOTAL</th><th>LUCK LEVEL</th></tr></thead><tbody>${result.scenarios.map((scenario) => `<tr class="${scenario === nearest ? "active" : ""}"><td>${scenario.chance}</td><td><strong>${fmt(scenario.total)}</strong></td><td>${h(scenario.label)}</td></tr>`).join("")}</tbody></table></section>`;
+    return `<section class="card vitus-card"><h3 class="card-title">Expected Vitus</h3><p class="card-subtitle">100% pickup, all buffs, Resourceful Retriever on.</p><div class="highlight-panel vitus-entry-panel"><div class="vitus-entry-group"><span class="vitus-entry-label">Actual Vitus</span><input id="actualVitusInput" class="vitus-input" type="number" min="0" placeholder="enter" value="${h(run.actualVitus || "")}"><span id="vitusRate" class="vitus-rate">${h(formatVitusRate(run))}</span></div><div id="vitusLuck" class="vitus-luck"><strong>${h(nearest.label)}</strong><div class="mini">expected ${fmt(result.mean)}</div></div></div><table class="vitus-table"><thead><tr><th>CHANCE</th><th>TOTAL</th><th>LUCK LEVEL</th></tr></thead><tbody>${result.scenarios.map((scenario) => `<tr class="${scenario === nearest ? "active" : ""}"><td>${scenario.chance}</td><td><strong>${fmt(scenario.total)}</strong></td><td>${h(scenario.label)}</td></tr>`).join("")}</tbody></table></section>`;
+  }
+
+  function formatVitusRate(run) {
+    const rawActual = String(run.actualVitus ?? "").trim();
+    const actual = Number(rawActual);
+    const seconds = Number(run.totalDuration);
+    if (!rawActual || !Number.isFinite(actual) || actual < 0 || !Number.isFinite(seconds) || seconds <= 0) return "— VE/min";
+    return `${fmt(actual * 60 / seconds, 1)} VE/min`;
   }
 
   function updateVitusActual(run) {
     const result = Parser.computeVitus(run.droneKills, run.rotations);
     const actual = Number(run.actualVitus);
     const nearest = Number.isFinite(actual) && actual > 0 ? [...result.scenarios].sort((a,b) => Math.abs(a.total-actual)-Math.abs(b.total-actual))[0] : result.scenarios[3];
+    $("#vitusRate").textContent = formatVitusRate(run);
     $("#vitusLuck").innerHTML = `<strong>${h(nearest.label)}</strong><div class="mini">${actual > 0 ? `${actual >= result.mean ? "+" : ""}${fmt(actual-result.mean)} vs expected` : `expected ${fmt(result.mean)}`}</div>`;
     $$(".vitus-table tbody tr").forEach((row,index) => row.classList.toggle("active", result.scenarios[index] === nearest));
   }

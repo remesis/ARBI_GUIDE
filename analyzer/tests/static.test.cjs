@@ -44,6 +44,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /function setupAnalyzerTooltips\(root\)/);
   assert.match(js, /data-tooltip="\$\{h\(tooltip\)\}"/);
   assert.match(js, /data-label="\$\{h\(label\)\}"/);
+  assert.match(js, /id="vitusRate" class="vitus-rate"/);
+  assert.match(js, /actual \* 60 \/ seconds/);
+  assert.match(js, /\$\("#vitusRate"\)\.textContent = formatVitusRate\(run\)/);
   assert.match(js, /renderReport\(null\)/);
   assert.match(js, /document\.addEventListener\("drop"/);
   assert.match(js, /if\(state\.runs\.length\|\|zone\.contains\(event\.target\)\) return/);
