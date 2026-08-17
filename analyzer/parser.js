@@ -12,7 +12,6 @@
   const ROTATION_CHANCE = 0.10;
   const WAVES_PER_ROTATION = 3;
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
-  const OPENING_REJOIN_ACTIVE_GRACE_SECONDS = 10;
   const FORCED_VALID_AGENTS = new Set(["CorpusEliteShieldDroneAgent"]);
   const EXCLUDED_AGENT = /Replicant|RJCrew|petavatar|VoidClone|Turret|Dropship|CatbrowPetAgent|AllyAgent|AutoTurretAgentShipRemaster|Summon\s*Motorcycle/i;
   const NON_MISSION_LEVEL = ["/proc/playership/", "/levels/hub/", "/levels/clandojo/", "/levels/railjack/"];
@@ -136,6 +135,15 @@
   function startTime(run) {
     const base = run.preciseStart || run.missionStart || run.droneTimestamps[0] || 0;
     return Math.max(base, run.openingRejoinTime || 0);
+  }
+
+  function isOpeningRejoinPhase(run) {
+    if (run.isDefense) {
+      const startedWaves = Object.keys(run.waveStarts).map(Number).filter(Number.isFinite);
+      return !startedWaves.length || Math.max(...startedWaves) <= WAVES_PER_ROTATION;
+    }
+    if (run.isInterception) return run.rounds < WAVES_PER_ROTATION;
+    return run.preciseStart === null;
   }
 
   function endTime(run) {
@@ -420,7 +428,7 @@
         && departureIndex >= 0
         && timestamp >= cur.missionStart
         && timestamp - cur.missionStart <= OPENING_REJOIN_WINDOW_SECONDS
-        && (cur.preciseStart === null || timestamp <= cur.preciseStart + OPENING_REJOIN_ACTIVE_GRACE_SECONDS);
+        && isOpeningRejoinPhase(cur);
       if (departureIndex >= 0) {
         cur.openingDepartures.splice(departureIndex, 1);
       }
@@ -445,7 +453,7 @@
         && wasInOpeningSquad
         && timestamp >= cur.missionStart
         && timestamp - cur.missionStart <= OPENING_REJOIN_WINDOW_SECONDS
-        && (cur.preciseStart === null || timestamp <= cur.preciseStart);
+        && isOpeningRejoinPhase(cur);
       if (isOpeningDeparture && !cur.openingDepartures.includes(name)) cur.openingDepartures.push(name);
       cur.inMission = cur.inMission.filter((item) => item !== name);
     }

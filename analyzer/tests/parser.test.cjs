@@ -93,6 +93,9 @@ test("does not move the run clock for a late reconnect", () => {
     "1.0 Game [Info]: EliteAlertMission at ClanNode6",
     "2.0 ThemedSquadOverlay.lua: Mission name: Arbitration: Larzac (Europa) - Defense",
     "3.0 WaveDefend.lua: Defense wave: 1",
+    "80.0 WaveDefend.lua: Defense wave: 2",
+    "140.0 WaveDefend.lua: Defense wave: 3",
+    "200.0 WaveDefend.lua: Defense wave: 4",
     "250.0 Net [Info]: Player=Alpha, change=UNREGISTERED",
     "260.0 Game [Info]: Alpha loadout loader finished.",
   ];
