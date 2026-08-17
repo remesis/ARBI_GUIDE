@@ -270,6 +270,17 @@ test("excludes reward-screen pauses from rotation clear times", () => {
   ]);
 });
 
+test("excludes prebuffer and post-extraction samples from reported spawn gaps", () => {
+  const gaps = Parser.helpers.longestGaps(
+    [2, 8, 10, 14, 22, 29, 35],
+    [],
+    5,
+    10,
+    29,
+  );
+  assert.deepEqual(gaps, [[8, 14], [7, 22], [4, 10]]);
+});
+
 test("accepts warning-prefixed Defense wave end timestamps", () => {
   const lines = [
     "1.0 Game [Info]: EliteAlertMission at ClanNode6",

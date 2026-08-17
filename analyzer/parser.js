@@ -668,8 +668,8 @@
       : 0;
     run.saturation = calculateSaturation(run);
     run.cadence = calculateCadence(run);
-    run.longestDroneGaps = longestGaps(run.droneTimestamps, run.pauseIntervals, 5);
-    run.longestSpawnGaps = longestGaps(run.enemyTimestamps, run.pauseIntervals, 5);
+    run.longestDroneGaps = longestGaps(run.droneTimestamps, run.pauseIntervals, 5, run.startTime, run.endTime);
+    run.longestSpawnGaps = longestGaps(run.enemyTimestamps, run.pauseIntervals, 5, run.startTime, run.endTime);
     run.shortId = "pending";
     return run;
   }
@@ -865,11 +865,12 @@
     };
   }
 
-  function longestGaps(times, pauses, limit) {
+  function longestGaps(times, pauses, limit, rangeStart = -Infinity, rangeEnd = Infinity) {
     const gaps = [];
-    for (let index = 1; index < times.length; index += 1) {
-      const from = times[index - 1];
-      const to = times[index];
+    const inRange = times.filter((timestamp) => timestamp >= rangeStart && timestamp <= rangeEnd);
+    for (let index = 1; index < inRange.length; index += 1) {
+      const from = inRange[index - 1];
+      const to = inRange[index];
       const paused = pauses.reduce((sum, pair) => sum + overlap(from, to, pair[0], pair[1]), 0);
       const duration = to - from - paused;
       if (duration > 0) gaps.push([duration, from]);

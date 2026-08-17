@@ -127,7 +127,19 @@
 
   function shortDuration(seconds) {
     const total = Math.max(0, Math.round(Number(seconds || 0)));
-    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const secs = total % 60;
+    const parts = [];
+    if (hours) parts.push(`${hours}h`);
+    if (minutes || hours) parts.push(`${minutes}m`);
+    parts.push(`${secs}s`);
+    return parts.join(" ");
+  }
+
+  function elapsedAt(run, timestamp) {
+    const start = Number(run?.startTime || 0);
+    return shortDuration(Math.max(0, Number(timestamp || 0) - start));
   }
 
   // Match the SVES analyzer's performance colors: its binary success/danger
@@ -510,8 +522,9 @@
   function renderCadence(run) {
     const cadence = run.cadence || { rows: [], droughtPercent: 0 };
     const max = Math.max(1, ...cadence.rows.map((row) => row.percent));
-    const peak = peakInWindow(run.droneTimestamps || [], 10);
-    return `<section class="card"><h3 class="card-title">Drone cadence</h3><p class="card-subtitle">Share of wait time spent waiting this long for the next drone.</p><div class="metric-bars">${cadence.rows.map((row,index) => { const heat=heatColor(1-index/Math.max(1,cadence.rows.length-1)); return `<div class="metric-row"><span>${h(row.label)}</span><div class="bar-track"><div class="bar-fill" style="--width:${row.percent/max*100}%;--color:${heat.color}"></div></div><strong>${fmt(row.percent,1)}%</strong></div>`; }).join("")}</div><div class="split-row" style="margin-top:13px"><div class="highlight-panel"><span class="mini">Dry ≥12s</span><div class="big">${fmt(cadence.droughtPercent,1)}%</div></div><div class="highlight-panel"><span class="mini">Peak / 10s</span><div class="big">${fmt(peak.count)}</div><span class="mini">at ${shortDuration(peak.time)}</span></div></div></section>`;
+    const activeDrones = (run.droneTimestamps || []).filter((timestamp) => timestamp >= run.startTime && timestamp <= run.endTime);
+    const peak = peakInWindow(activeDrones, 10);
+    return `<section class="card"><h3 class="card-title">Drone cadence</h3><p class="card-subtitle">Share of wait time spent waiting this long for the next drone.</p><div class="metric-bars">${cadence.rows.map((row,index) => { const heat=heatColor(1-index/Math.max(1,cadence.rows.length-1)); return `<div class="metric-row"><span>${h(row.label)}</span><div class="bar-track"><div class="bar-fill" style="--width:${row.percent/max*100}%;--color:${heat.color}"></div></div><strong>${fmt(row.percent,1)}%</strong></div>`; }).join("")}</div><div class="split-row" style="margin-top:13px"><div class="highlight-panel"><span class="mini">Dry ≥12s</span><div class="big">${fmt(cadence.droughtPercent,1)}%</div></div><div class="highlight-panel"><span class="mini">Peak / 10s</span><div class="big">${fmt(peak.count)}</div><span class="mini">at ${elapsedAt(run, peak.time)}</span></div></div></section>`;
   }
 
   function peakInWindow(times, windowSeconds) {
@@ -546,7 +559,7 @@
     const gaps = (run.longestSpawnGaps && run.longestSpawnGaps.length ? run.longestSpawnGaps : run.longestDroneGaps || []).slice(0,5);
     const weak = (run.dpmPerRotation || []).map((value,index) => ({ label:`Rot ${index+1}`, value })).sort((a,b)=>a.value-b.value).slice(0,5);
     const items = (list, formatter) => list.length ? list.map(formatter).join("") : `<div class="bottleneck-item"><span>Unavailable</span><span>—</span></div>`;
-    return `<section class="card"><h3 class="card-title">Bottlenecks</h3><p class="card-subtitle">Where this run lost time. Gaps exclude parsed pause intervals.</p><div class="bottleneck-grid"><div class="bottleneck-column"><h4>Slowest ${h(phase.noun)}s</h4>${items(slow,(item)=>`<div class="bottleneck-item"><strong>${h(phase.defense?`Wave ${item.label}`:item.label)}</strong><span>${fmt(item.seconds,1)}s</span></div>`)}</div><div class="bottleneck-column"><h4>Longest spawn gaps</h4>${items(gaps,(item)=>`<div class="bottleneck-item"><strong>${fmt(item[0],1)}s</strong><span>${shortDuration(item[1])}</span></div>`)}</div><div class="bottleneck-column"><h4>Weakest rotations</h4>${items(weak,(item)=>`<div class="bottleneck-item"><strong>${item.label}</strong><span>${fmt(item.value,1)} dpm</span></div>`)}</div></div></section>`;
+    return `<section class="card"><h3 class="card-title">Bottlenecks</h3><p class="card-subtitle">Where this run lost time. Gaps exclude parsed pause intervals.</p><div class="bottleneck-grid"><div class="bottleneck-column"><h4>Slowest ${h(phase.noun)}s</h4>${items(slow,(item)=>`<div class="bottleneck-item"><strong>${h(phase.defense?`Wave ${item.label}`:item.label)}</strong><span>${fmt(item.seconds,1)}s</span></div>`)}</div><div class="bottleneck-column"><h4>Longest spawn gaps</h4>${items(gaps,(item)=>`<div class="bottleneck-item"><strong>${fmt(item[0],1)}s</strong><span>at ${elapsedAt(run, item[1])}</span></div>`)}</div><div class="bottleneck-column"><h4>Weakest rotations</h4>${items(weak,(item)=>`<div class="bottleneck-item"><strong>${item.label}</strong><span>${fmt(item.value,1)} dpm</span></div>`)}</div></div></section>`;
   }
 
   function renderSpawnColumn(run) {

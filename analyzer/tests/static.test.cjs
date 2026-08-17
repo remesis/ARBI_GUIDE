@@ -205,6 +205,19 @@ test("clear maps display per-wave and per-rotation saturation", () => {
   assert.match(css, /\.round-saturation-legend\s*\{[^}]*margin-left:\s*auto/);
 });
 
+test("report timestamps use readable mission-relative elapsed time", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  assert.match(js, /function elapsedAt\(run, timestamp\)/);
+  assert.match(js, /Number\(timestamp \|\| 0\) - start/);
+  assert.match(js, /parts\.push\(`\$\{hours\}h`\)/);
+  assert.match(js, /parts\.push\(`\$\{minutes\}m`\)/);
+  assert.match(js, /parts\.push\(`\$\{secs\}s`\)/);
+  assert.match(js, /at \$\{elapsedAt\(run, peak\.time\)\}/);
+  assert.match(js, /at \$\{elapsedAt\(run, item\[1\]\)\}/);
+  assert.match(js, /timestamp >= run\.startTime && timestamp <= run\.endTime/);
+  assert.doesNotMatch(js, /at \$\{shortDuration\(peak\.time\)\}/);
+});
+
 test("every 3D tileset page groups its guide links like the homepage", () => {
   const tilesetsDir = path.resolve(analyzerDir, "..", "3d_tilesets");
   const pages = [tilesetsDir, ...fs.readdirSync(tilesetsDir, { withFileTypes: true })
