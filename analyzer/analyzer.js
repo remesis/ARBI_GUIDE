@@ -849,12 +849,135 @@
   }
 
   function startParticles() {
-    if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-    const canvas=$("#particleField"),context=canvas.getContext("2d");
-    let particles=[];
-    const resize=()=>{const ratio=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*ratio;canvas.height=innerHeight*ratio;canvas.style.width=`${innerWidth}px`;canvas.style.height=`${innerHeight}px`;context.setTransform(ratio,0,0,ratio,0,0);particles=Array.from({length:Math.min(80,Math.ceil(innerWidth/22))},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.4+.25,vx:(Math.random()-.5)*.08,vy:Math.random()*.18+.04,a:Math.random()*.55+.18}));};
-    const tick=()=>{context.clearRect(0,0,innerWidth,innerHeight);particles.forEach((p)=>{p.x+=p.vx;p.y-=p.vy;if(p.y<-4){p.y=innerHeight+4;p.x=Math.random()*innerWidth;}context.fillStyle=`rgba(114,199,255,${p.a})`;context.beginPath();context.arc(p.x,p.y,p.r,0,Math.PI*2);context.fill();});requestAnimationFrame(tick);};
-    addEventListener("resize",resize,{passive:true});resize();tick();
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const canvas = $("#particleField");
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+
+    const particleCount = 48;
+    const maxDistance = 155;
+    const contentGap = 20;
+    let cssWidth = 0;
+    let cssHeight = 0;
+    let topbarHeight = 0;
+    let lastFrame = 0;
+    let particles = [];
+
+    const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
+
+    function getContentBounds() {
+      const report = $("#reportRoot");
+      if (report?.childElementCount) return report.getBoundingClientRect();
+
+      const emptyState = $("#emptyState");
+      const children = emptyState ? [...emptyState.children].filter((child) => {
+        const rect = child.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      }) : [];
+      if (!children.length) return null;
+
+      const rects = children.map((child) => child.getBoundingClientRect());
+      return {
+        left: Math.min(...rects.map((rect) => rect.left)),
+        right: Math.max(...rects.map((rect) => rect.right)),
+        top: Math.min(...rects.map((rect) => rect.top)),
+        bottom: Math.max(...rects.map((rect) => rect.bottom)),
+      };
+    }
+
+    function measure() {
+      const topbar = $(".topbar");
+      const nextTopbarHeight = Math.ceil(topbar?.getBoundingClientRect().height || 0);
+      const nextWidth = Math.max(1, innerWidth);
+      const nextHeight = Math.max(1, innerHeight - nextTopbarHeight);
+      const ratio = Math.min(devicePixelRatio || 1, 2);
+
+      if (nextWidth !== cssWidth || nextHeight !== cssHeight || nextTopbarHeight !== topbarHeight) {
+        cssWidth = nextWidth;
+        cssHeight = nextHeight;
+        topbarHeight = nextTopbarHeight;
+        canvas.style.top = `${topbarHeight}px`;
+        canvas.style.width = `${cssWidth}px`;
+        canvas.style.height = `${cssHeight}px`;
+        canvas.width = Math.round(cssWidth * ratio);
+        canvas.height = Math.round(cssHeight * ratio);
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+        if (!particles.length) {
+          particles = Array.from({ length: particleCount }, () => ({
+            x: Math.random() * cssWidth,
+            y: Math.random() * cssHeight,
+            radius: Math.random() * 1.4 + .5,
+            vx: (Math.random() - .5) * .28,
+            vy: (Math.random() - .5) * .28,
+          }));
+        } else {
+          particles.forEach((particle) => {
+            particle.x = clamp(particle.x, 0, cssWidth);
+            particle.y = clamp(particle.y, 0, cssHeight);
+          });
+        }
+      }
+
+      const content = getContentBounds();
+      if (!content) return null;
+      return {
+        left: clamp(content.left - contentGap, 0, cssWidth),
+        right: clamp(content.right + contentGap, 0, cssWidth),
+        top: clamp(content.top - topbarHeight - contentGap, 0, cssHeight),
+        bottom: clamp(content.bottom - topbarHeight + contentGap, 0, cssHeight),
+      };
+    }
+
+    function draw(timestamp) {
+      requestAnimationFrame(draw);
+      if (timestamp - lastFrame < 33) return;
+      lastFrame = timestamp;
+      const readabilityHole = measure();
+
+      context.clearRect(0, 0, cssWidth, cssHeight);
+      particles.forEach((particle) => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        if (particle.x < -3) particle.x = cssWidth + 3;
+        if (particle.x > cssWidth + 3) particle.x = -3;
+        if (particle.y < -3) particle.y = cssHeight + 3;
+        if (particle.y > cssHeight + 3) particle.y = -3;
+      });
+
+      for (let first = 0; first < particles.length; first += 1) {
+        for (let second = first + 1; second < particles.length; second += 1) {
+          const dx = particles[first].x - particles[second].x;
+          const dy = particles[first].y - particles[second].y;
+          const distance = Math.hypot(dx, dy);
+          if (distance >= maxDistance) continue;
+          context.strokeStyle = `rgba(114,199,255,${(1 - distance / maxDistance) * .25})`;
+          context.lineWidth = .6;
+          context.beginPath();
+          context.moveTo(particles[first].x, particles[first].y);
+          context.lineTo(particles[second].x, particles[second].y);
+          context.stroke();
+        }
+      }
+
+      context.fillStyle = "rgba(114,199,255,.55)";
+      particles.forEach((particle) => {
+        context.beginPath();
+        context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        context.fill();
+      });
+
+      if (readabilityHole) {
+        context.clearRect(
+          readabilityHole.left,
+          readabilityHole.top,
+          readabilityHole.right - readabilityHole.left,
+          readabilityHole.bottom - readabilityHole.top,
+        );
+      }
+    }
+
+    requestAnimationFrame(draw);
   }
 
   function initViewerCount() {
