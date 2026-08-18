@@ -117,6 +117,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /workspace\.append\(workspaceTop, clearMap\)/);
   assert.match(js, /grid\.replaceChildren\(left, workspace, activity\)/);
   assert.match(js, /Spawn points observed/);
+  assert.match(js, /\["SURVIVAL", "DISRUPTION"\]\.includes\(run\.missionType\)/);
+  assert.match(js, /kpi\("Drones despawned", fmt\(run\.dronesDespawned \|\| 0\), "Mission-script removals"\)/);
+  assert.match(js, /: kpi\(`Drones \/ \$\{phase\.noun\}`/);
   assert.doesNotMatch(js, /debug-export/);
   assert.match(css, /\.export-stage \.clear-heat-map\s*\{[^}]*repeat\(23/);
   assert.match(css, /\.export-stage \.dashboard-no-spawns \.clear-heat-map\s*\{[^}]*repeat\(10/);

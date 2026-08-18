@@ -145,7 +145,7 @@
   const P_AI_AGENT_INIT = /^!?(\d+\.\d+).*AI Agent Initialize\s+\/Npc\/([A-Za-z0-9_]+?)\d*\s+at NpcAiDirector\s+(\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+)/i;
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Mission name:|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -164,6 +164,7 @@
       rawEnemySpawns: 0,
       rounds: 0,
       droneTimestamps: [],
+      droneDespawnTimestamps: [],
       rewardTimestamps: [],
       enemyTimestamps: [],
       waveStarts: {},
@@ -253,6 +254,7 @@
     feedLine(line) {
       if (!line || line === "\r" || line.includes("Game [Warning]:") || line.includes("DamagePct")) return;
       const hasAgent = line.includes("OnAgentCreated");
+      const hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
       const hasMission = line.includes("Mission name:");
       const hasSpawnPoint = line.includes("spawn point:");
       const hasAgentInitialize = line.includes("AI Agent Initialize");
@@ -270,7 +272,7 @@
       const hasPlayerJoin = line.includes("loadout loader finished");
       const hasPlayerLeave = line.includes("change=UNREGISTERED");
       const hasLiveCount = line.includes("MonitoredTicking") || (line.includes("AI [Info]:") && line.includes("Live "));
-      if (!(hasAgent || hasMission || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasMission || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
 
       if (hasMission) {
         const match = line.match(P_MISSION);
@@ -304,6 +306,14 @@
       if (/^!?\d/.test(line)) {
         const match = line.match(P_TIMESTAMP);
         if (match) ts = Number(match[1]);
+      }
+
+      if (hasDroneDespawn) {
+        if (ts) {
+          cur.droneDespawnTimestamps.push(ts);
+          cur.lastActivity = Math.max(cur.lastActivity, ts);
+        }
+        return;
       }
 
       if (hasAgent) {
@@ -667,6 +677,7 @@
     run.saturationPerWave = wavePhases.map((phase) => calculateRangeOccupancy(run, phase.from, phase.to));
     run.saturationPerRotation = rotationPhases.map((phase) => calculateRangeSaturation(run, phase.from, phase.to, saturationScale.threshold));
     run.rotations = run.rewardTimestamps.length || Math.floor(Object.keys(run.waveStarts).length / 3);
+    run.dronesDespawned = run.droneDespawnTimestamps.filter((timestamp) => timestamp >= run.startTime && timestamp <= run.endTime).length;
     run.dronesPerRotation = calculateDronesPerRotation(run);
     run.dpmPerRotation = calculateDpmPerRotation(run);
     run.avgDroneInterval = run.droneTimestamps.length > 1

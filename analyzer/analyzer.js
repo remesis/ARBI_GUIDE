@@ -221,7 +221,7 @@
   function demoBase(values) {
     const run = Object.assign({
       missionName: values.node, host: "Local player", squadmates: ["Squadmate 2", "Squadmate 3", "Squadmate 4"],
-      rounds: 0, waveStarts: {}, rewardTimestamps: [], droneTimestamps: [], enemyTimestamps: [],
+      rounds: 0, waveStarts: {}, rewardTimestamps: [], droneTimestamps: [], droneDespawnTimestamps: [], dronesDespawned: 0, enemyTimestamps: [],
       spawnPoints: {}, liveCounts: [], pauseIntervals: [], shortId: "demo", actualVitus: "",
     }, values);
     run.droneTimestamps = sequence(run.droneKills, run.totalDuration, 0.41);
@@ -295,6 +295,9 @@
     const droneRate = run.activeDuration ? run.droneKills / run.activeDuration * 60 : 0;
     const enemyRate = run.activeDuration ? run.enemySpawns / run.activeDuration * 60 : 0;
     const perPhase = (phase.items.length ? run.droneKills / phase.items.length : 0);
+    const phaseDroneKpi = ["SURVIVAL", "DISRUPTION"].includes(run.missionType)
+      ? kpi("Drones despawned", fmt(run.dronesDespawned || 0), "Mission-script removals")
+      : kpi(`Drones / ${phase.noun}`, fmt(perPhase, 1), `Per ${phase.noun}`);
     const hasSpawnPoints = Object.values(run.spawnPoints || {}).some((point) => point.count > 0);
     const date = run.sourceDate instanceof Date && !Number.isNaN(run.sourceDate.valueOf())
       ? run.sourceDate.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "Local log";
@@ -343,7 +346,7 @@
             ${kpi("Avg drone interval", `${fmt(run.avgDroneInterval, 2)}s`, "Between spawns")}
             ${kpi(`Avg ${phase.noun}`, phase.items.length ? `${fmt(avg(phase.items.map((item) => item.seconds)), 1)}s` : "—", "Active phase time")}
             ${kpi("Enemies / min", fmt(enemyRate), "Spawn pace")}
-            ${kpi(`Drones / ${phase.noun}`, fmt(perPhase, 1), `Per ${phase.noun}`)}
+            ${phaseDroneKpi}
           </div>
           ${renderVitus(run)}
           ${renderSaturation(run)}

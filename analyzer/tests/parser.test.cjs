@@ -103,8 +103,10 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   }
   lines.push("70.0 Sys [Info]: Created /Lotus/Interface/SurvivalReward.swf");
   lines.push("70.1 Script [Info]: SurvivalMission.lua: Survival: Gave reward tier 1 at 300.1");
+  lines.push("80.0 Script [Info]: Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar99 for not seeing a player for 20sec, 60sec after creation");
   lines.push("130.1 Script [Info]: SurvivalMission.lua: Survival: Gave reward tier 2 at 600.1");
   lines.push("140.0 Script [Info]: ExtractionTimer.lua: EOM: All players extracting");
+  lines.push("145.0 Script [Info]: Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar100 for not seeing a player for 20sec, 60sec after creation");
 
   const [run] = Parser.parseText(lines.join("\n"));
   assert.ok(run);
@@ -113,6 +115,8 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   assert.equal(run.endTime, 140);
   assert.equal(run.totalDuration, 130);
   assert.equal(run.rotations, 2);
+  assert.equal(run.dronesDespawned, 1);
+  assert.deepEqual(run.droneDespawnTimestamps, [80, 145]);
   assert.deepEqual(run.rewardTimestamps, [70.1, 130.1]);
   assert.ok(Math.abs(run.rotationDurations[0] - 60.1) < .0001);
   assert.equal(run.rotationDurations[1], 60);
