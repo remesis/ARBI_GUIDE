@@ -111,9 +111,15 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.dashboard-per-rotation \.heat-map\s*\{[^}]*repeat\(10/);
   assert.match(css, /\.dashboard-no-spawns \.clear-heat-map\s*\{[^}]*repeat\(10/);
   assert.match(css, /\.dashboard-layout \.clear-heat-map \.heat-cell small\s*\{[^}]*font-size:\s*11px/);
-  assert.match(css, /\.dashboard-no-spawns \.dashboard-dpm \.line-chart\s*\{[^}]*height:\s*125px/);
+  assert.doesNotMatch(css, /\.dashboard-no-spawns \.dashboard-dpm \.line-chart\s*\{[^}]*height:\s*125px/);
+  assert.match(css, /\.line-chart-wrap\s*\{[^}]*--chart-side-padding:\s*4\.8077%/);
+  assert.match(css, /\.line-chart\s*\{[^}]*height:\s*auto[^}]*aspect-ratio:\s*520 \/ 190/);
+  assert.match(js, /pad = \{ l: 25, r: 25, t: 15, b: 25 \}/);
+  assert.match(js, /preserveAspectRatio="xMidYMid meet" aria-label="Drones per minute line chart"/);
+  assert.doesNotMatch(js, /preserveAspectRatio="none" aria-label="Drones per minute line chart"/);
+  assert.match(js, /x="\$\{width-pad\.r\}" y="\$\{height-5\}" text-anchor="end"/);
   assert.match(js, /class="chart-average-badge" style="--average-top:/);
-  assert.match(css, /\.chart-average-badge\s*\{[^}]*position:\s*absolute[^}]*font-size:\s*16px/);
+  assert.match(css, /\.chart-average-badge\s*\{[^}]*position:\s*absolute[^}]*right:\s*var\(--chart-side-padding\)[^}]*font-size:\s*16px/);
   assert.match(css, /\.chart-tooltip\s*\{[^}]*position:\s*absolute/);
   assert.match(css, /\.analyzer-hover-tooltip\s*\{[^}]*position:\s*fixed[^}]*z-index:\s*10000/);
   assert.match(css, /\.dashboard-no-spawns \.dashboard-cadence-card\s*\{[^}]*height:\s*auto/);
@@ -239,14 +245,17 @@ test("saturation summary displays telemetry coverage as a white right-side metri
 
 test("small report annotations use brighter colors and larger type", () => {
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
-  assert.match(css, /\.report-sheet\s*\{[^}]*--muted:\s*#aaaab5;[^}]*--muted-2:\s*#858691/);
-  assert.match(css, /\.card-subtitle\s*\{[^}]*font-size:\s*12px/);
+  assert.match(css, /\.report-sheet\s*\{[^}]*--muted:\s*#aaaab5;[^}]*--muted-2:\s*#858691;[^}]*--report-subtext-size:\s*12px/);
+  assert.match(css, /\.card-subtitle\s*\{[^}]*font-size:\s*var\(--report-subtext-size\)/);
   assert.match(css, /\.kpi-label\s*\{[^}]*font-size:\s*10px/);
-  assert.match(css, /\.kpi-note\s*\{[^}]*font-size:\s*11px/);
-  assert.match(css, /\.highlight-panel \.mini\s*\{[^}]*font-size:\s*11px/);
-  assert.match(css, /\.saturation-card \.card-subtitle\s*\{[^}]*font-size:\s*13px/);
+  assert.match(css, /\.kpi-note\s*\{[^}]*font-size:\s*var\(--report-subtext-size\)/);
+  assert.match(css, /\.highlight-panel \.mini\s*\{[^}]*font-size:\s*var\(--report-subtext-size\)/);
+  assert.match(css, /\.chart-label\s*\{[^}]*font-size:\s*var\(--report-subtext-size\)/);
+  assert.match(css, /\.chart-accent\s*\{[^}]*font-size:\s*var\(--report-subtext-size\)/);
+  assert.match(css, /\.heat-legend\s*\{[^}]*font-size:\s*var\(--report-subtext-size\)/);
+  assert.match(css, /\.minimap-status\s*\{[^}]*font-size:\s*var\(--report-subtext-size\)/);
+  assert.match(css, /\.report-footer\s*\{[^}]*font-size:\s*var\(--report-subtext-size\)/);
   assert.match(css, /\.saturation-card \.metric-row\s*\{[^}]*font-size:\s*13px/);
-  assert.match(css, /\.saturation-card \.highlight-panel \.mini\s*\{[^}]*font-size:\s*12px/);
 });
 
 test("report timestamps use readable mission-relative elapsed time", () => {
