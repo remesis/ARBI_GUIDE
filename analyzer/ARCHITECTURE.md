@@ -108,6 +108,15 @@ run's point count. This is an inventory aid, not a canonical 3D-location count:
 procedural variants can reuse a key at different world coordinates and must be
 aligned to the maintained tile catalog before percentage analysis.
 
+On 2026-08-18, a D1 audit found three older submissions—one Larzac and two
+Stöfler—that matched a later row in every canonical spawn field and every
+per-point count, differing only in `run_offset_seconds`. The older rows were
+removed and the later guide-standard submissions retained. A pre-deletion SQL
+snapshot is kept in the gitignored Worker backup directory. Future percentage
+exports should repeat this exact-payload-except-offset audit, but ingestion must
+not generally discard the offset because it distinguishes later missions in a
+still-growing log.
+
 The browser path is public and cannot prove a payload came from an honest game
 session. Origin checking is only a browser control and no secret belongs in the
 client bundle. Bot authorization authenticates the bot service, not the
