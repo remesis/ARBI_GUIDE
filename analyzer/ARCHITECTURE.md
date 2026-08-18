@@ -101,6 +101,13 @@ D1 is sufficient. R2 is unnecessary because raw uploads and immutable log
 objects are explicitly out of scope. The collected table is a quarantine/input
 dataset for later local review, not a live source for the 3D viewer.
 
+The administrative `analyzer_tileset_counts` view reports
+`unique_spawn_points` as the number of distinct guide-standard `point_key`
+values seen across a tileset group's collected runs. It does not sum each
+run's point count. This is an inventory aid, not a canonical 3D-location count:
+procedural variants can reuse a key at different world coordinates and must be
+aligned to the maintained tile catalog before percentage analysis.
+
 The browser path is public and cannot prove a payload came from an honest game
 session. Origin checking is only a browser control and no secret belongs in the
 client bundle. Bot authorization authenticates the bot service, not the
