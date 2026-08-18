@@ -230,7 +230,7 @@ test("saturation labels use each mission mode's configured threshold", () => {
   assert.match(js, /Time at \$\{threshold\}\+ enemies/);
 });
 
-test("saturation summary displays telemetry coverage as a white right-side metric", () => {
+test("saturation summary displays telemetry coverage as a smaller muted right-side metric", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
   assert.match(js, /class="saturation-summary-item telemetry-coverage"/);
@@ -240,7 +240,7 @@ test("saturation summary displays telemetry coverage as a white right-side metri
   assert.match(css, /\.saturation-summary-item\s*\{[^}]*grid-template-rows:\s*auto auto[^}]*row-gap:\s*10px/);
   assert.match(css, /\.saturation-summary \.big\s*\{[^}]*line-height:\s*1/);
   assert.match(css, /\.telemetry-coverage\s*\{[^}]*width:\s*100%[^}]*justify-self:\s*stretch[^}]*justify-items:\s*end[^}]*text-align:\s*right/);
-  assert.match(css, /\.saturation-card \.telemetry-coverage \.big\s*\{[^}]*color:\s*var\(--text\)/);
+  assert.match(css, /\.saturation-card \.telemetry-coverage \.big\s*\{[^}]*color:\s*var\(--muted\)[^}]*font-size:\s*30px/);
 });
 
 test("small report annotations use brighter colors and larger type", () => {
