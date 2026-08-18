@@ -81,11 +81,11 @@ test("classifies unranked Survival and Disruption nodes from stable SolNode meta
   assert.equal(runs[0].node, "Elara");
   assert.equal(runs[0].missionType, "SURVIVAL");
   assert.equal(runs[0].saturation.threshold, 30);
-  assert.deepEqual(runs[0].saturation.rows.slice(0, 5).map((row) => row.label), ["0-14", "15-29", "30-32", "33-35", "36-38"]);
+  assert.deepEqual(runs[0].saturation.rows.slice(0, 6).map((row) => row.label), ["0-7", "8-14", "15-22", "23-29", "30-32", "33-35"]);
   assert.equal(runs[1].node, "Olympus");
   assert.equal(runs[1].missionType, "DISRUPTION");
   assert.equal(runs[1].saturation.threshold, 30);
-  assert.deepEqual(runs[1].saturation.rows.slice(0, 5).map((row) => row.label), ["0-14", "15-29", "30-32", "33-35", "36-38"]);
+  assert.deepEqual(runs[1].saturation.rows.slice(0, 6).map((row) => row.label), ["0-7", "8-14", "15-22", "23-29", "30-32", "33-35"]);
 });
 
 test("uses Survival mission events for active timing, reward cycles, extraction, and saturation", () => {
@@ -120,7 +120,7 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   assert.equal(run.dpmPerRotation.length, 2);
   assert.equal(run.liveCounts.length, 48);
   assert.equal(run.saturation.threshold, 30);
-  assert.equal(run.saturation.rows[2].label, "30-32");
+  assert.equal(run.saturation.rows[4].label, "30-32");
   assert.ok(run.saturation.abovePercent > 0);
   assert.ok(run.saturationPerRotation.every(Number.isFinite));
 });

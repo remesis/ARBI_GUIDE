@@ -22,10 +22,10 @@ boundaries, and ends the run at `EOM: All players extracting`. The frequently
 created `SurvivalReward.swf` UI asset is deliberately ignored because it is not
 a reward-cycle marker. Live enemy counters are retained for every Arbitration
 mode so Survival saturation is measurable even without wave events.
-Survival and Disruption use broad low-density saturation buckets (`0-14`,
-`15-29`) followed by three-enemy high-density buckets (`30-32`, `33-35`, ...),
-and measure high saturation at 30+ enemies. Other mission types retain the
-original three-enemy buckets and the 15+ threshold.
+Survival and Disruption split the sub-30 range across four saturation buckets
+(`0-7`, `8-14`, `15-22`, `23-29`), placing the first high-density bucket
+(`30-32`) on the fifth row. They measure high saturation at 30+ enemies. Other
+mission types retain the original three-enemy buckets and the 15+ threshold.
 
 The exact submitted fields are:
 

@@ -18,7 +18,7 @@
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
-  const HIGH_DENSITY_SATURATION_EDGES = [15, 30, 33, 36, 39, 42, 45, 48, 51];
+  const HIGH_DENSITY_SATURATION_EDGES = [8, 15, 23, 30, 33, 36, 39, 42, 45];
   const FORCED_VALID_AGENTS = new Set(["CorpusEliteShieldDroneAgent"]);
   const EXCLUDED_AGENT = /Replicant|RJCrew|petavatar|VoidClone|Turret|Dropship|CatbrowPetAgent|AllyAgent|AutoTurretAgentShipRemaster|Summon\s*Motorcycle/i;
   const NON_MISSION_LEVEL = ["/proc/playership/", "/levels/hub/", "/levels/clandojo/", "/levels/railjack/"];
