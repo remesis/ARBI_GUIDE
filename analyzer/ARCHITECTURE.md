@@ -74,10 +74,12 @@ bootstrap allowlist: an uncredentialed bot at that address may fetch the token
 from `/api/analyzer/spawns/credential`, persist it locally, and confirm receipt
 at `/api/analyzer/spawns/credential/confirm`. D1 stores only the confirmation
 time, never the token. Once confirmed, the credential endpoint permanently
-returns `410` and the IP no longer grants any access. Both the browser analyzer
-and the ArbiGoons Discord bot submit the exact same `arbi-solnode-spawns/v1`
-object to `/api/analyzer/spawns`. Both sources use the same canonical hash and
-`analyzer_spawn_runs` D1 table; there is no bot-specific spawn dataset.
+returns `410` and the IP no longer grants any access. Remove the
+`ANALYZER_BOT_IPS` binding after confirmed enrollment; production has done so.
+Both the browser analyzer and the ArbiGoons Discord bot submit the exact same
+`arbi-solnode-spawns/v1` object to `/api/analyzer/spawns`. Both sources use the
+same canonical hash and `analyzer_spawn_runs` D1 table; there is no bot-specific
+spawn dataset.
 
 It:
 
