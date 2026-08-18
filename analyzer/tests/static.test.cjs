@@ -231,7 +231,9 @@ test("saturation summary displays telemetry coverage as a white right-side metri
   assert.match(js, /Telemetry coverage/);
   assert.match(js, /fmt\(telemetryCoverage,1\)/);
   assert.match(css, /\.saturation-summary\s*\{[^}]*grid-template-columns:\s*repeat\(2,/);
-  assert.match(css, /\.telemetry-coverage\s*\{[^}]*justify-self:\s*end/);
+  assert.match(css, /\.saturation-summary-item\s*\{[^}]*grid-template-rows:\s*auto auto[^}]*row-gap:\s*10px/);
+  assert.match(css, /\.saturation-summary \.big\s*\{[^}]*line-height:\s*1/);
+  assert.match(css, /\.telemetry-coverage\s*\{[^}]*width:\s*100%[^}]*justify-self:\s*stretch[^}]*justify-items:\s*end[^}]*text-align:\s*right/);
   assert.match(css, /\.saturation-card \.telemetry-coverage \.big\s*\{[^}]*color:\s*var\(--text\)/);
 });
 

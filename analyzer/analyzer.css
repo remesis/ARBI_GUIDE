@@ -411,9 +411,11 @@ body.empty-page-drag::after {
 .saturation-card .highlight-panel { padding: 16px; }
 .saturation-card .highlight-panel .mini { font-size: 12px; }
 .saturation-card .highlight-panel .big { font-size: 38px; }
-.saturation-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 24px; }
-.saturation-summary-item { min-width: 0; }
-.telemetry-coverage { min-width: 132px; justify-self: end; text-align: left; }
+.saturation-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 24px; }
+.saturation-summary-item { min-width: 0; display: grid; grid-template-rows: auto auto; align-content: start; row-gap: 10px; }
+.saturation-summary .mini { display: block; line-height: 1.25; }
+.saturation-summary .big { line-height: 1; }
+.telemetry-coverage { width: 100%; min-width: 0; justify-self: stretch; justify-items: end; text-align: right; }
 .saturation-card .telemetry-coverage .big { color: var(--text); }
 .vitus-entry-panel { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .vitus-entry-group { min-width: 0; display: flex; align-items: center; gap: 12px; }
