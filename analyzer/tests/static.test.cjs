@@ -47,6 +47,12 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /id="vitusRate" class="vitus-rate"/);
   assert.match(js, /actual \* 60 \/ seconds/);
   assert.match(js, /\$\("#vitusRate"\)\.textContent = formatVitusRate\(run\)/);
+  assert.match(js, /function focusActualVitusEntry\(\)/);
+  assert.match(js, /input\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(js, /run\.actualVitus = ""/);
+  assert.match(js, /renderReport\(state\.runs\[0\]\);\s*focusActualVitusEntry\(\)/);
+  assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\); focusActualVitusEntry\(\)/);
+  assert.match(js, /renderReport\(next\.run\);\s*focusActualVitusEntry\(\)/);
   assert.match(js, /PLAYER_PRIVACY_TTL_MS = 365 \* 24 \* 60 \* 60 \* 1000/);
   assert.match(js, /hidePlayerNames: loadPlayerNamePrivacy\(\)/);
   assert.match(js, /expiresAt: Date\.now\(\) \+ PLAYER_PRIVACY_TTL_MS/);

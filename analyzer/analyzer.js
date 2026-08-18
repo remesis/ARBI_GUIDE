@@ -525,6 +525,13 @@
     $$(".vitus-table tbody tr").forEach((row,index) => row.classList.toggle("active", result.scenarios[index] === classified));
   }
 
+  function focusActualVitusEntry() {
+    requestAnimationFrame(() => {
+      const input = $("#actualVitusInput");
+      if (input?.isConnected) input.focus({ preventScroll: true });
+    });
+  }
+
   function renderSaturation(run) {
     const saturation = run.saturation || { rows: [], abovePercent: 0 };
     const threshold = Number.isFinite(saturation.threshold) ? saturation.threshold : 15;
@@ -684,6 +691,7 @@
     for (const run of runs) {
       run.sourceName = sourceName;
       run.sourceDate = run.sourceDate || sourceDate;
+      run.actualVitus = "";
       try { run.shortId = (await Parser.fingerprintRun(run)).slice(0,12); } catch (_) { run.shortId = "local"; }
     }
     state.runs = runs;
@@ -691,6 +699,7 @@
     state.sourceName = sourceName;
     renderRunList();
     renderReport(state.runs[0]);
+    focusActualVitusEntry();
   }
 
   function clearRuns() {
@@ -721,7 +730,7 @@
     $("#clearRunsBtn").disabled = !state.runs.length;
     $("#runList").innerHTML = visible.length ? visible.map(({run,index})=>`<button class="run-button ${index===state.activeIndex?"active":""}" type="button" data-index="${index}"><span class="run-accent"></span><span class="run-copy"><strong>${h(run.node)}</strong><span>${h(run.missionType)} · ${h(run.planet)}</span></span><span class="run-meta"><strong>${duration(run.totalDuration)}</strong>${fmt(run.droneKills)} drones</span></button>`).join("") : `<div class="no-runs">${state.runs.length ? "No matching runs." : "No analyzed runs."}</div>`;
     $$(".run-button",$("#runList")).forEach((button)=>button.addEventListener("click",()=>{
-      state.activeIndex=Number(button.dataset.index); renderRunList(); renderReport(state.runs[state.activeIndex]); document.body.classList.remove("sidebar-open");
+      state.activeIndex=Number(button.dataset.index); renderRunList(); renderReport(state.runs[state.activeIndex]); focusActualVitusEntry(); document.body.classList.remove("sidebar-open");
     }));
   }
 
@@ -879,6 +888,7 @@
     state.activeIndex = next.index;
     renderRunList();
     renderReport(next.run);
+    focusActualVitusEntry();
   }
 
   function applyDisplayControls() {
