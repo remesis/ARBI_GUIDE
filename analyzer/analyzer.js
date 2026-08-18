@@ -296,7 +296,7 @@
     const enemyRate = run.activeDuration ? run.enemySpawns / run.activeDuration * 60 : 0;
     const perPhase = (phase.items.length ? run.droneKills / phase.items.length : 0);
     const phaseDroneKpi = ["SURVIVAL", "DISRUPTION"].includes(run.missionType)
-      ? kpi("Drones despawned", fmt(run.dronesDespawned || 0), "Mission-script removals")
+      ? kpi("Drones despawned", fmt(run.dronesDespawned || 0), "Despawn after 20s")
       : kpi(`Drones / ${phase.noun}`, fmt(perPhase, 1), `Per ${phase.noun}`);
     const hasSpawnPoints = Object.values(run.spawnPoints || {}).some((point) => point.count > 0);
     const date = run.sourceDate instanceof Date && !Number.isNaN(run.sourceDate.valueOf())

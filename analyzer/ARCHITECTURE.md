@@ -25,7 +25,8 @@ mode so Survival saturation is measurable even without wave events.
 For Survival and Disruption, the ninth KPI reports explicit
 `Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar` markers inside the
 active mission window as **Drones despawned**. Defense and Interception retain
-the **Drones / rotation** KPI.
+the **Drones / rotation** KPI. Its subtitle is **Despawn after 20s**, matching
+the reason recorded by the mission-script marker.
 Survival and Disruption split the sub-30 range across four saturation buckets
 (`0-7`, `8-14`, `15-22`, `23-29`), placing the first high-density bucket
 (`30-32`) on the fifth row. They measure high saturation at 30+ enemies. Other
