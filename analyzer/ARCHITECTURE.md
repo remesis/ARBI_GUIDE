@@ -68,21 +68,22 @@ The separately deployed source lives in the gitignored `workers/` directory:
 - `workers/wrangler-analyzer.example.jsonc` — example D1 and Rate Limiting
   bindings.
 
-Deploy the Worker on the exact route `arbi.guide/api/analyzer/spawns`. Configure
-the bot service with either an `ANALYZER_BOT_TOKEN` Worker secret or the bot
-host's IPv4 in `ANALYZER_BOT_IPS`; the production deployment uses the host
-allowlist and the client pins this contribution request to IPv4. Both the
-browser analyzer and the ArbiGoons Discord bot submit the exact same
-`arbi-solnode-spawns/v1` object to this route. Both sources use the same
-canonical hash and `analyzer_spawn_runs` D1 table; there is no bot-specific
-spawn dataset.
+Deploy the Worker on the route family `arbi.guide/api/analyzer/spawns*` and set
+`ANALYZER_BOT_TOKEN` as a Worker secret. `ANALYZER_BOT_IPS` is only a one-time
+bootstrap allowlist: an uncredentialed bot at that address may fetch the token
+from `/api/analyzer/spawns/credential`, persist it locally, and confirm receipt
+at `/api/analyzer/spawns/credential/confirm`. D1 stores only the confirmation
+time, never the token. Once confirmed, the credential endpoint permanently
+returns `410` and the IP no longer grants any access. Both the browser analyzer
+and the ArbiGoons Discord bot submit the exact same `arbi-solnode-spawns/v1`
+object to `/api/analyzer/spawns`. Both sources use the same canonical hash and
+`analyzer_spawn_runs` D1 table; there is no bot-specific spawn dataset.
 
 It:
 
-- accepts either the exact `https://arbi.guide` browser Origin, an
-  `Authorization: Bearer …` value matching `ANALYZER_BOT_TOKEN`, or the
-  Cloudflare-provided `CF-Connecting-IP` of an `ANALYZER_BOT_IPS` host, and
-  always requires JSON content type;
+- accepts ingestion from either the exact `https://arbi.guide` browser Origin
+  or an `Authorization: Bearer …` value matching `ANALYZER_BOT_TOKEN`, and
+  always requires JSON content type; an allowlisted IP alone cannot ingest;
 - rejects unknown fields, excessive bodies, invalid bounds, duplicate point
   keys, and mismatched event totals;
 - recomputes the canonical SHA-256 hash rather than trusting the client;
@@ -100,8 +101,8 @@ dataset for later local review, not a live source for the 3D viewer.
 
 The browser path is public and cannot prove a payload came from an honest game
 session. Origin checking is only a browser control and no secret belongs in the
-client bundle. Bot authorization authenticates the submitting host or service,
-not the contents of a player-provided log. Before publishing any aggregate
+client bundle. Bot authorization authenticates the bot service, not the
+contents of a player-provided log. Before publishing any aggregate
 spawn percentages, export the reduced D1 rows, match node/layout/point
 coordinates to the maintained catalog, reject impossible values and outliers,
 and manually review the result.
