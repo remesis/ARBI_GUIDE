@@ -414,7 +414,7 @@ body.empty-page-drag::after {
 .vitus-entry-panel { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .vitus-entry-group { min-width: 0; display: flex; align-items: center; gap: 12px; }
 .vitus-entry-label,
-.vitus-luck strong { color: #f5f5f7; font-size: 17px; font-weight: 850; line-height: 1; white-space: nowrap; }
+.vitus-luck strong { color: var(--luck-color, #f5f5f7); font-size: 17px; font-weight: 850; line-height: 1; white-space: nowrap; }
 .vitus-rate { color: #f5f5f7; font-size: 20px; font-weight: 900; line-height: 1; white-space: nowrap; }
 .vitus-luck { flex: 0 0 auto; margin-left: auto; text-align: right; }
 .vitus-input { box-sizing: border-box; width: 110px; min-height: 34px; display: inline-flex; align-items: center; border: 1px solid #393a43; border-radius: 6px; padding: 5px 9px; background: #111216; color: var(--text); font-size: 16px; font-weight: 850; }

@@ -234,6 +234,15 @@ test("actual Vitus luck uses upper-bound bands instead of nearest totals", () =>
   assert.doesNotMatch(js, /Math\.abs\(a\.total-actual\)/);
 });
 
+test("actual Vitus luck headline follows the red-to-green performance grade", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  assert.match(js, /function vitusLuckColor\(scenarios, classified\)/);
+  assert.match(js, /heatColor\(index \/ Math\.max\(1, scenarios\.length - 1\)\)\.color/);
+  assert.match(js, /luck\.style\.setProperty\("--luck-color", vitusLuckColor\(result\.scenarios, classified\)\)/);
+  assert.match(css, /\.vitus-luck strong\s*\{[^}]*color:\s*var\(--luck-color, #f5f5f7\)/);
+});
+
 test("every 3D tileset page groups its guide links like the homepage", () => {
   const tilesetsDir = path.resolve(analyzerDir, "..", "3d_tilesets");
   const pages = [tilesetsDir, ...fs.readdirSync(tilesetsDir, { withFileTypes: true })

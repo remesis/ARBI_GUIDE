@@ -29,6 +29,8 @@ mission types retain the original three-enemy buckets and the 15+ threshold.
 Expected Vitus luck totals are inclusive upper bounds for their displayed
 bands: an actual total above one row advances to the next row instead of being
 assigned to the numerically nearest scenario.
+The headline luck label uses the report's red-to-green performance ramp from
+Worst Case through God Roll and recolors immediately when Actual Vitus changes.
 
 The exact submitted fields are:
 
