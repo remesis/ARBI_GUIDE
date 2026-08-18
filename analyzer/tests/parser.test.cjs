@@ -225,6 +225,17 @@ test("calculates time at 15+ active enemies inside an individual phase", () => {
   assert.equal(Parser.helpers.calculateRangeSaturation(run, 5, 10), 80);
 });
 
+test("reports the share of active mission time covered by trustworthy enemy-count telemetry", () => {
+  const run = {
+    startTime: 0,
+    endTime: 100,
+    activeDuration: 100,
+    liveCounts: [[0, 5], [10, 6], [50, 7], [80, 8], [100, 9]],
+    pauseIntervals: [],
+  };
+  assert.equal(Parser.helpers.calculateTelemetryCoverage(run), 30);
+});
+
 test("classifies actual Vitus totals by scenario upper bounds", () => {
   const scenarios = [
     { total: 1025, label: "Worst Case" },

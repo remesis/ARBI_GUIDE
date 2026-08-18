@@ -133,7 +133,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.activity-scroll\s*\{[^}]*overflow:\s*visible/);
   assert.match(css, /\.activity-grid\s*\{[^}]*gap:\s*1px[^}]*width:\s*100%[^}]*min-width:\s*0/);
   assert.match(css, /\.activity-grid\.is-compact\s*\{[^}]*width:\s*max-content/);
-  assert.match(css, /\.activity-axis-label\s*\{[^}]*font:\s*850 12px\/14px/);
+  assert.match(css, /\.activity-axis-label\s*\{[^}]*font:\s*850 13px\/15px/);
   assert.match(js, /function activityHeatColor/);
   assert.match(js, /const low = \[31, 35, 39\]/);
   assert.match(js, /const high = \[0, 230, 118\]/);
@@ -216,6 +216,29 @@ test("saturation labels use each mission mode's configured threshold", () => {
   assert.match(parser, /\? \{ edges: HIGH_DENSITY_SATURATION_EDGES, threshold: 30 \}/);
   assert.match(parser, /calculateRangeSaturation\(run, phase\.from, phase\.to, saturationScale\.threshold\)/);
   assert.match(js, /Time at \$\{threshold\}\+ enemies/);
+});
+
+test("saturation summary displays telemetry coverage as a white right-side metric", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  assert.match(js, /class="saturation-summary-item telemetry-coverage"/);
+  assert.match(js, /Telemetry coverage/);
+  assert.match(js, /fmt\(telemetryCoverage,1\)/);
+  assert.match(css, /\.saturation-summary\s*\{[^}]*grid-template-columns:\s*repeat\(2,/);
+  assert.match(css, /\.telemetry-coverage\s*\{[^}]*justify-self:\s*end/);
+  assert.match(css, /\.saturation-card \.telemetry-coverage \.big\s*\{[^}]*color:\s*var\(--text\)/);
+});
+
+test("small report annotations use brighter colors and larger type", () => {
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  assert.match(css, /\.report-sheet\s*\{[^}]*--muted:\s*#aaaab5;[^}]*--muted-2:\s*#858691/);
+  assert.match(css, /\.card-subtitle\s*\{[^}]*font-size:\s*12px/);
+  assert.match(css, /\.kpi-label\s*\{[^}]*font-size:\s*10px/);
+  assert.match(css, /\.kpi-note\s*\{[^}]*font-size:\s*11px/);
+  assert.match(css, /\.highlight-panel \.mini\s*\{[^}]*font-size:\s*11px/);
+  assert.match(css, /\.saturation-card \.card-subtitle\s*\{[^}]*font-size:\s*13px/);
+  assert.match(css, /\.saturation-card \.metric-row\s*\{[^}]*font-size:\s*13px/);
+  assert.match(css, /\.saturation-card \.highlight-panel \.mini\s*\{[^}]*font-size:\s*12px/);
 });
 
 test("report timestamps use readable mission-relative elapsed time", () => {

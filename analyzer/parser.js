@@ -684,6 +684,7 @@
       ? (run.droneTimestamps[run.droneTimestamps.length - 1] - run.droneTimestamps[0]) / (run.droneTimestamps.length - 1)
       : 0;
     run.saturation = calculateSaturation(run, saturationScale.edges, saturationScale.threshold);
+    run.telemetryCoverage = calculateTelemetryCoverage(run);
     run.cadence = calculateCadence(run);
     run.longestDroneGaps = longestGaps(run.droneTimestamps, run.pauseIntervals, 5, run.startTime, run.endTime);
     run.longestSpawnGaps = longestGaps(run.enemyTimestamps, run.pauseIntervals, 5, run.startTime, run.endTime);
@@ -820,6 +821,13 @@
       return sum + ratio * segment.duration;
     }, 0);
     return occupied / total * 100;
+  }
+
+  function calculateTelemetryCoverage(run) {
+    const activeDuration = Number(run.activeDuration);
+    if (!Number.isFinite(activeDuration) || activeDuration <= 0) return 0;
+    const coveredDuration = liveSegments(run).reduce((sum, segment) => sum + segment.duration, 0);
+    return Math.max(0, Math.min(100, coveredDuration / activeDuration * 100));
   }
 
   function calculateSaturation(run, edges = DEFAULT_SATURATION_EDGES, threshold = 15) {
@@ -1137,6 +1145,7 @@
       calculateSaturation,
       calculateRangeSaturation,
       calculateRangeOccupancy,
+      calculateTelemetryCoverage,
       calculateWavePhases,
       calculateRotationPhases,
       longestGaps,

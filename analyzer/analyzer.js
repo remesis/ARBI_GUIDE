@@ -196,6 +196,7 @@
     lares.spawnPoints = demoAsteroidSpawns();
     lares.enemyTypes = { Charger: 743, Runner: 488, "CorpusEliteShieldDroneAgent": 311, AncientHealer: 243, Leaper: 215, Other: 459 };
     lares.saturation = demoSaturation([28, 36, 19, 10, 5, 2, 0, 0, 0, 0]);
+    lares.telemetryCoverage = 96.8;
     lares.cadence = demoCadence([9, 17, 21, 24, 16, 9, 4]);
     lares.longestSpawnGaps = [[8.9, 441], [8.4, 99], [7.7, 567], [7.2, 302], [6.8, 199]];
     lares.longestDroneGaps = [[12.7, 441], [10.9, 99], [9.2, 567], [8.5, 302], [8.1, 199]];
@@ -213,6 +214,7 @@
     odin.avgDroneInterval = 2.36;
     odin.enemyTypes = { EliteRifleLancer: 4786, "CorpusEliteShieldDroneAgent": 1727, ShotgunLancer: 1428, EvisceratorLancer: 544, MinigunBombard: 482, Other: 2644 };
     odin.saturation = demoSaturation([19.1, 31.4, 16, 15.3, 10.8, 4.4, 1.2, .9, .4, .5]);
+    odin.telemetryCoverage = 98.1;
     odin.cadence = demoCadence([5.2, 11.9, 9.3, 16.3, 16.8, 13.1, 27.4]);
     odin.longestDroneGaps = [[27.1, 1629], [26.9, 2035], [26.5, 2442], [22.1, 1230], [20.5, 3100]];
     return [lares, odin];
@@ -526,8 +528,9 @@
   function renderSaturation(run) {
     const saturation = run.saturation || { rows: [], abovePercent: 0 };
     const threshold = Number.isFinite(saturation.threshold) ? saturation.threshold : 15;
+    const telemetryCoverage = Number.isFinite(run.telemetryCoverage) ? run.telemetryCoverage : 0;
     const max = Math.max(1, ...saturation.rows.map((row) => row.percent));
-    return `<section class="card saturation-card"><h3 class="card-title">Enemy saturation</h3><p class="card-subtitle">Share of run time at each enemy count.</p><div class="metric-bars">${saturation.rows.map((row,index) => { const heat=heatColor(1-index/Math.max(1,saturation.rows.length-1)); return `<div class="metric-row"><span>${h(row.label)}</span><div class="bar-track"><div class="bar-fill" style="--width:${row.percent/max*100}%;--color:${heat.color}"></div></div><strong>${fmt(row.percent,1)}%</strong></div>`; }).join("")}</div><div class="highlight-panel" style="margin-top:13px"><span class="mini">Time at ${threshold}+ enemies</span><div class="big">${fmt(saturation.abovePercent,1)}%</div></div></section>`;
+    return `<section class="card saturation-card"><h3 class="card-title">Enemy saturation</h3><p class="card-subtitle">Share of run time at each enemy count.</p><div class="metric-bars">${saturation.rows.map((row,index) => { const heat=heatColor(1-index/Math.max(1,saturation.rows.length-1)); return `<div class="metric-row"><span>${h(row.label)}</span><div class="bar-track"><div class="bar-fill" style="--width:${row.percent/max*100}%;--color:${heat.color}"></div></div><strong>${fmt(row.percent,1)}%</strong></div>`; }).join("")}</div><div class="highlight-panel saturation-summary" style="margin-top:13px"><div class="saturation-summary-item"><span class="mini">Time at ${threshold}+ enemies</span><div class="big">${fmt(saturation.abovePercent,1)}%</div></div><div class="saturation-summary-item telemetry-coverage"><span class="mini">Telemetry coverage</span><div class="big">${fmt(telemetryCoverage,1)}%</div></div></div></section>`;
   }
 
   function renderCadence(run) {
