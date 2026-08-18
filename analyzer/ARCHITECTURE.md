@@ -26,6 +26,9 @@ Survival and Disruption split the sub-30 range across four saturation buckets
 (`0-7`, `8-14`, `15-22`, `23-29`), placing the first high-density bucket
 (`30-32`) on the fifth row. They measure high saturation at 30+ enemies. Other
 mission types retain the original three-enemy buckets and the 15+ threshold.
+Expected Vitus luck totals are inclusive upper bounds for their displayed
+bands: an actual total above one row advances to the next row instead of being
+assigned to the numerically nearest scenario.
 
 The exact submitted fields are:
 

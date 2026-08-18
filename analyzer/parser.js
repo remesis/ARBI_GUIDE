@@ -918,6 +918,12 @@
     return { mean, standardDeviation, scenarios };
   }
 
+  function classifyVitusScenario(scenarios, actual) {
+    const value = Number(actual);
+    if (!Array.isArray(scenarios) || !scenarios.length || !Number.isFinite(value)) return null;
+    return scenarios.find((scenario) => value <= scenario.total) || scenarios[scenarios.length - 1];
+  }
+
   function feedRelevantText(parser, text) {
     // Let the native regexp engine scan the chunk and only create JS strings
     // for matching lines. Splitting a multi-gigabyte log into every irrelevant
@@ -1111,6 +1117,7 @@
     parseFile,
     deriveRun,
     computeVitus,
+    classifyVitusScenario,
     fingerprintRun,
     buildContribution,
     stableStringify,

@@ -228,6 +228,12 @@ test("report timestamps use readable mission-relative elapsed time", () => {
   assert.doesNotMatch(js, /at \$\{shortDuration\(peak\.time\)\}/);
 });
 
+test("actual Vitus luck uses upper-bound bands instead of nearest totals", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  assert.match(js, /Parser\.classifyVitusScenario\(result\.scenarios, actual\)/);
+  assert.doesNotMatch(js, /Math\.abs\(a\.total-actual\)/);
+});
+
 test("every 3D tileset page groups its guide links like the homepage", () => {
   const tilesetsDir = path.resolve(analyzerDir, "..", "3d_tilesets");
   const pages = [tilesetsDir, ...fs.readdirSync(tilesetsDir, { withFileTypes: true })

@@ -221,6 +221,24 @@ test("calculates time at 15+ active enemies inside an individual phase", () => {
   assert.equal(Parser.helpers.calculateRangeSaturation(run, 5, 10), 80);
 });
 
+test("classifies actual Vitus totals by scenario upper bounds", () => {
+  const scenarios = [
+    { total: 1025, label: "Worst Case" },
+    { total: 1078, label: "Unlucky" },
+    { total: 1109, label: "Below Avg" },
+    { total: 1143, label: "Average" },
+    { total: 1177, label: "Above Avg" },
+    { total: 1208, label: "High Roll" },
+    { total: 1261, label: "God Roll" },
+  ];
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1025).label, "Worst Case");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1026).label, "Unlucky");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1050).label, "Unlucky");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1078).label, "Unlucky");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1079).label, "Below Avg");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1262).label, "God Roll");
+});
+
 test("calculates time-weighted enemy occupancy for Defense waves", () => {
   const run = {
     startTime: 0,
