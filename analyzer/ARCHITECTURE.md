@@ -68,15 +68,29 @@ The separately deployed source lives in the gitignored `workers/` directory:
 - `workers/wrangler-analyzer.example.jsonc` — example D1 and Rate Limiting
   bindings.
 
-Deploy the Worker on the exact route `arbi.guide/api/analyzer/spawns`. It:
+Deploy the Worker on the exact route `arbi.guide/api/analyzer/spawns`. Configure
+the bot service with either an `ANALYZER_BOT_TOKEN` Worker secret or the bot
+host's IPv4 in `ANALYZER_BOT_IPS`; the production deployment uses the host
+allowlist and the client pins this contribution request to IPv4. Both the
+browser analyzer and the ArbiGoons Discord bot submit the exact same
+`arbi-solnode-spawns/v1` object to this route. Both sources use the same
+canonical hash and `analyzer_spawn_runs` D1 table; there is no bot-specific
+spawn dataset.
 
-- requires the exact `https://arbi.guide` Origin and JSON content type;
+It:
+
+- accepts either the exact `https://arbi.guide` browser Origin, an
+  `Authorization: Bearer …` value matching `ANALYZER_BOT_TOKEN`, or the
+  Cloudflare-provided `CF-Connecting-IP` of an `ANALYZER_BOT_IPS` host, and
+  always requires JSON content type;
 - rejects unknown fields, excessive bodies, invalid bounds, duplicate point
   keys, and mismatched event totals;
 - recomputes the canonical SHA-256 hash rather than trusting the client;
 - uses `INSERT OR IGNORE` under the D1 `run_hash` primary key;
 - stores one privacy-reduced canonical JSON record per run;
-- applies a Rate Limiting binding when configured;
+- applies a Rate Limiting binding to public browser submissions when configured
+  (the authenticated bot has its own Discord command cooldown and durable
+  retry queue);
 - returns `201 accepted`, `200 duplicate`, or a validation error;
 - never stores raw logs or user identifiers.
 
@@ -84,11 +98,13 @@ D1 is sufficient. R2 is unnecessary because raw uploads and immutable log
 objects are explicitly out of scope. The collected table is a quarantine/input
 dataset for later local review, not a live source for the 3D viewer.
 
-The endpoint is public and cannot prove a payload came from an honest game
+The browser path is public and cannot prove a payload came from an honest game
 session. Origin checking is only a browser control and no secret belongs in the
-client bundle. Before publishing any aggregate spawn percentages, export the
-reduced D1 rows, match node/layout/point coordinates to the maintained catalog,
-reject impossible values and outliers, and manually review the result.
+client bundle. Bot authorization authenticates the submitting host or service,
+not the contents of a player-provided log. Before publishing any aggregate
+spawn percentages, export the reduced D1 rows, match node/layout/point
+coordinates to the maintained catalog, reject impossible values and outliers,
+and manually review the result.
 
 ## Tile-map alignment
 
