@@ -49,6 +49,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /\$\("#vitusRate"\)\.textContent = formatVitusRate\(run\)/);
   assert.match(js, /function focusActualVitusEntry\(\)/);
   assert.match(js, /input\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(js, /const end = input\.value\.length;\s*input\.setSelectionRange\(end, end\)/);
+  assert.match(js, /type="text" inputmode="numeric" pattern="\[0-9\]\*" autocomplete="off"/);
+  assert.match(js, /const digits = vitusInput\.value\.replace\(\/\\D\/g, ""\)/);
   assert.match(js, /run\.actualVitus = ""/);
   assert.match(js, /renderReport\(state\.runs\[0\]\);\s*focusActualVitusEntry\(\)/);
   assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\); focusActualVitusEntry\(\)/);
