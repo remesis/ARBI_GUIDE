@@ -16,6 +16,9 @@
   // after the one-time completion/transmission asset markers are cached.
   const DEFENSE_VOTE_TRANSITION_SECONDS = 5;
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
+  const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
+  const PARALLEL_PARSE_MAX_WORKERS = 4;
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260819-1";
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
   const HIGH_DENSITY_SATURATION_EDGES = [8, 15, 23, 30, 33, 36, 39, 42, 45];
@@ -289,29 +292,89 @@
       return detached;
     }
 
-    feedLine(line) {
+    feedLine(line, relevantToken) {
       if (!line || line === "\r" || line.includes("Game [Warning]:") || line.includes("DamagePct")) return;
-      const hasAgent = line.includes("OnAgentCreated");
-      const hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
-      const hasMission = line.includes("Mission name:");
-      const hasMissionVote = line.includes("ShowMissionVote") && line.includes(" - Arbitration");
-      const hasSpawnPoint = line.includes("spawn point:");
-      const hasAgentInitialize = line.includes("AI Agent Initialize");
-      const hasEliteAlert = line.includes("EliteAlertMission at");
-      const hasLevel = line.includes("Game [Info]: Level=");
-      const hasSleep = line.includes("WaveDefend.lua: _SleepBetweenWaves");
-      const hasReward = line.includes("Created /Lotus/Interface/DefenseReward.swf");
-      const hasCountdown = line.includes("Created /Lotus/Interface/ProjectionsCountdown.swf");
-      const hasWaveStart = line.includes("WaveDefend.lua: Starting wave");
-      const hasWaveDef = line.includes("WaveDefend.lua: Defense wave:");
-      const hasLoopWave = line.includes("LoopDefend.lua: Loop Defense wave:");
-      const hasTerritory = line.includes("TerritoryMission.lua");
-      const hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival");
-      const hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier");
-      const hasExtraction = line.includes("ExtractionTimer.lua: EOM: All players extracting");
-      const hasPlayerJoin = line.includes("loadout loader finished");
-      const hasPlayerLeave = line.includes("change=UNREGISTERED");
-      const hasLiveCount = line.includes("MonitoredTicking") || (line.includes("AI [Info]:") && line.includes("Live "));
+      let hasAgent = false;
+      let hasDroneDespawn = false;
+      let hasMission = false;
+      let hasMissionVote = false;
+      let hasSpawnPoint = false;
+      let hasAgentInitialize = false;
+      let hasEliteAlert = false;
+      let hasLevel = false;
+      let hasSleep = false;
+      let hasReward = false;
+      let hasCountdown = false;
+      let hasWaveStart = false;
+      let hasWaveDef = false;
+      let hasLoopWave = false;
+      let hasTerritory = false;
+      let hasSurvivalStart = false;
+      let hasSurvivalReward = false;
+      let hasExtraction = false;
+      let hasPlayerJoin = false;
+      let hasPlayerLeave = false;
+      let hasLiveCount = false;
+
+      if (relevantToken === undefined) {
+        // Preserve direct Parser.feedLine() compatibility for tests and other
+        // callers that do not use the streaming token scanner.
+        hasAgent = line.includes("OnAgentCreated");
+        hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
+        hasMission = line.includes("Mission name:");
+        hasMissionVote = line.includes("ShowMissionVote") && line.includes(" - Arbitration");
+        hasSpawnPoint = line.includes("spawn point:");
+        hasAgentInitialize = line.includes("AI Agent Initialize");
+        hasEliteAlert = line.includes("EliteAlertMission at");
+        hasLevel = line.includes("Game [Info]: Level=");
+        hasSleep = line.includes("WaveDefend.lua: _SleepBetweenWaves");
+        hasReward = line.includes("Created /Lotus/Interface/DefenseReward.swf");
+        hasCountdown = line.includes("Created /Lotus/Interface/ProjectionsCountdown.swf");
+        hasWaveStart = line.includes("WaveDefend.lua: Starting wave");
+        hasWaveDef = line.includes("WaveDefend.lua: Defense wave:");
+        hasLoopWave = line.includes("LoopDefend.lua: Loop Defense wave:");
+        hasTerritory = line.includes("TerritoryMission.lua");
+        hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival");
+        hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier");
+        hasExtraction = line.includes("ExtractionTimer.lua: EOM: All players extracting");
+        hasPlayerJoin = line.includes("loadout loader finished");
+        hasPlayerLeave = line.includes("change=UNREGISTERED");
+        hasLiveCount = line.includes("MonitoredTicking") || (line.includes("AI [Info]:") && line.includes("Live "));
+      } else {
+        switch (relevantToken) {
+          case "OnAgentCreated": hasAgent = true; break;
+          case "Destroying CorpusEliteShieldDroneAvatar":
+            hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
+            break;
+          case "Mission name:": hasMission = true; break;
+          case "ShowMissionVote": hasMissionVote = line.includes(" - Arbitration"); break;
+          case "spawn point:": hasSpawnPoint = true; break;
+          case "AI Agent Initialize": hasAgentInitialize = true; break;
+          case "EliteAlertMission at": hasEliteAlert = true; break;
+          case "Game [Info]: Level=": hasLevel = true; break;
+          case "_SleepBetweenWaves": hasSleep = line.includes("WaveDefend.lua: _SleepBetweenWaves"); break;
+          case "DefenseReward.swf": hasReward = line.includes("Created /Lotus/Interface/DefenseReward.swf"); break;
+          case "ProjectionsCountdown.swf": hasCountdown = line.includes("Created /Lotus/Interface/ProjectionsCountdown.swf"); break;
+          case "Starting wave": hasWaveStart = line.includes("WaveDefend.lua: Starting wave"); break;
+          case "Defense wave:": hasWaveDef = line.includes("WaveDefend.lua: Defense wave:"); break;
+          case "Loop Defense wave:": hasLoopWave = line.includes("LoopDefend.lua: Loop Defense wave:"); break;
+          case "TerritoryMission.lua": hasTerritory = true; break;
+          case "Survival: Starting survival": hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival"); break;
+          case "Survival: Gave reward tier": hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier"); break;
+          case "EOM: All players extracting": hasExtraction = line.includes("ExtractionTimer.lua: EOM: All players extracting"); break;
+          case "loadout loader finished": hasPlayerJoin = true; break;
+          case "change=UNREGISTERED": hasPlayerLeave = true; break;
+          case "MonitoredTicking":
+            hasLiveCount = true;
+            hasAgent = line.includes("OnAgentCreated");
+            break;
+          case "Live ":
+            hasLiveCount = line.includes("AI [Info]:");
+            hasAgent = line.includes("OnAgentCreated");
+            break;
+          default: break;
+        }
+      }
       if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
 
       if (hasMission || hasMissionVote) {
@@ -1010,7 +1073,7 @@
     return scenarios.find((scenario) => value <= scenario.total) || scenarios[scenarios.length - 1];
   }
 
-  function feedRelevantText(parser, text) {
+  function forEachRelevantLine(text, callback) {
     // Let the native regexp engine scan the chunk and only create JS strings
     // for matching lines. Splitting a multi-gigabyte log into every irrelevant
     // line costs far more than parsing the small set of lines we actually use.
@@ -1021,9 +1084,13 @@
       let end = text.indexOf("\n", match.index);
       if (end < 0) end = text.length;
       if (end > start && text.charCodeAt(end - 1) === 13) end -= 1;
-      parser.feedLine(text.slice(start, end));
+      callback(text.slice(start, end), match[0]);
       P_RELEVANT_TOKEN.lastIndex = end + 1;
     }
+  }
+
+  function feedRelevantText(parser, text) {
+    forEachRelevantLine(text, (line, token) => parser.feedLine(line, token));
   }
 
   function detachedTail(text, boundary) {
@@ -1043,6 +1110,14 @@
     if (!file || typeof file.stream !== "function") throw new Error("Choose an EE.log or text log file.");
     const lowerName = String(file.name || "").toLocaleLowerCase();
     if (lowerName.endsWith(".zip")) throw new Error("ZIP files are not enabled in this local prototype yet. Choose EE.log, .txt, or .gz.");
+    if (shouldParseInParallel(file, lowerName)) {
+      try {
+        return await parseFileParallel(file, onProgress);
+      } catch (_) {
+        // Worker restrictions, memory pressure, or browser-specific File
+        // cloning failures fall back to the proven sequential parser.
+      }
+    }
     if (!lowerName.endsWith(".gz") && typeof file.slice === "function" && typeof TextDecoder !== "undefined") {
       return parseFileSlices(file, onProgress);
     }
@@ -1096,10 +1171,99 @@
     return parser.finish();
   }
 
+  function shouldParseInParallel(file, lowerName) {
+    return !lowerName.endsWith(".gz")
+      && Number(file.size || 0) >= PARALLEL_PARSE_MIN_BYTES
+      && typeof file.slice === "function"
+      && typeof Worker === "function"
+      && typeof TextDecoder !== "undefined";
+  }
+
+  function parallelWorkerCount() {
+    const cores = Number(globalThis.navigator?.hardwareConcurrency || 4);
+    return Math.max(2, Math.min(PARALLEL_PARSE_MAX_WORKERS, Number.isFinite(cores) ? cores - 1 : 3));
+  }
+
+  async function nextLineBoundary(file, position) {
+    if (position <= 0) return 0;
+    if (position >= file.size) return file.size;
+    const probeSize = 64 * 1024;
+    let offset = position;
+    while (offset < file.size) {
+      const end = Math.min(file.size, offset + probeSize);
+      const bytes = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+      const newline = bytes.indexOf(10);
+      if (newline >= 0) return offset + newline + 1;
+      offset = end;
+    }
+    return file.size;
+  }
+
+  async function parseFileParallel(file, onProgress) {
+    const workerCount = parallelWorkerCount();
+    const boundaries = [0];
+    for (let index = 1; index < workerCount; index += 1) {
+      boundaries.push(await nextLineBoundary(file, Math.floor(file.size * index / workerCount)));
+    }
+    boundaries.push(file.size);
+
+    const completedBytes = Array(workerCount).fill(0);
+    const workers = [];
+    const baseUrl = globalThis.document?.baseURI || globalThis.location?.href || "https://arbi.guide/analyzer/";
+    const workerUrl = new URL(PARALLEL_SCANNER_URL, baseUrl);
+    try {
+      const parts = await Promise.all(Array.from({ length: workerCount }, (_, index) => new Promise((resolve, reject) => {
+        const worker = new Worker(workerUrl, { name: `arbi-log-scanner-${index + 1}` });
+        workers.push(worker);
+        worker.onmessage = (event) => {
+          const message = event.data || {};
+          if (message.type === "progress") {
+            completedBytes[index] = Math.max(completedBytes[index], Number(message.bytes || 0));
+            const processed = completedBytes.reduce((total, value) => total + value, 0);
+            if (onProgress) onProgress(Math.min(.94, processed / Math.max(1, file.size) * .94));
+            return;
+          }
+          if (message.type === "error") {
+            reject(new Error(message.message || "Parallel log scanner failed."));
+            return;
+          }
+          if (message.type === "result") {
+            completedBytes[index] = boundaries[index + 1] - boundaries[index];
+            worker.terminate();
+            resolve(Array.isArray(message.lines) ? message.lines : []);
+          }
+        };
+        worker.onerror = (event) => reject(event.error || new Error(event.message || "Parallel log scanner failed."));
+        worker.postMessage({
+          file,
+          index,
+          start: boundaries[index],
+          end: boundaries[index + 1],
+          chunkSize: 64 * 1024 * 1024,
+        });
+      })));
+
+      const parser = new Parser();
+      for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
+        const lines = parts[partIndex];
+        for (let index = 0; index < lines.length; index += 2) {
+          parser.feedLine(lines[index + 1], lines[index]);
+        }
+        parts[partIndex] = null;
+        if (onProgress) onProgress(.94 + .04 * (partIndex + 1) / parts.length);
+      }
+      const runs = parser.finish();
+      if (onProgress) onProgress(1);
+      return runs;
+    } finally {
+      workers.forEach((worker) => worker.terminate());
+    }
+  }
+
   async function parseFileSlices(file, onProgress) {
     const parser = new Parser();
     const decoder = new TextDecoder();
-    const chunkSize = 16 * 1024 * 1024;
+    const chunkSize = 64 * 1024 * 1024;
     let offset = 0;
     let buffer = "";
     let lastUpdate = 0;
@@ -1201,6 +1365,7 @@
     Parser,
     parseText,
     parseFile,
+    forEachRelevantLine,
     deriveRun,
     computeVitus,
     classifyVitusScenario,

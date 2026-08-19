@@ -181,6 +181,20 @@ test("production Analyzer starts cleared instead of loading bundled demo runs", 
   assert.doesNotMatch(js, />Busiest spawn points</i);
 });
 
+test("large logs use the same parser through a same-origin parallel scanner", () => {
+  const html = fs.readFileSync(path.join(analyzerDir, "index.html"), "utf8");
+  const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
+  const worker = fs.readFileSync(path.join(analyzerDir, "scanner-worker.js"), "utf8");
+  assert.match(parser, /PARALLEL_PARSE_MIN_BYTES = 512 \* 1024 \* 1024/);
+  assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
+  assert.match(parser, /new Worker\(workerUrl/);
+  assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260819-60"\)/);
+  assert.match(worker, /Parser\.forEachRelevantLine/);
+  assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
+  assert.match(html, /parser\.js\?v=20260819-60/);
+});
+
 test("loading a log selects its newest run longer than five minutes", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /INITIAL_RUN_MIN_SECONDS = 5 \* 60/);

@@ -59,6 +59,59 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.doesNotMatch(serialized, /npc_types|wave_counts/i);
 });
 
+test("large uncompressed files preserve parser results through ordered parallel scan parts", async () => {
+  const sourceLines = [];
+  addRun(sourceLines, {
+    offset: 1,
+    node: "SolNode130",
+    name: "Arbitration: Lares (Mercury) - Defense",
+    level: "/Lotus/Levels/GrineerAsteroidRelight/GrnDefenseOne.level",
+  });
+  const relevant = [];
+  Parser.forEachRelevantLine(`${sourceLines.join("\n")}\n`, (line, token) => relevant.push(token, line));
+
+  const workers = [];
+  class FakeWorker {
+    constructor() {
+      workers.push(this);
+      this.onmessage = null;
+      this.onerror = null;
+    }
+
+    postMessage(message) {
+      queueMicrotask(() => {
+        this.onmessage({ data: { type: "progress", index: message.index, bytes: message.end - message.start } });
+        this.onmessage({ data: { type: "result", index: message.index, lines: message.index === 0 ? relevant : [] } });
+      });
+    }
+
+    terminate() {}
+  }
+
+  const originalWorker = global.Worker;
+  global.Worker = FakeWorker;
+  const progress = [];
+  const fakeLargeFile = {
+    name: "large-ee.log",
+    size: 513 * 1024 * 1024,
+    stream() {},
+    slice() {
+      return { arrayBuffer: async () => Uint8Array.of(10).buffer };
+    },
+  };
+  try {
+    const runs = await Parser.parseFile(fakeLargeFile, (value) => progress.push(value));
+    assert.ok(workers.length >= 2);
+    assert.equal(runs.length, 1);
+    assert.equal(runs[0].node, "Lares");
+    assert.equal(Object.keys(runs[0].spawnPoints).length, 2);
+    assert.equal(progress.at(-1), 1);
+  } finally {
+    if (originalWorker === undefined) delete global.Worker;
+    else global.Worker = originalWorker;
+  }
+});
+
 test("classifies unranked Survival and Disruption nodes from stable SolNode metadata", () => {
   const lines = [];
   addRun(lines, {
