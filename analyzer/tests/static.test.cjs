@@ -53,7 +53,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /type="text" inputmode="numeric" pattern="\[0-9\]\*" autocomplete="off"/);
   assert.match(js, /const digits = vitusInput\.value\.replace\(\/\\D\/g, ""\)/);
   assert.match(js, /run\.actualVitus = ""/);
-  assert.match(js, /renderReport\(state\.runs\[0\]\);\s*focusActualVitusEntry\(\)/);
+  assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\);\s*focusActualVitusEntry\(\)/);
   assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\); focusActualVitusEntry\(\)/);
   assert.match(js, /renderReport\(next\.run\);\s*focusActualVitusEntry\(\)/);
   assert.match(js, /PLAYER_PRIVACY_TTL_MS = 365 \* 24 \* 60 \* 60 \* 1000/);
@@ -179,6 +179,17 @@ test("production Analyzer starts cleared instead of loading bundled demo runs", 
   assert.match(js, /renderRunList\(\);\s*renderReport\(null\);/);
   assert.match(js, />Most Active</);
   assert.doesNotMatch(js, />Busiest spawn points</i);
+});
+
+test("loading a log selects its newest run longer than five minutes", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  assert.match(js, /INITIAL_RUN_MIN_SECONDS = 5 \* 60/);
+  assert.match(js, /function initialRunIndex\(runs\)/);
+  assert.match(js, /for \(let index = runs\.length - 1; index >= 0; index -= 1\)/);
+  assert.match(js, /Number\(runs\[index\]\?\.totalDuration\) > INITIAL_RUN_MIN_SECONDS/);
+  assert.match(js, /return Math\.max\(0, runs\.length - 1\)/);
+  assert.match(js, /state\.activeIndex = initialRunIndex\(runs\)/);
+  assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\)/);
 });
 
 test("analyzer uses the full composition list and green performance scale", () => {

@@ -12,6 +12,7 @@
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const PLAYER_PRIVACY_KEY = "arbi-analyzer-player-privacy-v1";
   const PLAYER_PRIVACY_TTL_MS = 365 * 24 * 60 * 60 * 1000;
+  const INITIAL_RUN_MIN_SECONDS = 5 * 60;
   const state = {
     runs: [], activeIndex: 0, query: "", sourceName: "", toastTimer: 0,
     fontStep: 0, spacingStep: 0, widthStep: 0,
@@ -718,6 +719,13 @@
     return `<section class="card activity-card"><h3 class="card-title">Activity over time</h3><p class="card-subtitle">Rows are spawn points, columns are waves. Greener = more enemies from that point.</p><div class="activity-scroll"><div class="activity-grid${compact ? " is-compact" : ""}" style="grid-template-columns:${columns};grid-template-rows:${rows}">${content}</div></div></section>`;
   }
 
+  function initialRunIndex(runs) {
+    for (let index = runs.length - 1; index >= 0; index -= 1) {
+      if (Number(runs[index]?.totalDuration) > INITIAL_RUN_MIN_SECONDS) return index;
+    }
+    return Math.max(0, runs.length - 1);
+  }
+
   async function prepareRuns(runs, sourceName, sourceDate) {
     for (const run of runs) {
       run.sourceName = sourceName;
@@ -726,10 +734,10 @@
       try { run.shortId = (await Parser.fingerprintRun(run)).slice(0,12); } catch (_) { run.shortId = "local"; }
     }
     state.runs = runs;
-    state.activeIndex = 0;
+    state.activeIndex = initialRunIndex(runs);
     state.sourceName = sourceName;
     renderRunList();
-    renderReport(state.runs[0]);
+    renderReport(state.runs[state.activeIndex]);
     focusActualVitusEntry();
   }
 
