@@ -320,9 +320,12 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   assert.equal(Object.keys(bundle.catalog).length, 24);
   assert.deepEqual(Array.from(bundle.nodes.SolNode305), ["stofler"]);
   assert.equal(bundle.catalog.stofler.floorFilter.label, "bottom");
-  assert.equal(bundle.catalog.stofler.floorFilter.maxY, -50);
+  assert.ok(Math.abs(bundle.catalog.stofler.floorFilter.maxY - (-17.9305)) < .001);
   assert.equal(bundle.catalog.stofler.floorFilter.minWave, 7);
-  assert.equal(Object.keys(bundle.catalog.stofler.spawnPoints).length, 66);
+  assert.equal(Object.keys(bundle.catalog.stofler.spawnPoints).length, 84);
+  assert.ok(bundle.catalog.stofler.spawnPoints[293]);
+  assert.ok(bundle.catalog.stofler.spawnPoints[299]);
+  assert.ok(bundle.catalog.stofler.spawnPoints[335]);
   assert.match(bundle.catalog.stofler.src, /bottom-floor-20260816/);
   assert.equal(bundle.nodes.SolNode85.length, 2);
 });

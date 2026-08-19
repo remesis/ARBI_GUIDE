@@ -80,10 +80,11 @@ SOURCE_GROUPS = {
     "gaia~2": ("preview", "gaia"),
 }
 
-# Stofler's final arena is the lowest, nearly level band around Y=-56.  The
-# higher transition rooms belong to the short opening stages and should not be
-# mixed into the long-run Analyzer view.
-STOFLER_BOTTOM_MAX_Y = -50.0
+# Keep Stofler's existing bottom-deck minimap artwork focused on the nearly
+# level arena around Y=-56. Runtime evidence shows that three authored clusters
+# above this deck remain active after wave 7, so this visual cutoff must not be
+# reused as the Analyzer's spawn-reference cutoff.
+STOFLER_BASE_MAP_MAX_Y = -50.0
 
 
 def align4(value: int) -> int:
@@ -126,10 +127,35 @@ def cluster_heights(values: list[float], gap: float = 3.4) -> list[float]:
     return [float(np.median(group)) for group in groups]
 
 
+def stofler_bottom_cut(overlay: dict) -> float:
+    """Derive Stofler's bottom-floor boundary from its authored spawn bands.
+
+    This mirrors the public 3D viewer: the two largest vertical gaps separate
+    the three playable floors, and the lower separator bounds the permanent
+    wave-7+ arena (including its raised approaches).
+    """
+    heights = sorted(
+        float(item["y"])
+        for item in overlay.get("spawns", [])
+        if "y" in item and np.isfinite(float(item["y"]))
+    )
+    gaps = []
+    for low, high in zip(heights, heights[1:]):
+        size = high - low
+        if size > 0.001:
+            gaps.append((size, (low + high) * 0.5))
+    if len(gaps) < 2:
+        raise ValueError("Stofler overlay does not contain three distinct floor bands")
+    largest = sorted(gaps, key=lambda item: item[0], reverse=True)[:2]
+    return min(cut for _, cut in largest)
+
+
 def map_bounds(overlay: dict, positions: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    map_spawns = overlay.get("_mapSpawns", overlay.get("spawns")) or []
+    map_objective = overlay.get("_mapObjective", overlay.get("objective")) or []
     anchors = [
         [float(item[axis]) for axis in ("x", "z")]
-        for item in [*(overlay.get("spawns") or []), *(overlay.get("objective") or [])]
+        for item in [*map_spawns, *map_objective]
         if all(axis in item for axis in ("x", "z"))
     ]
     if anchors:
@@ -152,17 +178,28 @@ def display_overlay(group_id: str, overlay: dict) -> dict:
     if group_id != "stofler":
         return overlay
     result = dict(overlay)
+    bottom_cut = stofler_bottom_cut(overlay)
+    # Preserve the approved bottom-deck minimap artwork and transform. These
+    # private render-only collections do not limit the spawn reference catalog.
+    result["_mapSpawns"] = [
+        item for item in overlay.get("spawns", [])
+        if float(item.get("y", 0.0)) <= STOFLER_BASE_MAP_MAX_Y
+    ]
+    result["_mapObjective"] = [
+        item for item in overlay.get("objective", [])
+        if float(item.get("y", 0.0)) <= STOFLER_BASE_MAP_MAX_Y
+    ]
     result["spawns"] = [
         item for item in overlay.get("spawns", [])
-        if float(item.get("y", 0.0)) <= STOFLER_BOTTOM_MAX_Y
+        if float(item.get("y", 0.0)) < bottom_cut
     ]
     result["objective"] = [
         item for item in overlay.get("objective", [])
-        if float(item.get("y", 0.0)) <= STOFLER_BOTTOM_MAX_Y
+        if float(item.get("y", 0.0)) < bottom_cut
     ]
     result["floorFilter"] = {
         "label": "bottom",
-        "maxY": STOFLER_BOTTOM_MAX_Y,
+        "maxY": round(bottom_cut, 4),
         # Stofler reaches its permanent bottom arena after the two introductory
         # three-wave floors. The browser uses this phase boundary before doing
         # coordinate alignment because procedural compositions can translate
@@ -196,8 +233,10 @@ def render_map(
     # Each height band is unioned into a silhouette before contouring so the
     # source mesh's individual triangle edges never appear as a wire grid.
     image = np.zeros((size, size, 4), dtype=np.uint8)
-    spawn_heights = [float(item.get("y", 0.0)) for item in overlay.get("spawns", [])]
-    objective_heights = [float(item.get("y", 0.0)) for item in overlay.get("objective", [])]
+    map_spawns = overlay.get("_mapSpawns", overlay.get("spawns")) or []
+    map_objective = overlay.get("_mapObjective", overlay.get("objective")) or []
+    spawn_heights = [float(item.get("y", 0.0)) for item in map_spawns]
+    objective_heights = [float(item.get("y", 0.0)) for item in map_objective]
     heights = cluster_heights(spawn_heights + objective_heights)
     chunk_size = 160_000
 
@@ -264,7 +303,7 @@ def render_map(
         image[:, :, 3] = np.rint(out_alpha[:, :, 0] * 255.0).astype(np.uint8)
 
     territory = [
-        item for item in overlay.get("objective", [])
+        item for item in map_objective
         if item.get("type") == "TerritoryObjectiveMarkerInfo"
     ]
     for index, item in enumerate(territory):
