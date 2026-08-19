@@ -39,7 +39,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /SpawnSubmission\.submitRuns\(runs, Parser\.buildContribution\)/);
   assert.doesNotMatch(js, /Spawn metrics:|Spawn metrics updated:|without usable spawn coordinates/);
   assert.match(js, /function setupDpmTooltips\(root\)/);
-  assert.match(js, /typeof input\.showPicker === "function"/);
+  assert.match(js, /function chooseLogFile\(input\)\s*\{\s*input\.click\(\);\s*\}/);
   assert.match(js, /if\(event\.target===input\) return/);
   assert.match(js, /function setupAnalyzerTooltips\(root\)/);
   assert.match(js, /data-tooltip="\$\{h\(tooltip\)\}"/);
@@ -62,9 +62,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /renderReport\(null\)/);
   assert.match(js, /document\.addEventListener\("drop"/);
   assert.match(js, /if\(state\.runs\.length\|\|zone\.contains\(event\.target\)\) return/);
-  assert.match(js, /window\.showOpenFilePicker/);
-  assert.match(js, /id: "arbi-analyzer-ee-log"/);
-  assert.match(js, /if \(typeof window\.showOpenFilePicker !== "function" \|\| !window\.isSecureContext\) \{\s*if \(typeof input\.showPicker === "function"\) input\.showPicker\(\);\s*else input\.click\(\)/);
+  assert.doesNotMatch(js, /showOpenFilePicker|showPicker/);
   assert.doesNotMatch(js, /downloadBlob|\.media_cache/);
   assert.doesNotMatch(html, /local prototype|Upload disabled/i);
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");

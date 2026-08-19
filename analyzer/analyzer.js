@@ -1126,30 +1126,8 @@
     tick();
   }
 
-  async function chooseLogFile(input) {
-    if (typeof window.showOpenFilePicker !== "function" || !window.isSecureContext) {
-      if (typeof input.showPicker === "function") input.showPicker();
-      else input.click();
-      return;
-    }
-    try {
-      const [handle] = await window.showOpenFilePicker({
-        id: "arbi-analyzer-ee-log",
-        multiple: false,
-        types: [{
-          description: "Warframe EE.log",
-          accept: {
-            "text/plain": [".log", ".txt"],
-            "application/gzip": [".gz"],
-          },
-        }],
-      });
-      if (handle) await importFile(await handle.getFile());
-    } catch (error) {
-      if (error?.name !== "AbortError") {
-        showToast(`File chooser failed: ${error.message || error}`, true);
-      }
-    }
+  function chooseLogFile(input) {
+    input.click();
   }
 
   function bindEvents() {
