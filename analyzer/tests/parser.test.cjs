@@ -156,6 +156,86 @@ test("starts the run clock at the last early squad rejoin", () => {
   assert.equal(run.totalDuration, 52);
 });
 
+test("returning to a non-mission level closes the run and its finalized squad", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Alpha loadout loader finished.",
+    "0.3 Game [Info]: Beta loadout loader finished.",
+    "0.4 Game [Info]: Gamma loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at SolNode26",
+    "1.1 Game [Info]: Level=/Lotus/Levels/Proc/Grineer/GrineerForestDefense/DAA.lp",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Lith (Earth) - Arbitration",
+    "3.0 WaveDefend.lua: Defense wave: 1",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    lines.push(`${(4 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+  lines.push(
+    "50.0 Game [Info]: Level=/Lotus/Levels/Proc/Hub/RelayStationHubMain/Return.lp",
+    "51.0 Game [Info]: Delta loadout loader finished.",
+    "51.1 Game [Info]: Epsilon loadout loader finished.",
+    "51.2 Game [Info]: Zeta loadout loader finished.",
+  );
+  for (let index = 0; index < 40; index += 1) {
+    lines.push(`${(52 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/ChargerAgent${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.equal(run.node, "Lith");
+  assert.equal(run.host, "Host");
+  assert.deepEqual(run.squadmates, ["Alpha", "Beta", "Gamma"]);
+  assert.equal(run.rawEnemySpawns, 40);
+});
+
+test("finalized squad drops short prebuffers but retains a player who disconnects near the end", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Prebuffer loadout loader finished.",
+    "0.3 Game [Info]: Alpha loadout loader finished.",
+    "0.4 Game [Info]: Beta loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at SolNode26",
+    "1.1 Game [Info]: Level=/Lotus/Levels/Proc/Grineer/GrineerForestDefense/DAA.lp",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Lith (Earth) - Arbitration",
+    "4.0 Net [Info]: Player=Prebuffer, change=UNREGISTERED",
+    "5.0 Game [Info]: Gamma loadout loader finished.",
+    "10.0 WaveDefend.lua: Defense wave: 1",
+  ];
+  for (let index = 0; index < 90; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    lines.push(`${(11 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+  lines.push("90.0 Net [Info]: Player=Beta, change=UNREGISTERED");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.deepEqual(run.squadmates, ["Alpha", "Beta", "Gamma"]);
+  assert.ok(!run.squadmates.includes("Prebuffer"));
+});
+
+test("ShowMissionVote starts an Arbitration when Mission name is absent", () => {
+  const lines = [
+    "1.0 Script [Info]: Background.lua: EliteAlertMission at SolNode302 (Lua - Tycho)",
+    "2.0 Script [Info]: ThemedSquadOverlay.lua: ShowMissionVote Tycho (Lua) - Arbitration - Level (60-80) (SolNode302_EliteAlert) -1",
+    "2.1 Game [Info]: Level=/Lotus/Levels/Proc/Orokin/OrokinMoonSurvival/Test.lp",
+    "3.0 Script [Info]: SurvivalMission.lua: Survival: Starting survival",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    lines.push(`${(4 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+  lines.push("50.0 Script [Info]: ExtractionTimer.lua: EOM: All players extracting");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.equal(run.node, "Tycho");
+  assert.equal(run.nodeKey, "SolNode302");
+  assert.equal(run.missionType, "SURVIVAL");
+  assert.equal(run.startTime, 3);
+  assert.equal(run.endTime, 50);
+});
+
 test("does not move the run clock for a late reconnect", () => {
   const lines = [
     "0.1 Game [Info]: Host loadout loader finished.",
