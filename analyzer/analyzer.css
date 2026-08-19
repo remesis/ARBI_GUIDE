@@ -136,6 +136,7 @@ button, a, label { -webkit-tap-highlight-color: transparent; }
 
 .sidebar-heading { display: flex; align-items: center; justify-content: space-between; margin: 22px 3px 18px; }
 .eyebrow { color: var(--red-hot); font-size: 10px; font-weight: 900; letter-spacing: .18em; }
+.sidebar-heading .eyebrow { font-size: 12px; }
 .sidebar-heading h1 { margin: 3px 0 0; font-size: 24px; letter-spacing: -.02em; }
 .sidebar-heading-actions { display: flex; align-items: center; gap: 6px; }
 .clear-runs-button { width: 61px; height: 30px; border: 1px solid var(--border); border-radius: 8px; padding: 0 11px; background: var(--panel-2); color: var(--text); font-weight: 700; cursor: pointer; }
@@ -567,6 +568,7 @@ body.minimap-lightbox-open { overflow: hidden; }
 .export-stage .report-header { grid-template-columns: auto 1fr auto; gap: 19px; }
 .export-stage .report-logo { display: block; width: 78px; height: 78px; }
 .export-stage .report-title { font-size: 54px; }
+.export-stage .goons-label { font-size: 15px; }
 .export-stage .run-identity { display: block; grid-column: auto; min-width: 230px; text-align: right; }
 .export-stage .export-run-identity { display: block; }
 .export-stage .kpi-grid, .export-stage .left-column .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }

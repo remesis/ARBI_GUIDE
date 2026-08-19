@@ -70,6 +70,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.doesNotMatch(html, /local prototype|Upload disabled/i);
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
   assert.match(css, /\.sidebar-heading\s*\{[^}]*align-items:\s*center/);
+  assert.match(css, /\.sidebar-heading \.eyebrow\s*\{[^}]*font-size:\s*12px/);
   assert.match(css, /body\.empty-page-drag::after/);
   assert.match(css, /\.report-sheet\s*\{[^}]*width:\s*1600px[^}]*max-width:\s*none/);
   assert.doesNotMatch(css, /@container\s+report/);
@@ -96,6 +97,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.export-stage\s*\{[^}]*--report-scale:\s*1[^}]*--report-gap:\s*16px/);
   assert.match(css, /\.export-stage \.report-sheet\s*\{[^}]*width:\s*1970px[^}]*font-size:\s*15px/);
   assert.match(css, /\.export-stage \.report-footer\s*\{[^}]*color:\s*#fff[^}]*font-size:\s*14px/);
+  assert.match(css, /\.export-stage \.goons-label\s*\{[^}]*font-size:\s*15px/);
   assert.match(css, /\.report-grid\.dashboard-layout\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(css, /\.report-grid\.dashboard-no-spawns\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(css, /\.dashboard-workspace\s*\{[^}]*grid-column:\s*2 \/ 4/);
