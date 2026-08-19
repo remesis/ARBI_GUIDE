@@ -362,7 +362,7 @@
         </div>
         ${hasSpawnPoints ? `<div class="column right-column">${renderSpawnColumn(run)}</div>` : ""}
       </div>
-      <footer class="report-footer"><span>Arbitration Goons · discord.gg/arbitrations</span><span>green = better / more &nbsp;·&nbsp; red = worse / less</span></footer>`;
+      <footer class="report-footer"><span>https://arbi.guide/analyzer</span><span>discord.gg/Arbitrations</span></footer>`;
 
     prepareDashboardLayout($("#reportRoot"));
     setupDpmTooltips($("#reportRoot"));

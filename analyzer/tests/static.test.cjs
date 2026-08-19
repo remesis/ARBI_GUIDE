@@ -95,6 +95,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.export-stage\s*\{[^}]*width:\s*2022px/);
   assert.match(css, /\.export-stage\s*\{[^}]*--report-scale:\s*1[^}]*--report-gap:\s*16px/);
   assert.match(css, /\.export-stage \.report-sheet\s*\{[^}]*width:\s*1970px[^}]*font-size:\s*15px/);
+  assert.match(css, /\.export-stage \.report-footer\s*\{[^}]*color:\s*#fff[^}]*font-size:\s*14px/);
   assert.match(css, /\.report-grid\.dashboard-layout\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(css, /\.report-grid\.dashboard-no-spawns\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(css, /\.dashboard-workspace\s*\{[^}]*grid-column:\s*2 \/ 4/);
@@ -184,7 +185,7 @@ test("analyzer uses the full composition list and green performance scale", () =
   assert.doesNotMatch(js, /entries\.slice\(0,(?:8|10)\)/);
   assert.match(js, /\.filter\(\(\[name\]\) => !isExcludedCompositionAgent\(name\)\)/);
   assert.match(js, /=== "summonmotorcycle"/);
-  assert.match(js, /green = better \/ more/);
+  assert.match(js, /<footer class="report-footer"><span>https:\/\/arbi\.guide\/analyzer<\/span><span>discord\.gg\/Arbitrations<\/span><\/footer>/);
   assert.match(js, /Greener = more enemies/);
   assert.match(js, /const SVES_SUCCESS = "#00e676"/);
   assert.match(js, /const SVES_DANGER = "#ff5252"/);
