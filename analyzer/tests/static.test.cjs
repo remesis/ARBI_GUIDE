@@ -224,6 +224,19 @@ test("clear maps display per-wave and per-rotation saturation", () => {
   assert.match(css, /\.round-saturation-legend\s*\{[^}]*margin-left:\s*auto/);
 });
 
+test("Interception clear-map colors use the 6m25s to 6m35s target band", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  assert.match(js, /INTERCEPTION_ROTATION_GOOD_MIN = 6 \* 60 \+ 25/);
+  assert.match(js, /INTERCEPTION_ROTATION_GOOD_MAX = 6 \* 60 \+ 35/);
+  assert.match(js, /INTERCEPTION_ROTATION_FADE_SECONDS = 45/);
+  assert.match(js, /function interceptionRotationScore\(seconds\)/);
+  assert.match(js, /value >= INTERCEPTION_ROTATION_GOOD_MIN && value <= INTERCEPTION_ROTATION_GOOD_MAX/);
+  assert.match(js, /interception\s*\?\s*interceptionRotationScore\(item\.seconds\)/);
+  assert.match(js, /Green = 6m 25s–6m 35s\./);
+  assert.match(js, /interception \? "6m 25s–6m 35s"/);
+  assert.match(js, /interception \? "farther from target"/);
+});
+
 test("saturation labels use each mission mode's configured threshold", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");

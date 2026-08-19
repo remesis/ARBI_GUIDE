@@ -146,6 +146,9 @@
   // endpoints plus the same full HSL performance ramp used by its heat maps.
   const SVES_SUCCESS = "#00e676";
   const SVES_DANGER = "#ff5252";
+  const INTERCEPTION_ROTATION_GOOD_MIN = 6 * 60 + 25;
+  const INTERCEPTION_ROTATION_GOOD_MAX = 6 * 60 + 35;
+  const INTERCEPTION_ROTATION_FADE_SECONDS = 45;
 
   function performanceHue(intensity) {
     return clamp(Number(intensity || 0), 0, 1) * 120;
@@ -154,6 +157,16 @@
   function heatColor(intensity) {
     const hue = performanceHue(intensity);
     return { color: `hsl(${hue},100%,50%)`, ink: "#121212" };
+  }
+
+  function interceptionRotationScore(seconds) {
+    const value = Number(seconds);
+    if (!Number.isFinite(value)) return 0;
+    if (value >= INTERCEPTION_ROTATION_GOOD_MIN && value <= INTERCEPTION_ROTATION_GOOD_MAX) return 1;
+    const distance = value < INTERCEPTION_ROTATION_GOOD_MIN
+      ? INTERCEPTION_ROTATION_GOOD_MIN - value
+      : value - INTERCEPTION_ROTATION_GOOD_MAX;
+    return clamp(1 - distance / INTERCEPTION_ROTATION_FADE_SECONDS, 0, 1);
   }
 
   function activityHeatColor(intensity) {
@@ -388,10 +401,13 @@
     const values = phase.items.map((item) => item.seconds);
     const low = Math.min(...values), high = Math.max(...values);
     const threshold = phase.defense ? 25 : avg(values);
+    const interception = !phase.defense && run.missionType === "INTERCEPTION";
     const cells = phase.items.map((item) => {
       const good = phase.defense
         ? Number(item.seconds <= threshold)
-        : (high === low ? .6 : 1 - (item.seconds - low) / (high - low));
+        : (interception
+          ? interceptionRotationScore(item.seconds)
+          : (high === low ? .6 : 1 - (item.seconds - low) / (high - low)));
       const color = phase.defense
         ? { color: good ? SVES_SUCCESS : SVES_DANGER, ink: "#121212" }
         : heatColor(good);
@@ -400,7 +416,18 @@
       const tooltip = `Round ${item.label} - Saturation ${saturation}`;
       return `<div class="heat-cell" data-tooltip="${h(tooltip)}" aria-label="${h(tooltip)}" style="--heat:${color.color};--ink:${color.ink}">${content}</div>`;
     }).join("");
-    return `<section class="card"><h3 class="card-title">${h(phase.noun)} clear map</h3><p class="card-subtitle">${phase.defense ? "Fight time per wave, downtime excluded. Greener = faster." : "Time per rotation. Greener = faster for this local comparison."}</p><div class="heat-map clear-heat-map" style="--heat-cols:${Math.min(12, phase.items.length)};--mobile-heat-cols:${Math.min(8, phase.items.length)}">${cells}</div><div class="heat-legend"><span class="legend-chip"><i style="--swatch:${SVES_SUCCESS}"></i>${phase.defense ? `≤${threshold}s` : `fastest ${shortDuration(low)}`}</span><span class="legend-chip"><i style="--swatch:${SVES_DANGER}"></i>${phase.defense ? `>${threshold}s` : `slowest ${shortDuration(high)}`}</span><span class="round-saturation-legend">##.#% is Saturation per round</span></div></section>`;
+    const subtitle = phase.defense
+      ? "Fight time per wave, downtime excluded. Greener = faster."
+      : (interception
+        ? "Time per rotation. Green = 6m 25s–6m 35s."
+        : "Time per rotation. Greener = faster for this local comparison.");
+    const goodLegend = phase.defense
+      ? `≤${threshold}s`
+      : (interception ? "6m 25s–6m 35s" : `fastest ${shortDuration(low)}`);
+    const badLegend = phase.defense
+      ? `>${threshold}s`
+      : (interception ? "farther from target" : `slowest ${shortDuration(high)}`);
+    return `<section class="card"><h3 class="card-title">${h(phase.noun)} clear map</h3><p class="card-subtitle">${subtitle}</p><div class="heat-map clear-heat-map" style="--heat-cols:${Math.min(12, phase.items.length)};--mobile-heat-cols:${Math.min(8, phase.items.length)}">${cells}</div><div class="heat-legend"><span class="legend-chip"><i style="--swatch:${SVES_SUCCESS}"></i>${goodLegend}</span><span class="legend-chip"><i style="--swatch:${SVES_DANGER}"></i>${badLegend}</span><span class="round-saturation-legend">##.#% is Saturation per round</span></div></section>`;
   }
 
   function renderDpm(run) {
