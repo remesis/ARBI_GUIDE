@@ -1330,7 +1330,8 @@
   }
 
   async function buildContribution(run) {
-    const spawnPoints = Object.values(run.spawnPoints || {})
+    const spawnEligible = ["DEFENSE", "INTERCEPTION"].includes(run.missionType);
+    const spawnPoints = (spawnEligible ? Object.values(run.spawnPoints || {}) : [])
       .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y) && Number.isFinite(point.z))
       .sort((a, b) => a.key.localeCompare(b.key))
       .map((point) => ({
@@ -1338,7 +1339,9 @@
         position: [round(point.x, 4), round(point.y, 4), round(point.z, 4)],
         count: point.count,
       }));
-    const payload = {
+    // Preserve the original identity hash so historical coordinate rows
+    // continue to deduplicate under the expanded envelope.
+    const identity = {
       schema: "arbi-solnode-spawns/v1",
       sol_node: run.nodeKey || null,
       level_path: run.levelPath || null,
@@ -1350,8 +1353,21 @@
       observed_spawn_events: spawnPoints.reduce((sum, point) => sum + point.count, 0),
       spawn_points: spawnPoints,
     };
-    const runHash = await sha256(stableStringify(payload));
-    return { ...payload, run_hash: runHash };
+    const runMetrics = {
+      mission_seconds: round(run.totalDuration || 0, 3),
+      drone_kills: Math.max(0, Math.trunc(run.droneKills || 0)),
+      reward_cycles: Math.max(0, Math.trunc(run.rotations || 0)),
+      defense_waves: run.missionType === "DEFENSE"
+        ? Object.keys(run.waveStarts || {}).length
+        : 0,
+    };
+    const runHash = await sha256(stableStringify(identity));
+    return {
+      ...identity,
+      schema: "arbi-analyzer-run/v2",
+      run_metrics: runMetrics,
+      run_hash: runHash,
+    };
   }
 
   function round(value, places) {

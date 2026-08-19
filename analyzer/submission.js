@@ -2,7 +2,9 @@
   "use strict";
 
   const ENDPOINT = "/api/analyzer/spawns";
-  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v1";
+  // v2 intentionally gets a fresh browser cache so records accepted under the
+  // earlier contract can be reconciled once under the same canonical hash.
+  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v2";
   const CACHE_LIMIT = 5000;
   const PRODUCTION_HOSTS = new Set(["arbi.guide"]);
 
@@ -28,18 +30,29 @@
   }
 
   function isValidPayload(payload) {
+    const metrics = payload?.run_metrics;
     return Boolean(
       payload
-      && payload.schema === "arbi-solnode-spawns/v1"
+      && payload.schema === "arbi-analyzer-run/v2"
       && /^(?:SolNode|ClanNode|SettlementNode)\d+$/.test(payload.sol_node || "")
-      && ["DEFENSE", "INTERCEPTION"].includes(payload.mission_type)
+      && typeof payload.mission_type === "string"
+      && payload.mission_type.length > 0
+      && payload.mission_type.length <= 40
       && /^[a-f0-9]{64}$/.test(payload.run_hash || "")
       && Number.isFinite(payload.run_offset_seconds)
       && payload.run_offset_seconds >= 0
       && Number.isInteger(payload.observed_spawn_events)
-      && payload.observed_spawn_events > 0
+      && payload.observed_spawn_events >= 0
       && Array.isArray(payload.spawn_points)
-      && payload.spawn_points.length > 0
+      && metrics
+      && Number.isFinite(metrics.mission_seconds)
+      && metrics.mission_seconds > 0
+      && Number.isInteger(metrics.drone_kills)
+      && metrics.drone_kills >= 0
+      && Number.isInteger(metrics.reward_cycles)
+      && metrics.reward_cycles >= 0
+      && Number.isInteger(metrics.defense_waves)
+      && metrics.defense_waves >= 0
     );
   }
 

@@ -12,9 +12,11 @@ browser. The Pages bundle never uploads an `EE.log` or arbitrary log lines.
    by the UI.
 4. Player and squad names can appear in the local report but never enter the
    contribution payload.
-5. Eligible Defense and Interception runs are reduced to
-   `arbi-solnode-spawns/v1` and submitted to `POST /api/analyzer/spawns` only on
-   the canonical `arbi.guide` host.
+5. Every recognized Arbitration run is reduced to
+   `arbi-analyzer-run/v2` and submitted to `POST /api/analyzer/spawns` only on
+   the canonical `arbi.guide` host. Eligible Defense and Interception runs may
+   also carry coordinate-bearing spawn points; other modes send an empty point
+   list while still contributing the reduced run record.
 
 For Survival, the parser anchors active time to `Survival: Starting survival`,
 uses the one-per-cycle `Survival: Gave reward tier` mission event for reward
@@ -46,12 +48,19 @@ The exact submitted fields are:
   identical runs in one growing log;
 - total observed spawn events;
 - each observed spawn-point key, XYZ position, and aggregate count;
-- a canonical SHA-256 hash over all preceding fields.
+- mission duration, drone kills, completed reward cycles, and Defense wave
+  count inside `run_metrics`;
+- a canonical SHA-256 hash over the original spawn-identity fields.
+
+The v2 envelope deliberately keeps the original `arbi-solnode-spawns/v1`
+identity hash. Existing Defense/Interception rows therefore deduplicate instead
+of being recopied when their reduced record is reconciled. No actual-Vitus
+entry is uploaded.
 
 No raw lines, player names, squad names, hardware identifiers, absolute
-timestamps, per-wave histories, NPC composition, unrelated metrics, or full log
-files are submitted. The hash is a duplicate key, not proof that public-client
-data is honest.
+timestamps, per-wave histories, NPC composition, actual Vitus, unrelated
+metrics, or full log files are submitted. The hash is a duplicate key, not
+proof that public-client data is honest.
 
 ## Duplicate behavior
 
@@ -82,9 +91,8 @@ time, never the token. Once confirmed, the credential endpoint permanently
 returns `410` and the IP no longer grants any access. Remove the
 `ANALYZER_BOT_IPS` binding after confirmed enrollment; production has done so.
 Both the browser analyzer and the ArbiGoons Discord bot submit the exact same
-`arbi-solnode-spawns/v1` object to `/api/analyzer/spawns`. Both sources use the
-same canonical hash and `analyzer_spawn_runs` D1 table; there is no bot-specific
-spawn dataset.
+`arbi-analyzer-run/v2` object to `/api/analyzer/spawns`. Both sources use the
+same canonical hash and shared storage; there is no bot-specific dataset.
 
 It:
 
@@ -95,7 +103,7 @@ It:
   keys, and mismatched event totals;
 - recomputes the canonical SHA-256 hash rather than trusting the client;
 - uses `INSERT OR IGNORE` under the D1 `run_hash` primary key;
-- stores one privacy-reduced canonical JSON record per run;
+- stores the validated reduced record under its canonical run hash;
 - applies a Rate Limiting binding to public browser submissions when configured
   (the authenticated bot has its own Discord command cooldown and durable
   retry queue);

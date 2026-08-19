@@ -12,13 +12,14 @@ function storage() {
 
 function payload(hash = "a".repeat(64)) {
   return {
-    schema: "arbi-solnode-spawns/v1",
+    schema: "arbi-analyzer-run/v2",
     sol_node: "SolNode130",
     level_path: "/Lotus/Levels/Example.level",
     mission_type: "DEFENSE",
     run_offset_seconds: 123.4,
     observed_spawn_events: 7,
     spawn_points: [{ point_key: "/Layer/NpcSpawnPoint1", position: [1, 2, 3], count: 7 }],
+    run_metrics: { mission_seconds: 600, drone_kills: 100, reward_cycles: 2, defense_waves: 6 },
     run_hash: hash,
   };
 }

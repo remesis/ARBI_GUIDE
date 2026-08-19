@@ -49,10 +49,16 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.equal(runs[1].missionType, "INTERCEPTION");
 
   const payload = await Parser.buildContribution(runs[0]);
-  assert.equal(payload.schema, "arbi-solnode-spawns/v1");
+  assert.equal(payload.schema, "arbi-analyzer-run/v2");
   assert.equal(payload.sol_node, "SolNode130");
   assert.equal(payload.spawn_points.length, 2);
   assert.equal(payload.run_offset_seconds, runs[0].startTime);
+  assert.deepEqual(payload.run_metrics, {
+    mission_seconds: runs[0].totalDuration,
+    drone_kills: runs[0].droneKills,
+    reward_cycles: runs[0].rotations,
+    defense_waves: Object.keys(runs[0].waveStarts).length,
+  });
   assert.match(payload.run_hash, /^(?:[a-f0-9]{64}|test-[a-f0-9]{8})$/);
   const serialized = JSON.stringify(payload);
   assert.doesNotMatch(serialized, /Squad|player|Mission name|OnAgentCreated/i);
@@ -141,7 +147,7 @@ test("classifies unranked Survival and Disruption nodes from stable SolNode meta
   assert.deepEqual(runs[1].saturation.rows.slice(0, 6).map((row) => row.label), ["0-7", "8-14", "15-22", "23-29", "30-32", "33-35"]);
 });
 
-test("uses Survival mission events for active timing, reward cycles, extraction, and saturation", () => {
+test("uses Survival mission events for active timing, reward cycles, extraction, and saturation", async () => {
   const lines = [
     "1.0 Game [Info]: EliteAlertMission at ClanNode23",
     "1.1 Game [Info]: Level=/Lotus/Levels/Proc/Grineer/GrineerGalleonSurvivalRaid/Test.lp",
@@ -180,6 +186,16 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   assert.equal(run.saturation.rows[4].label, "30-32");
   assert.ok(run.saturation.abovePercent > 0);
   assert.ok(run.saturationPerRotation.every(Number.isFinite));
+  const payload = await Parser.buildContribution(run);
+  assert.equal(payload.schema, "arbi-analyzer-run/v2");
+  assert.deepEqual(payload.spawn_points, []);
+  assert.equal(payload.observed_spawn_events, 0);
+  assert.deepEqual(payload.run_metrics, {
+    mission_seconds: 130,
+    drone_kills: 7,
+    reward_cycles: 2,
+    defense_waves: 0,
+  });
 });
 
 test("starts the run clock at the last early squad rejoin", () => {
