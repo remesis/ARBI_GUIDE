@@ -151,10 +151,15 @@ image_y = d * world_x + e * world_z + f
 The Analyzer requires every displayed spawn-point XYZ position to match the
 selected tile catalog before drawing bubbles. If one coordinate-bearing point
 does not match, the full overlay is withheld rather than drawn on a potentially
-wrong variation. Multi-floor Defense tiles first select the configured mission
-phase and then retain only the coordinate-consistent subset for the displayed
-floor; this handles procedural world offsets without leaking other floors into
-the overlay. Rebuild map assets with
+wrong variation. Procedural component paths found in `Required by object`
+loader lines distinguish variants that share the same generated `.lp` path.
+The GasSpawn02 catalog also carries five Analyzer-only live edge-point
+references confirmed by host telemetry; they do not alter the 3D viewer overlay
+or the approved minimap artwork. Multi-floor Defense tiles first select the
+configured mission phase and then retain only the coordinate-consistent subset
+for the displayed floor; this handles procedural world offsets without leaking
+other floors into the overlay. Squad loader parsing accepts player names that
+contain spaces. Rebuild map assets with
 `python analyzer/tools/build_game_minimaps.py` from the repository root after
 tile data changes.
 

@@ -660,8 +660,9 @@
       // coordinate through so the position matcher can recover the layout.
       const result = SpawnAlignment.verifySpawnPositions(coordinatePoints, config);
       const complete = coordinatePoints.length > 0 && result.matches.length === coordinatePoints.length;
-      const levelMatch = Boolean(run.levelPath && (config.levelPaths || []).includes(run.levelPath));
-      return { config, index, verified: result.matches, complete, score: (complete ? result.matches.length : 0) + (levelMatch ? 100000 : 0) };
+      const observedLevels = new Set([run.levelPath, ...(run.levelComponents || [])].filter(Boolean));
+      const levelMatches = (config.levelPaths || []).filter((path) => observedLevels.has(path)).length;
+      return { config, index, verified: result.matches, complete, score: (complete ? result.matches.length : 0) + levelMatches * 100000 };
     }).sort((left, right) => right.score - left.score || left.index - right.index);
     const selected = candidates[0];
     const config = selected?.config;

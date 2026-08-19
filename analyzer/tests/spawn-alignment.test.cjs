@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const Alignment = require("../spawn-alignment.js");
+require("../minimaps/catalog.js");
 
 const referencePositions = [
   [-46.7, 4.75, -64.125],
@@ -51,4 +52,23 @@ test("finds a floor-specific subset inside a translated multi-floor run", () => 
   assert.equal(result.mode, "subset");
   assert.equal(result.matches.length, bottom.length);
   assert.deepEqual(result.matches.map((match) => match.position), referencePositions);
+});
+
+test("GasSpawn02 includes its live procedural edge points", () => {
+  const gasSpawn02 = globalThis.ArbitrationMinimapCatalog.catalog["callisto+sinai+io~2"];
+  const references = [
+    ...["1096", "1097", "1098", "1099", "1100", "1101"].map((id) => gasSpawn02.spawnPoints[id][0]),
+    ...["runtime-edge-1", "runtime-edge-2", "runtime-edge-3", "runtime-edge-4", "runtime-edge-5"]
+      .map((id) => gasSpawn02.spawnPoints[id][0]),
+  ];
+  const procedural = references.map((position, index) => ({
+    ident: `NpcSpawnPoint${index + 1}`,
+    x: position[0] - .254,
+    y: position[1] - 22,
+    z: -position[2] - 3.561,
+  }));
+
+  const result = Alignment.verifySpawnPositions(procedural, gasSpawn02);
+  assert.equal(result.mode, "transformed");
+  assert.equal(result.matches.length, procedural.length);
 });

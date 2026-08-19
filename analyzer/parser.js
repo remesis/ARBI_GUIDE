@@ -18,7 +18,7 @@
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260819-1";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260819-2";
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
   const HIGH_DENSITY_SATURATION_EDGES = [8, 15, 23, 30, 33, 36, 39, 42, 45];
@@ -144,14 +144,15 @@
   const P_WAVE_CAP = /WaveDefend\.lua: Starting wave \d+.*?\((\d+) simultaneous/;
   const P_MONITORED = /AI \[Info\]: .*?MonitoredTicking (\d+)/;
   const P_LIVE = /AI \[Info\]:.*?Live (\d+)/;
-  const P_LOADOUT = /Game \[Info\]: (\S+) loadout loader finished\./;
+  const P_LOADOUT = /Game \[Info\]: (.+?) loadout loader finished\./;
   const P_UNREGISTERED = /Player=([^,]+),\s*change=UNREGISTERED/;
   const P_INT_INIT = /TerritoryMission\.lua: .*?(?:control|captured)/i;
   const P_SPAWN_POINT = /^!?(\d+\.\d+).*WaveDefend\.lua: Spawned a \/Npc\/([A-Za-z0-9_]+?)\d* @ Vector\(([^)]+)\), spawn point: (\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+) @ Vector\(([^)]+)\)/;
   const P_AI_AGENT_INIT = /^!?(\d+\.\d+).*AI Agent Initialize\s+\/Npc\/([A-Za-z0-9_]+?)\d*\s+at NpcAiDirector\s+(\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+)/i;
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
+  const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -163,6 +164,7 @@
       isArbitration: false,
       nodeKey: "",
       levelPath: "",
+      levelComponents: [],
       isDefense: false,
       isInterception: false,
       droneKills: 0,
@@ -302,6 +304,7 @@
       let hasAgentInitialize = false;
       let hasEliteAlert = false;
       let hasLevel = false;
+      let hasLevelComponent = false;
       let hasSleep = false;
       let hasReward = false;
       let hasCountdown = false;
@@ -327,6 +330,7 @@
         hasAgentInitialize = line.includes("AI Agent Initialize");
         hasEliteAlert = line.includes("EliteAlertMission at");
         hasLevel = line.includes("Game [Info]: Level=");
+        hasLevelComponent = line.includes("Required by object /Lotus/Levels/");
         hasSleep = line.includes("WaveDefend.lua: _SleepBetweenWaves");
         hasReward = line.includes("Created /Lotus/Interface/DefenseReward.swf");
         hasCountdown = line.includes("Created /Lotus/Interface/ProjectionsCountdown.swf");
@@ -352,6 +356,7 @@
           case "AI Agent Initialize": hasAgentInitialize = true; break;
           case "EliteAlertMission at": hasEliteAlert = true; break;
           case "Game [Info]: Level=": hasLevel = true; break;
+          case "Required by object /Lotus/Levels/": hasLevelComponent = true; break;
           case "_SleepBetweenWaves": hasSleep = line.includes("WaveDefend.lua: _SleepBetweenWaves"); break;
           case "DefenseReward.swf": hasReward = line.includes("Created /Lotus/Interface/DefenseReward.swf"); break;
           case "ProjectionsCountdown.swf": hasCountdown = line.includes("Created /Lotus/Interface/ProjectionsCountdown.swf"); break;
@@ -375,7 +380,7 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
 
       if (hasMission || hasMissionVote) {
         const match = line.match(hasMission ? P_MISSION : P_MISSION_VOTE);
@@ -405,6 +410,14 @@
           } else {
             this.levels.push([Number(match[1]), path]);
           }
+        }
+        return;
+      }
+      if (hasLevelComponent) {
+        const match = line.match(P_LEVEL_COMPONENT);
+        if (match) {
+          const path = this.intern(`${match[1]}.level`);
+          if (!this.cur.levelComponents.includes(path)) this.cur.levelComponents.push(path);
         }
         return;
       }

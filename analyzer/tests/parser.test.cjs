@@ -65,6 +65,25 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.doesNotMatch(serialized, /npc_types|wave_counts/i);
 });
 
+test("retains spaced squad names and procedural layout component markers", () => {
+  const lines = [
+    "0.1 Game [Info]: 123period loadout loader finished.",
+    "0.2 Game [Info]: Pinky Flooff loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at ClanNode4",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Sinai (Jupiter) - Arbitration",
+    "2.1 Sys [Error]: Required by object /Lotus/Levels/CorpusGasCityRemaster/GasSpawn02/Scope",
+    "3.0 WaveDefend.lua: Defense wave: 1",
+  ];
+  for (let index = 0; index < 48; index += 1) {
+    lines.push(`${4 + index}.0 AI [Info]: OnAgentCreated /Npc/ChargerAgent${index} AI [Info]: MonitoredTicking ${index}`);
+  }
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.host, "123period");
+  assert.deepEqual(run.squadmates, ["Pinky Flooff"]);
+  assert.deepEqual(run.levelComponents, ["/Lotus/Levels/CorpusGasCityRemaster/GasSpawn02.level"]);
+});
+
 test("large uncompressed files preserve parser results through ordered parallel scan parts", async () => {
   const sourceLines = [];
   addRun(sourceLines, {

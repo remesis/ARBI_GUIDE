@@ -86,6 +86,20 @@ SOURCE_GROUPS = {
 # reused as the Analyzer's spawn-reference cutoff.
 STOFLER_BASE_MAP_MAX_Y = -50.0
 
+# GasSpawn02 has five live edge points that are instantiated by the procedural
+# defense composition but are absent from the authored WFO overlay. Keep these
+# Analyzer-only references separate from the 3D viewer overlay so the approved
+# minimap artwork and public tileset data remain unchanged.
+ANALYZER_SPAWN_SUPPLEMENTS = {
+    "callisto+sinai+io~2": {
+        "runtime-edge-1": [[-85.779, -4.0, 77.0831]],
+        "runtime-edge-2": [[86.6277, -4.0, 72.0354]],
+        "runtime-edge-3": [[-82.779, -4.0, 79.0831]],
+        "runtime-edge-4": [[84.0469, -3.978, 75.4819]],
+        "runtime-edge-5": [[-78.529, -4.0, 79.5831]],
+    },
+}
+
 
 def align4(value: int) -> int:
     return (value + 3) & ~3
@@ -397,6 +411,7 @@ def main() -> None:
         positions, faces = read_wfg(source_dir / f"{group['mesh']}.wfg")
         label = " / ".join(node["name"] for node in current_group.get("nodes", []))
         entry = render_map(positions, faces, overlay, output_dir / f"{group_id}.webp")
+        entry["spawnPoints"].update(ANALYZER_SPAWN_SUPPLEMENTS.get(group_id, {}))
         entry["label"] = label
         catalog[group_id] = entry
         base_group_id = group_id.split("~", 1)[0]

@@ -26,6 +26,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /setSpawnBubbleHighlight/);
   assert.match(js, /data-spawn-id/);
   assert.match(js, /verifySpawnPositions\(coordinatePoints, config\)/);
+  assert.match(js, /run\.levelComponents/);
+  assert.match(js, /levelMatches \* 100000/);
   assert.match(js, /setupTopbarHeightObserver\(\)/);
   assert.match(html, /id="minimapLightbox"/);
   assert.match(html, /Last updated: 2026-08-16/);
@@ -189,10 +191,10 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260819-60"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260819-61"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(html, /parser\.js\?v=20260819-60/);
+  assert.match(html, /parser\.js\?v=20260819-61/);
 });
 
 test("loading a log selects its newest run longer than five minutes", () => {
