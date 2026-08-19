@@ -210,7 +210,13 @@ button, a, label { -webkit-tap-highlight-color: transparent; }
 .run-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
 .run-meta { color: var(--muted); font-size: 10px; text-align: right; }
 .run-meta strong { display: block; color: #d3d3d8; font-size: 11px; }
-.run-meta .short-run-duration { display: inline-block; border: 1px solid var(--red); border-radius: 3px; padding: 1px 3px; }
+.run-meta .short-run-duration {
+  display: block;
+  text-shadow:
+    -1px -1px 0 var(--red), 0 -1px 0 var(--red), 1px -1px 0 var(--red),
+    -1px 0 0 var(--red), 1px 0 0 var(--red),
+    -1px 1px 0 var(--red), 0 1px 0 var(--red), 1px 1px 0 var(--red);
+}
 .no-runs { padding: 18px 8px; color: var(--muted); text-align: center; font-size: 12px; }
 
 .sidebar-scrim { display: none; }
