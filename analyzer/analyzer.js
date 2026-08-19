@@ -767,7 +767,7 @@
     $("#searchCount").textContent = queryCount;
     $("#mobileSearchCount").textContent = queryCount;
     $("#clearRunsBtn").disabled = !state.runs.length;
-    $("#runList").innerHTML = visible.length ? visible.map(({run,index})=>`<button class="run-button ${index===state.activeIndex?"active":""}" type="button" data-index="${index}"><span class="run-accent"></span><span class="run-copy"><strong>${h(run.node)}</strong><span>${h(run.missionType)} · ${h(run.planet)}</span></span><span class="run-meta"><strong>${duration(run.totalDuration)}</strong>${fmt(run.droneKills)} drones</span></button>`).join("") : `<div class="no-runs">${state.runs.length ? "No matching runs." : "No analyzed runs."}</div>`;
+    $("#runList").innerHTML = visible.length ? visible.map(({run,index})=>`<button class="run-button ${index===state.activeIndex?"active":""}" type="button" data-index="${index}"><span class="run-accent"></span><span class="run-copy"><strong>${h(run.node)}</strong><span>${h(run.missionType)} · ${h(run.planet)}</span></span><span class="run-meta"><strong class="${Number(run.totalDuration) < INITIAL_RUN_MIN_SECONDS ? "short-run-duration" : ""}">${duration(run.totalDuration)}</strong>${fmt(run.droneKills)} drones</span></button>`).join("") : `<div class="no-runs">${state.runs.length ? "No matching runs." : "No analyzed runs."}</div>`;
     $$(".run-button",$("#runList")).forEach((button)=>button.addEventListener("click",()=>{
       state.activeIndex=Number(button.dataset.index); renderRunList(); renderReport(state.runs[state.activeIndex]); focusActualVitusEntry(); document.body.classList.remove("sidebar-open");
     }));

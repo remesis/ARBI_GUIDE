@@ -192,6 +192,13 @@ test("loading a log selects its newest run longer than five minutes", () => {
   assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\)/);
 });
 
+test("left-panel durations under five minutes receive a red border", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  assert.match(js, /Number\(run\.totalDuration\) < INITIAL_RUN_MIN_SECONDS \? "short-run-duration"/);
+  assert.match(css, /\.run-meta \.short-run-duration\s*\{[^}]*border:\s*1px solid var\(--red\)/);
+});
+
 test("analyzer uses the full composition list and green performance scale", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
