@@ -146,9 +146,8 @@
   // endpoints plus the same full HSL performance ramp used by its heat maps.
   const SVES_SUCCESS = "#00e676";
   const SVES_DANGER = "#ff5252";
-  const INTERCEPTION_ROTATION_GOOD_MIN = 6 * 60 + 25;
-  const INTERCEPTION_ROTATION_GOOD_MAX = 6 * 60 + 35;
-  const INTERCEPTION_ROTATION_FADE_SECONDS = 45;
+  const INTERCEPTION_ROTATION_TARGET = 6 * 60 + 30;
+  const INTERCEPTION_ROTATION_FADE_SECONDS = 10;
 
   function performanceHue(intensity) {
     return clamp(Number(intensity || 0), 0, 1) * 120;
@@ -162,10 +161,7 @@
   function interceptionRotationScore(seconds) {
     const value = Number(seconds);
     if (!Number.isFinite(value)) return 0;
-    if (value >= INTERCEPTION_ROTATION_GOOD_MIN && value <= INTERCEPTION_ROTATION_GOOD_MAX) return 1;
-    const distance = value < INTERCEPTION_ROTATION_GOOD_MIN
-      ? INTERCEPTION_ROTATION_GOOD_MIN - value
-      : value - INTERCEPTION_ROTATION_GOOD_MAX;
+    const distance = Math.abs(value - INTERCEPTION_ROTATION_TARGET);
     return clamp(1 - distance / INTERCEPTION_ROTATION_FADE_SECONDS, 0, 1);
   }
 
@@ -419,14 +415,14 @@
     const subtitle = phase.defense
       ? "Fight time per wave, downtime excluded. Greener = faster."
       : (interception
-        ? "Time per rotation. Green = 6m 25s–6m 35s."
+        ? "Time per rotation. Green at 6m 30s; red at 6m 20s / 6m 40s."
         : "Time per rotation. Greener = faster for this local comparison.");
     const goodLegend = phase.defense
       ? `≤${threshold}s`
-      : (interception ? "6m 25s–6m 35s" : `fastest ${shortDuration(low)}`);
+      : (interception ? "target 6m 30s" : `fastest ${shortDuration(low)}`);
     const badLegend = phase.defense
       ? `>${threshold}s`
-      : (interception ? "farther from target" : `slowest ${shortDuration(high)}`);
+      : (interception ? "red ±10s" : `slowest ${shortDuration(high)}`);
     return `<section class="card"><h3 class="card-title">${h(phase.noun)} clear map</h3><p class="card-subtitle">${subtitle}</p><div class="heat-map clear-heat-map" style="--heat-cols:${Math.min(12, phase.items.length)};--mobile-heat-cols:${Math.min(8, phase.items.length)}">${cells}</div><div class="heat-legend"><span class="legend-chip"><i style="--swatch:${SVES_SUCCESS}"></i>${goodLegend}</span><span class="legend-chip"><i style="--swatch:${SVES_DANGER}"></i>${badLegend}</span><span class="round-saturation-legend">##.#% is Saturation per round</span></div></section>`;
   }
 

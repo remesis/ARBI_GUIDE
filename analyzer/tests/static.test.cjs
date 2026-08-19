@@ -224,17 +224,16 @@ test("clear maps display per-wave and per-rotation saturation", () => {
   assert.match(css, /\.round-saturation-legend\s*\{[^}]*margin-left:\s*auto/);
 });
 
-test("Interception clear-map colors use the 6m25s to 6m35s target band", () => {
+test("Interception clear-map colors peak at 6m30s and reach red 10 seconds away", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  assert.match(js, /INTERCEPTION_ROTATION_GOOD_MIN = 6 \* 60 \+ 25/);
-  assert.match(js, /INTERCEPTION_ROTATION_GOOD_MAX = 6 \* 60 \+ 35/);
-  assert.match(js, /INTERCEPTION_ROTATION_FADE_SECONDS = 45/);
+  assert.match(js, /INTERCEPTION_ROTATION_TARGET = 6 \* 60 \+ 30/);
+  assert.match(js, /INTERCEPTION_ROTATION_FADE_SECONDS = 10/);
   assert.match(js, /function interceptionRotationScore\(seconds\)/);
-  assert.match(js, /value >= INTERCEPTION_ROTATION_GOOD_MIN && value <= INTERCEPTION_ROTATION_GOOD_MAX/);
+  assert.match(js, /Math\.abs\(value - INTERCEPTION_ROTATION_TARGET\)/);
   assert.match(js, /interception\s*\?\s*interceptionRotationScore\(item\.seconds\)/);
-  assert.match(js, /Green = 6m 25s–6m 35s\./);
-  assert.match(js, /interception \? "6m 25s–6m 35s"/);
-  assert.match(js, /interception \? "farther from target"/);
+  assert.match(js, /Green at 6m 30s; red at 6m 20s \/ 6m 40s\./);
+  assert.match(js, /interception \? "target 6m 30s"/);
+  assert.match(js, /interception \? "red ±10s"/);
 });
 
 test("saturation labels use each mission mode's configured threshold", () => {
