@@ -309,6 +309,33 @@ test("excludes reward-screen pauses from rotation clear times", () => {
   ]);
 });
 
+test("closes Mirror Defense reward pauses on LoopDefend markers without treating repeated sides as waves", () => {
+  const lines = [
+    "1.0 Game [Info]: EliteAlertMission at SolNode450",
+    "1.1 Game [Info]: Level=/Lotus/Levels/Proc/LastWish/LastWishDefense",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Tyana Pass (Mars) - Arbitration",
+    "10.0 Script [Info]: LoopDefend.lua: Loop Defense wave: 1",
+  ];
+  for (let index = 0; index < 48; index += 1) {
+    const npc = index < 7 ? "CorpusEliteShieldDroneAgent" : "EliteRifleLancerAgent";
+    lines.push(`${(11 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 30}`);
+  }
+  lines.push("100.0 Sys [Info]: Created /Lotus/Interface/DefenseReward.swf");
+  lines.push("110.0 Script [Info]: LoopDefend.lua: Loop Defense wave: 1");
+  lines.push("200.0 Sys [Info]: Created /Lotus/Interface/DefenseReward.swf");
+  lines.push("210.0 Script [Info]: LoopDefend.lua: Loop Defense wave: 2");
+  lines.push("300.0 Sys [Info]: Created /Lotus/Interface/DefenseReward.swf");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.equal(run.missionType, "MIRROR DEFENSE");
+  assert.equal(run.rotations, 3);
+  assert.deepEqual(run.pauseIntervals, [[100, 110], [200, 210]]);
+  assert.deepEqual(run.rotationDurations, [98, 90, 90]);
+  assert.deepEqual(run.waveStarts, {});
+  assert.deepEqual(run.waveDurations, []);
+});
+
 test("excludes prebuffer and post-extraction samples from reported spawn gaps", () => {
   const gaps = Parser.helpers.longestGaps(
     [2, 8, 10, 14, 22, 29, 35],

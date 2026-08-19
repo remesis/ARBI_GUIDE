@@ -145,7 +145,7 @@
   const P_AI_AGENT_INIT = /^!?(\d+\.\d+).*AI Agent Initialize\s+\/Npc\/([A-Za-z0-9_]+?)\d*\s+at NpcAiDirector\s+(\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+)/i;
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -265,6 +265,7 @@
       const hasCountdown = line.includes("Created /Lotus/Interface/ProjectionsCountdown.swf");
       const hasWaveStart = line.includes("WaveDefend.lua: Starting wave");
       const hasWaveDef = line.includes("WaveDefend.lua: Defense wave:");
+      const hasLoopWave = line.includes("LoopDefend.lua: Loop Defense wave:");
       const hasTerritory = line.includes("TerritoryMission.lua");
       const hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival");
       const hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier");
@@ -272,7 +273,7 @@
       const hasPlayerJoin = line.includes("loadout loader finished");
       const hasPlayerLeave = line.includes("change=UNREGISTERED");
       const hasLiveCount = line.includes("MonitoredTicking") || (line.includes("AI [Info]:") && line.includes("Live "));
-      if (!(hasAgent || hasDroneDespawn || hasMission || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasMission || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
 
       if (hasMission) {
         const match = line.match(P_MISSION);
@@ -386,7 +387,10 @@
       if (hasWaveStart) waveMatch = line.match(P_WAVE_LINE);
       else if (hasWaveDef) waveMatch = line.match(P_WAVE_DEF);
 
-      let unpause = Boolean(cur.isDefense && waveMatch);
+      // Mirror Defense uses LoopDefend resume markers after each reward. Keep
+      // them out of waveStarts: a bugged side can repeat its round number, and
+      // Mirror Defense reporting is correctly bounded by reward rotations.
+      let unpause = Boolean(cur.isDefense && (waveMatch || hasLoopWave));
       if (hasTerritory) {
         cur.isInterception = true;
         unpause = true;
