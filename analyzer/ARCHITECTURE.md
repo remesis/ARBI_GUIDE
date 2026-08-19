@@ -154,8 +154,11 @@ does not match, the full overlay is withheld rather than drawn on a potentially
 wrong variation. Procedural component paths found in `Required by object`
 loader lines distinguish variants that share the same generated `.lp` path.
 The GasSpawn02 catalog also carries five Analyzer-only live edge-point
-references confirmed by host telemetry; they do not alter the 3D viewer overlay
-or the approved minimap artwork. Multi-floor Defense tiles first select the
+references confirmed by host telemetry. Its Analyzer minimap omits two sparse
+12.5 m/16 m helper bands that otherwise draw ceiling clutter and detached
+chevrons, and adds the procedurally assembled center connector plus the two
+runtime spawn closets. The image remains 1000x1000 and uses quality-100 WebP;
+none of these presentation rules alter the public 3D viewer overlay. Multi-floor Defense tiles first select the
 configured mission phase and then retain only the coordinate-consistent subset
 for the displayed floor; this handles procedural world offsets without leaking
 other floors into the overlay. Squad loader parsing accepts player names that

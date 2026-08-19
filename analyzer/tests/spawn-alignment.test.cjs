@@ -56,6 +56,9 @@ test("finds a floor-specific subset inside a translated multi-floor run", () => 
 
 test("GasSpawn02 includes its live procedural edge points", () => {
   const gasSpawn02 = globalThis.ArbitrationMinimapCatalog.catalog["callisto+sinai+io~2"];
+  assert.equal(gasSpawn02.width, 1000);
+  assert.equal(gasSpawn02.height, 1000);
+  assert.match(gasSpawn02.src, /clean-floor-20260819/);
   const references = [
     ...["1096", "1097", "1098", "1099", "1100", "1101"].map((id) => gasSpawn02.spawnPoints[id][0]),
     ...["runtime-edge-1", "runtime-edge-2", "runtime-edge-3", "runtime-edge-4", "runtime-edge-5"]

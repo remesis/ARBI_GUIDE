@@ -100,6 +100,49 @@ ANALYZER_SPAWN_SUPPLEMENTS = {
     },
 }
 
+# The GasSpawn02 composition contains two sparse high-altitude helper bands
+# that project as ceiling clutter and two detached chevrons below the playable
+# arena. Its runtime connector is assembled procedurally and is therefore not
+# part of either static source mesh; draw the reviewed walkable link into the
+# Analyzer-only minimap without changing the 3D viewer geometry.
+GAS_SPAWN_02_GROUP = "callisto+sinai+io~2"
+GAS_SPAWN_02_MAX_MAP_HEIGHT = 10.0
+GAS_SPAWN_02_CONNECTOR = np.asarray([
+    [-9.5, -4.0, 5.0],
+    [9.5, -4.0, 5.0],
+    [9.5, -4.0, 10.0],
+    [11.0, -4.0, 12.0],
+    [11.0, -4.0, 39.0],
+    [15.0, -4.0, 42.0],
+    [15.0, -4.0, 45.0],
+    [18.0, -4.0, 48.0],
+    [18.0, -4.0, 52.0],
+    [-18.0, -4.0, 52.0],
+    [-18.0, -4.0, 48.0],
+    [-15.0, -4.0, 45.0],
+    [-15.0, -4.0, 42.0],
+    [-11.0, -4.0, 39.0],
+    [-11.0, -4.0, 12.0],
+    [-9.5, -4.0, 10.0],
+], dtype=np.float32)
+GAS_SPAWN_02_CONNECTOR_DETAILS = (
+    np.asarray([[-7.0, -4.0, 10.0], [-7.0, -4.0, 48.0]], dtype=np.float32),
+    np.asarray([[7.0, -4.0, 10.0], [7.0, -4.0, 48.0]], dtype=np.float32),
+    np.asarray([[-7.0, -4.0, 25.0], [7.0, -4.0, 25.0]], dtype=np.float32),
+)
+GAS_SPAWN_02_SPAWN_CLOSETS = (
+    np.asarray([
+        [71.0, -4.0, 67.0], [89.0, -4.0, 67.0],
+        [92.0, -4.0, 70.0], [92.0, -4.0, 83.0],
+        [89.0, -4.0, 86.0], [71.0, -4.0, 86.0],
+    ], dtype=np.float32),
+    np.asarray([
+        [-89.0, -4.0, 67.0], [-71.0, -4.0, 67.0],
+        [-71.0, -4.0, 86.0], [-89.0, -4.0, 86.0],
+        [-92.0, -4.0, 83.0], [-92.0, -4.0, 70.0],
+    ], dtype=np.float32),
+)
+
 
 def align4(value: int) -> int:
     return (value + 3) & ~3
@@ -224,6 +267,7 @@ def display_overlay(group_id: str, overlay: dict) -> dict:
 
 
 def render_map(
+    group_id: str,
     positions: np.ndarray,
     faces: np.ndarray,
     overlay: dict,
@@ -252,6 +296,8 @@ def render_map(
     spawn_heights = [float(item.get("y", 0.0)) for item in map_spawns]
     objective_heights = [float(item.get("y", 0.0)) for item in map_objective]
     heights = cluster_heights(spawn_heights + objective_heights)
+    if group_id == GAS_SPAWN_02_GROUP:
+        heights = [height for height in heights if height < GAS_SPAWN_02_MAX_MAP_HEIGHT]
     chunk_size = 160_000
 
     for band_index, height in enumerate(heights):
@@ -280,6 +326,13 @@ def render_map(
                 continue
             polygons = project(selected.reshape((-1, 3))).reshape((-1, 3, 2))
             cv2.fillPoly(mask, polygons, 255, lineType=cv2.LINE_AA)
+
+        if group_id == GAS_SPAWN_02_GROUP and abs(height + 4.0) <= 3.0:
+            connector = project(GAS_SPAWN_02_CONNECTOR).reshape((-1, 1, 2))
+            cv2.fillPoly(mask, [connector], 255, lineType=cv2.LINE_AA)
+            for closet in GAS_SPAWN_02_SPAWN_CLOSETS:
+                floor = project(closet).reshape((-1, 1, 2))
+                cv2.fillPoly(mask, [floor], 255, lineType=cv2.LINE_AA)
 
         # Close sub-pixel extraction seams without flattening real doorways and
         # holes, then draw only the resulting room/perimeter contours.
@@ -315,6 +368,11 @@ def render_map(
             / safe_alpha
         ).astype(np.uint8)
         image[:, :, 3] = np.rint(out_alpha[:, :, 0] * 255.0).astype(np.uint8)
+
+    if group_id == GAS_SPAWN_02_GROUP:
+        for detail in GAS_SPAWN_02_CONNECTOR_DETAILS:
+            line = project(detail).reshape((-1, 1, 2))
+            cv2.polylines(image, [line], False, (153, 156, 163, 210), 3, cv2.LINE_AA)
 
     territory = [
         item for item in map_objective
@@ -353,7 +411,8 @@ def render_map(
         )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    if not cv2.imwrite(str(output_path), image, [cv2.IMWRITE_WEBP_QUALITY, 90]):
+    webp_quality = 100 if group_id == GAS_SPAWN_02_GROUP else 90
+    if not cv2.imwrite(str(output_path), image, [cv2.IMWRITE_WEBP_QUALITY, webp_quality]):
         raise RuntimeError(f"could not write {output_path}")
     mapped_spawns: dict[str, list[list[float]]] = {}
     for item in overlay.get("spawns", []):
@@ -366,9 +425,14 @@ def render_map(
             round(float(item["z"]), 4),
         ])
 
+    asset_versions = {
+        "stofler": "bottom-floor-20260816",
+        GAS_SPAWN_02_GROUP: "clean-floor-20260819",
+    }
+    asset_version = asset_versions.get(output_path.stem)
     return {
         "src": f"./minimaps/{output_path.name}"
-        + ("?v=bottom-floor-20260816" if output_path.stem == "stofler" else ""),
+        + (f"?v={asset_version}" if asset_version else ""),
         "width": size,
         "height": size,
         "matrix": [
@@ -410,7 +474,7 @@ def main() -> None:
         overlay = display_overlay(group_id, overlay)
         positions, faces = read_wfg(source_dir / f"{group['mesh']}.wfg")
         label = " / ".join(node["name"] for node in current_group.get("nodes", []))
-        entry = render_map(positions, faces, overlay, output_dir / f"{group_id}.webp")
+        entry = render_map(group_id, positions, faces, overlay, output_dir / f"{group_id}.webp")
         entry["spawnPoints"].update(ANALYZER_SPAWN_SUPPLEMENTS.get(group_id, {}))
         entry["label"] = label
         catalog[group_id] = entry

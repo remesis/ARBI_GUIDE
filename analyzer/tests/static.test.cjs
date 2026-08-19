@@ -16,6 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
+  assert.match(html, /minimaps\/catalog\.js\?v=20260819-2/);
   assert.match(html, /analyzer\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
