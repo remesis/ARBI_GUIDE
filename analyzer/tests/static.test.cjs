@@ -241,8 +241,8 @@ test("analyzer uses the full composition list and green performance scale", () =
   assert.match(js, /=== "summonmotorcycle"/);
   assert.match(js, /<footer class="report-footer"><span>https:\/\/arbi\.guide\/analyzer<\/span><span>discord\.gg\/Arbitrations<\/span><\/footer>/);
   assert.match(js, /Greener = more enemies/);
-  assert.match(js, /const SVES_SUCCESS = "#00e676"/);
-  assert.match(js, /const SVES_DANGER = "#ff5252"/);
+  assert.match(js, /const PERFORMANCE_SUCCESS = "#00e676"/);
+  assert.match(js, /const PERFORMANCE_DANGER = "#ff5252"/);
   assert.match(js, /return clamp\(Number\(intensity \|\| 0\), 0, 1\) \* 120/);
   assert.match(js, /`hsl\(\$\{hue\},100%,50%\)`/);
   assert.match(js, /return \{ color: `hsl\(\$\{hue\},100%,50%\)`, ink: "#121212" \}/);

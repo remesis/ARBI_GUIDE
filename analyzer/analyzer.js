@@ -148,10 +148,10 @@
     return shortDuration(Math.max(0, Number(timestamp || 0) - start));
   }
 
-  // Match the SVES analyzer's performance colors: its binary success/danger
-  // endpoints plus the same full HSL performance ramp used by its heat maps.
-  const SVES_SUCCESS = "#00e676";
-  const SVES_DANGER = "#ff5252";
+  // Use consistent binary success/danger endpoints with the full HSL
+  // performance ramp used by the report heat maps.
+  const PERFORMANCE_SUCCESS = "#00e676";
+  const PERFORMANCE_DANGER = "#ff5252";
   const INTERCEPTION_ROTATION_TARGET = 6 * 60 + 30;
   const INTERCEPTION_ROTATION_FADE_SECONDS = 10;
 
@@ -411,7 +411,7 @@
           ? interceptionRotationScore(item.seconds)
           : (high === low ? .6 : 1 - (item.seconds - low) / (high - low)));
       const color = phase.defense
-        ? { color: good ? SVES_SUCCESS : SVES_DANGER, ink: "#121212" }
+        ? { color: good ? PERFORMANCE_SUCCESS : PERFORMANCE_DANGER, ink: "#121212" }
         : heatColor(good);
       const saturation = Number.isFinite(item.saturation) ? `${fmt(item.saturation, 1)}%` : "—";
       const content = `<span class="clear-cell-content"><small>${shortDuration(item.seconds)}</small><small class="phase-saturation">${h(saturation)}</small></span>`;
@@ -429,7 +429,7 @@
     const badLegend = phase.defense
       ? `>${threshold}s`
       : (interception ? "red ±10s" : `slowest ${shortDuration(high)}`);
-    return `<section class="card"><h3 class="card-title">${h(phase.noun)} clear map</h3><p class="card-subtitle">${subtitle}</p><div class="heat-map clear-heat-map" style="--heat-cols:${Math.min(12, phase.items.length)};--mobile-heat-cols:${Math.min(8, phase.items.length)}">${cells}</div><div class="heat-legend"><span class="legend-chip"><i style="--swatch:${SVES_SUCCESS}"></i>${goodLegend}</span><span class="legend-chip"><i style="--swatch:${SVES_DANGER}"></i>${badLegend}</span><span class="round-saturation-legend">##.#% is Saturation per round</span></div></section>`;
+    return `<section class="card"><h3 class="card-title">${h(phase.noun)} clear map</h3><p class="card-subtitle">${subtitle}</p><div class="heat-map clear-heat-map" style="--heat-cols:${Math.min(12, phase.items.length)};--mobile-heat-cols:${Math.min(8, phase.items.length)}">${cells}</div><div class="heat-legend"><span class="legend-chip"><i style="--swatch:${PERFORMANCE_SUCCESS}"></i>${goodLegend}</span><span class="legend-chip"><i style="--swatch:${PERFORMANCE_DANGER}"></i>${badLegend}</span><span class="round-saturation-legend">##.#% is Saturation per round</span></div></section>`;
   }
 
   function dpmElapsed(seconds) {
