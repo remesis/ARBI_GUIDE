@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog\.js\?v=20260820-2/);
-  assert.match(html, /analyzer-20260820-80\.js/);
+  assert.match(html, /analyzer-20260820-81\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -205,7 +205,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260820-80.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260820-81.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /100% pickup, both boosters, Resourceful Retriever on\./);
@@ -387,8 +387,11 @@ test("actual Vitus luck headline follows the red-to-green performance grade", ()
   assert.match(js, /function vitusLuckColor\(scenarios, classified\)/);
   assert.match(js, /heatColor\(index \/ Math\.max\(1, scenarios\.length - 1\)\)\.color/);
   assert.match(js, /function standardNormalCdf\(z\)/);
-  assert.match(js, /function vitusPercentile\(result, actual\)/);
-  assert.match(js, /return `\$\{vitusPercentile\(result, actual\)\} \$\{classified\.label\}`/);
+  assert.match(js, /function vitusTailChance\(result, actual, classified\)/);
+  assert.match(js, /const lowerTail = scenarioIndex >= 0 && scenarioIndex <= 1/);
+  assert.match(js, /const upperTail = scenarioIndex >= scenarios\.length - 2/);
+  assert.match(js, /lowerTail \? cumulative : 1 - cumulative/);
+  assert.match(js, /return chance \? `\$\{chance\} \$\{classified\.label\}` : classified\.label/);
   assert.match(js, /formatVitusLuckHeadline\(result, actual, classified\)/);
   assert.match(js, /luck\.style\.setProperty\("--luck-color", vitusLuckColor\(result\.scenarios, classified\)\)/);
   assert.match(css, /\.vitus-luck strong\s*\{[^}]*color:\s*var\(--luck-color, #f5f5f7\)/);
@@ -396,21 +399,30 @@ test("actual Vitus luck headline follows the red-to-green performance grade", ()
   assert.match(css, /\.vitus-input\s*\{[^}]*width:\s*72px/);
 });
 
-test("actual Vitus percentile stays readable at the distribution extremes", () => {
+test("actual Vitus chance appears only on the two bands at either tail", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const cdfSource = js.match(/function standardNormalCdf\(z\) \{[\s\S]*?\n  \}/)?.[0];
-  const percentileSource = js.match(/function vitusPercentile\(result, actual\) \{[\s\S]*?\n  \}/)?.[0];
+  const percentSource = js.match(/function formatChancePercent\(percentile\) \{[\s\S]*?\n  \}/)?.[0];
+  const tailSource = js.match(/function vitusTailChance\(result, actual, classified\) \{[\s\S]*?\n  \}/)?.[0];
   assert.ok(cdfSource);
-  assert.ok(percentileSource);
-  const percentile = new Function(
+  assert.ok(percentSource);
+  assert.ok(tailSource);
+  const tailChance = new Function(
     "clamp",
-    `${cdfSource}; ${percentileSource}; return vitusPercentile;`,
+    `${cdfSource}; ${percentSource}; ${tailSource}; return vitusTailChance;`,
   )((value, low, high) => Math.min(high, Math.max(low, value)));
-  const result = { mean: 624, standardDeviation: 40 };
-  assert.equal(percentile(result, Number.NaN), "50%");
-  assert.equal(percentile(result, 624), "50%");
-  assert.equal(percentile(result, 69), "0.1%");
-  assert.equal(percentile(result, 1200), "99.9%");
+  const worst = { label: "Worst Case" };
+  const unlucky = { label: "Unlucky" };
+  const average = { label: "Average" };
+  const high = { label: "High Roll" };
+  const god = { label: "God Roll" };
+  const result = { mean: 624, standardDeviation: 40, scenarios: [worst, unlucky, average, high, god] };
+  assert.equal(tailChance(result, 69, worst), "0.1%");
+  assert.equal(tailChance(result, 580, unlucky), "13.6%");
+  assert.equal(tailChance(result, 624, average), "");
+  assert.equal(tailChance(result, 668, high), "13.6%");
+  assert.equal(tailChance(result, 1200, god), "0.1%");
+  assert.equal(tailChance(result, 624 + 2.326 * 40, god), "1%");
 });
 
 test("every 3D tileset page groups its guide links like the homepage", () => {
