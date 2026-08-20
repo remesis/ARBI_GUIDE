@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog\.js\?v=20260820-2/);
-  assert.match(html, /analyzer-20260820-83\.js/);
+  assert.match(html, /analyzer-20260820-84\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -54,8 +54,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /function focusActualVitusEntry\(\)/);
   assert.match(js, /input\.focus\(\{ preventScroll: true \}\)/);
   assert.match(js, /const end = input\.value\.length;\s*input\.setSelectionRange\(end, end\)/);
-  assert.match(js, /type="text" inputmode="numeric" pattern="\[0-9\]\*" autocomplete="off"/);
-  assert.match(js, /const digits = vitusInput\.value\.replace\(\/\\D\/g, ""\)/);
+  assert.match(js, /type="text" inputmode="numeric" pattern="\[0-9\]\*" maxlength="4" autocomplete="off"/);
+  assert.match(js, /const digits = cleanVitusDigits\(vitusInput\.value\)/);
+  assert.match(js, /function cleanVitusDigits\(value\)\s*\{\s*return String\(value \?\? ""\)\.replace\(\/\\D\/g, ""\)\.slice\(0, 4\)/);
   assert.match(js, /run\.actualVitus = ""/);
   assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\);\s*focusActualVitusEntry\(\)/);
   assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\); focusActualVitusEntry\(\)/);
@@ -205,12 +206,21 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260820-83.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260820-84.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /100% pickup, both boosters, Resourceful Retriever on\./);
   assert.doesNotMatch(js, /MISSING RESOURCEFUL RETRIEVER MOD/);
   assert.doesNotMatch(parser, /BeastResourceDoublingMod|resourcefulRetrieverDetected/);
+});
+
+test("Actual Vitus input accepts only the first four numeric digits", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const functionSource = js.match(/function cleanVitusDigits\(value\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(functionSource);
+  const context = {};
+  vm.runInNewContext(`${functionSource}; result = [cleanVitusDigits("12ab345"), cleanVitusDigits(98765), cleanVitusDigits(null)];`, context);
+  assert.deepEqual(Array.from(context.result), ["1234", "9876", ""]);
 });
 
 test("Disruption drone pace uses six-minute active-time windows", () => {
