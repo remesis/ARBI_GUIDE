@@ -395,6 +395,10 @@ test("actual Vitus luck headline follows the red-to-green performance grade", ()
   assert.match(js, /id="vitusLuck"[\s\S]*?<strong>\$\{h\(classified\.label\)\}<\/strong><div class="mini vitus-tail">/);
   assert.match(js, /luck\.style\.setProperty\("--luck-color", vitusLuckColor\(result\.scenarios, classified\)\)/);
   assert.match(css, /\.vitus-luck strong\s*\{[^}]*color:\s*var\(--luck-color, #f5f5f7\)/);
+  assert.match(css, /\.vitus-actual,\s*\.vitus-luck\s*\{[^}]*display:\s*grid;[^}]*grid-template-rows:\s*17px calc\(var\(--report-subtext-size\) \* 1\.55\);[^}]*row-gap:\s*4px/);
+  assert.match(css, /\.vitus-entry-label,\s*\.vitus-luck strong\s*\{[^}]*font:\s*850 17px\/1 system-ui, sans-serif/);
+  assert.match(css, /\.vitus-luck \.mini\s*\{[^}]*margin-top:\s*0/);
+  assert.match(css, /\.vitus-entry-group\s*\{[^}]*column-gap:\s*12px/);
   assert.match(css, /\.vitus-rate\s*\{[^}]*font-size:\s*18px/);
   assert.match(css, /\.vitus-input\s*\{[^}]*width:\s*72px/);
 });
