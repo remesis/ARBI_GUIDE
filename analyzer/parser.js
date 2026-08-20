@@ -156,7 +156,7 @@
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|BeastResourceDoublingMod|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -173,7 +173,6 @@
       isInterception: false,
       isDisruption: false,
       isSurvival: false,
-      resourcefulRetrieverDetected: false,
       droneKills: 0,
       enemySpawns: 0,
       rawEnemySpawns: 0,
@@ -347,7 +346,6 @@
       let hasEliteAlert = false;
       let hasLevel = false;
       let hasLevelComponent = false;
-      let hasResourcefulRetriever = false;
       let hasSleep = false;
       let hasReward = false;
       let hasCountdown = false;
@@ -381,7 +379,6 @@
         hasEliteAlert = line.includes("EliteAlertMission at");
         hasLevel = line.includes("Game [Info]: Level=");
         hasLevelComponent = line.includes("Required by object /Lotus/Levels/");
-        hasResourcefulRetriever = line.includes("/Lotus/Types/Sentinels/SentinelPrecepts/BeastResourceDoublingMod");
         hasSleep = line.includes("WaveDefend.lua: _SleepBetweenWaves");
         hasReward = line.includes("Created /Lotus/Interface/DefenseReward.swf");
         hasCountdown = line.includes("Created /Lotus/Interface/ProjectionsCountdown.swf");
@@ -415,9 +412,6 @@
           case "EliteAlertMission at": hasEliteAlert = true; break;
           case "Game [Info]: Level=": hasLevel = true; break;
           case "Required by object /Lotus/Levels/": hasLevelComponent = true; break;
-          case "BeastResourceDoublingMod":
-            hasResourcefulRetriever = line.includes("/Lotus/Types/Sentinels/SentinelPrecepts/BeastResourceDoublingMod");
-            break;
           case "_SleepBetweenWaves": hasSleep = line.includes("WaveDefend.lua: _SleepBetweenWaves"); break;
           case "DefenseReward.swf": hasReward = line.includes("Created /Lotus/Interface/DefenseReward.swf"); break;
           case "ProjectionsCountdown.swf": hasCountdown = line.includes("Created /Lotus/Interface/ProjectionsCountdown.swf"); break;
@@ -452,7 +446,7 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasResourcefulRetriever || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
 
       if (hasMission || hasMissionVote) {
         const match = line.match(hasMission ? P_MISSION : P_MISSION_VOTE);
@@ -564,13 +558,6 @@
           cur.rewardTimestamps.push(ts);
           cur.lastActivity = Math.max(cur.lastActivity, ts);
         }
-        return;
-      }
-      if (hasResourcefulRetriever) {
-        // This exact public-export type is Resourceful Retriever. Context
-        // object lists are also emitted for hubs and the Orbiter, so only bind
-        // the marker while an Arbitration run is active.
-        if (this.cur.isArbitration) this.cur.resourcefulRetrieverDetected = true;
         return;
       }
 
