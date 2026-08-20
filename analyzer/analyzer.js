@@ -152,6 +152,7 @@
   // performance ramp used by the report heat maps.
   const PERFORMANCE_SUCCESS = "#00e676";
   const PERFORMANCE_DANGER = "#ff5252";
+  const DEFENSE_WAVE_TARGET_SECONDS = 25;
   const INTERCEPTION_ROTATION_TARGET = 6 * 60 + 30;
   const INTERCEPTION_ROTATION_FADE_SECONDS = 10;
 
@@ -169,6 +170,13 @@
     if (!Number.isFinite(value)) return 0;
     const distance = Math.abs(value - INTERCEPTION_ROTATION_TARGET);
     return clamp(1 - distance / INTERCEPTION_ROTATION_FADE_SECONDS, 0, 1);
+  }
+
+  function defenseWaveScore(seconds) {
+    // The cell label uses shortDuration(), which rounds to a whole second.
+    // Grade that same displayed value so a visible 25s cell agrees with the
+    // <=25s legend instead of turning red because of hidden milliseconds.
+    return Number(Math.round(Number(seconds || 0)) <= DEFENSE_WAVE_TARGET_SECONDS);
   }
 
   function activityHeatColor(intensity) {
@@ -402,11 +410,11 @@
     if (!phase.items.length) return `<section class="card"><h3 class="card-title">${h(phase.noun)} clear map</h3><p class="card-subtitle">No phase timing lines were present in this log.</p></section>`;
     const values = phase.items.map((item) => item.seconds);
     const low = Math.min(...values), high = Math.max(...values);
-    const threshold = phase.defense ? 25 : avg(values);
+    const threshold = phase.defense ? DEFENSE_WAVE_TARGET_SECONDS : avg(values);
     const interception = !phase.defense && run.missionType === "INTERCEPTION";
     const cells = phase.items.map((item) => {
       const good = phase.defense
-        ? Number(item.seconds <= threshold)
+        ? defenseWaveScore(item.seconds)
         : (interception
           ? interceptionRotationScore(item.seconds)
           : (high === low ? .6 : 1 - (item.seconds - low) / (high - low)));

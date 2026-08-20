@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog\.js\?v=20260820-1/);
+  assert.match(html, /minimaps\/catalog\.js\?v=20260820-2/);
   assert.match(html, /analyzer\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -259,7 +259,7 @@ test("analyzer uses the full composition list and green performance scale", () =
   assert.match(js, /const lightness = 44 \+ 8 \* t/);
   assert.match(js, /`hsl\(150,\$\{saturation\.toFixed\(1\)\}%,\$\{lightness\.toFixed\(1\)\}%\)`/);
   assert.match(js, /const heat=rotationHeatColor\(\(value-low\)\/Math\.max\(1,high-low\)\)/);
-  assert.match(js, /phase\.defense\s*\? Number\(item\.seconds <= threshold\)/);
+  assert.match(js, /phase\.defense\s*\? defenseWaveScore\(item\.seconds\)/);
   assert.match(css, /--good:\s*#00e676/);
   assert.match(css, /--bad:\s*#ff5252/);
   assert.match(css, /--orange:\s*#f59e0b/);
@@ -282,6 +282,26 @@ test("clear maps display per-wave and per-rotation saturation", () => {
   assert.match(js, /##\.#% is Saturation per round/);
   assert.match(css, /\.clear-cell-content \.phase-saturation/);
   assert.match(css, /\.round-saturation-legend\s*\{[^}]*margin-left:\s*auto/);
+  assert.match(js, /DEFENSE_WAVE_TARGET_SECONDS = 25/);
+  assert.match(js, /function defenseWaveScore\(seconds\)/);
+  assert.match(js, /Math\.round\(Number\(seconds \|\| 0\)\) <= DEFENSE_WAVE_TARGET_SECONDS/);
+  assert.match(js, /phase\.defense\s*\? defenseWaveScore\(item\.seconds\)/);
+});
+
+test("Defense wave colors use the same rounded seconds shown in each cell", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const functionSource = js.match(/function defenseWaveScore\(seconds\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(functionSource);
+  const score = new Function(
+    "DEFENSE_WAVE_TARGET_SECONDS",
+    `${functionSource}; return defenseWaveScore;`,
+  )(25);
+  assert.equal(score(24.5), 1);
+  assert.equal(score(25), 1);
+  assert.equal(score(25.4), 1);
+  assert.equal(score(25.499), 1);
+  assert.equal(score(25.5), 0);
+  assert.equal(score(26), 0);
 });
 
 test("Interception clear-map colors peak at 6m30s and reach red 10 seconds away", () => {
@@ -405,6 +425,7 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   assert.ok(bundle.catalog.stofler.spawnPoints[335]);
   assert.match(bundle.catalog.stofler.src, /bottom-floor-20260816/);
   const corpusShip = bundle.catalog["cytherean+xini+gulliver+romula+proteus"];
+  assert.match(corpusShip.src, /cytherean\+xini\+gulliver\+romula\+proteus-clockwise\.webp/);
   assert.match(corpusShip.src, /clockwise-clean-20260820/);
   assert.equal(corpusShip.matrix[0], 0);
   assert.ok(corpusShip.matrix[1] > 0);

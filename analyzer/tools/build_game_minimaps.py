@@ -449,7 +449,7 @@ def render_map(
         GAS_SPAWN_02_GROUP: "clean-floor-20260819",
         CORPUS_SHIP_DEFENSE_GROUP: "clockwise-clean-20260820",
     }
-    asset_version = asset_versions.get(output_path.stem)
+    asset_version = asset_versions.get(group_id)
     return {
         "src": f"./minimaps/{output_path.name}"
         + (f"?v={asset_version}" if asset_version else ""),
@@ -507,7 +507,12 @@ def main() -> None:
         overlay = display_overlay(group_id, overlay)
         positions, faces = read_wfg(source_dir / f"{group['mesh']}.wfg")
         label = " / ".join(node["name"] for node in current_group.get("nodes", []))
-        entry = render_map(group_id, positions, faces, overlay, output_dir / f"{group_id}.webp")
+        output_name = (
+            f"{group_id}-clockwise.webp"
+            if group_id == CORPUS_SHIP_DEFENSE_GROUP
+            else f"{group_id}.webp"
+        )
+        entry = render_map(group_id, positions, faces, overlay, output_dir / output_name)
         entry["spawnPoints"].update(ANALYZER_SPAWN_SUPPLEMENTS.get(group_id, {}))
         entry["label"] = label
         catalog[group_id] = entry
