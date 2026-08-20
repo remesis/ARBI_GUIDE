@@ -435,7 +435,9 @@ body.empty-page-drag::after {
 .vitus-luck { flex: 0 0 auto; margin-left: auto; text-align: right; }
 .vitus-luck .mini { min-height: 1em; margin-top: 0; }
 .vitus-input { box-sizing: border-box; width: 72px; min-height: 34px; display: inline-flex; align-items: center; border: 1px solid #393a43; border-radius: 6px; padding: 5px 9px; background: #111216; color: var(--text); font-size: 16px; font-weight: 850; }
-.vitus-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+.vitus-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+.vitus-table th,
+.vitus-table td { width: 33.333%; text-align: left; }
 .vitus-table th { color: var(--muted-2); text-align: left; letter-spacing: .12em; }
 .vitus-table td { padding: 6px 2px; border-top: 1px solid #26272d; }
 .vitus-table tr.active td { background: #202126; color: white; }

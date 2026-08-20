@@ -411,6 +411,8 @@ test("actual Vitus luck headline follows the red-to-green performance grade", ()
   assert.match(css, /\.vitus-entry-group\s*\{[^}]*column-gap:\s*12px/);
   assert.match(css, /\.vitus-rate\s*\{[^}]*font-size:\s*18px/);
   assert.match(css, /\.vitus-input\s*\{[^}]*width:\s*72px/);
+  assert.match(css, /\.vitus-table\s*\{[^}]*table-layout:\s*fixed/);
+  assert.match(css, /\.vitus-table th,\s*\.vitus-table td\s*\{[^}]*width:\s*33\.333%[^}]*text-align:\s*left/);
 });
 
 test("actual Vitus chance appears for every luck level as a top or bottom tail", () => {
