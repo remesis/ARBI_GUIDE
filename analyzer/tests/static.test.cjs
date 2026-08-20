@@ -196,10 +196,23 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260820-65"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260820-66"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(html, /parser\.js\?v=20260820-65/);
+  assert.match(html, /parser\.js\?v=20260820-66/);
+});
+
+test("Expected Vitus reports Resourceful Retriever detection", () => {
+  const html = fs.readFileSync(path.join(analyzerDir, "index.html"), "utf8");
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
+  assert.match(parser, /BeastResourceDoublingMod/);
+  assert.match(parser, /resourcefulRetrieverDetected:\s*false/);
+  assert.match(js, /100% pickup, both boosters, Resourceful Retriever on\./);
+  assert.match(js, /!! MISSING RESOURCEFUL RETRIEVER MOD !!/);
+  assert.match(css, /\.vitus-retriever-warning\s*\{[^}]*color:\s*var\(--red-hot\)[^}]*font-size:\s*calc\(var\(--report-subtext-size\) \+ 2px\)/);
+  assert.match(html, /parser\.js\?v=20260820-66/);
 });
 
 test("Disruption drone pace uses six-minute active-time windows", () => {

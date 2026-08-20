@@ -364,6 +364,7 @@ body.empty-page-drag::after {
 .card { min-width: 0; border: 1px solid var(--border); border-radius: 9px; background: var(--panel); padding: 16px; overflow: hidden; }
 .card-title { margin: 0; color: var(--text); font-size: 14px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
 .card-subtitle { margin: 6px 0 12px; color: var(--muted); font-size: var(--report-subtext-size); line-height: 1.45; }
+.vitus-retriever-warning { color: var(--red-hot); font-size: calc(var(--report-subtext-size) + 2px); font-weight: 800; }
 .kpi { container-type: inline-size; min-height: 92px; padding: 12px 13px; }
 .kpi-label { color: var(--muted); font-size: 10px; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
 .kpi-value { max-width: 100%; margin-top: 6px; color: var(--text); font-size: clamp(20px, 23cqi, 37px); font-weight: 850; letter-spacing: -.025em; line-height: .95; white-space: nowrap; }

@@ -217,6 +217,32 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   });
 });
 
+test("detects Resourceful Retriever only inside the current Arbitration run", () => {
+  const lines = [
+    "0.1 ThemedSquadOverlay.lua: Mission name: Kronia Relay (Saturn)",
+    "0.2 Game [Info]: /Lotus/Types/Sentinels/SentinelPrecepts/BeastResourceDoublingMod",
+  ];
+  addRun(lines, {
+    offset: 1,
+    node: "SolNode130",
+    name: "Arbitration: Lares (Mercury) - Defense",
+    level: "/Lotus/Levels/GrineerAsteroidRelight/GrnDefenseOne.level",
+  });
+  lines.push("50.0 Game [Info]: /Lotus/Types/Sentinels/SentinelPrecepts/BeastResourceDoublingMod");
+  addRun(lines, {
+    offset: 100,
+    node: "SolNode224",
+    name: "Arbitration: Odin (Mercury) - Interception",
+    level: "/Lotus/Levels/GrineerGalleon/GrnInterception.level",
+    defense: false,
+  });
+
+  const runs = Parser.parseText(lines.join("\n"));
+  assert.equal(runs.length, 2);
+  assert.equal(runs[0].resourcefulRetrieverDetected, true);
+  assert.equal(runs[1].resourcefulRetrieverDetected, false);
+});
+
 test("a finalized squad invited after Survival scouting moves the active start", () => {
   const lines = [
     "0.1 Game [Info]: Host loadout loader finished.",
