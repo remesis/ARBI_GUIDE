@@ -432,9 +432,45 @@
     return `<section class="card"><h3 class="card-title">${h(phase.noun)} clear map</h3><p class="card-subtitle">${subtitle}</p><div class="heat-map clear-heat-map" style="--heat-cols:${Math.min(12, phase.items.length)};--mobile-heat-cols:${Math.min(8, phase.items.length)}">${cells}</div><div class="heat-legend"><span class="legend-chip"><i style="--swatch:${SVES_SUCCESS}"></i>${goodLegend}</span><span class="legend-chip"><i style="--swatch:${SVES_DANGER}"></i>${badLegend}</span><span class="round-saturation-legend">##.#% is Saturation per round</span></div></section>`;
   }
 
-  function renderDpm(run) {
+  function dpmElapsed(seconds) {
+    const total = Math.max(0, Math.round(Number(seconds || 0)));
+    if (total === 0) return "0m";
+    if (total % 3600 === 0) return `${total / 3600}h`;
+    if (total % 60 === 0) return `${total / 60}m`;
+    return shortDuration(total);
+  }
+
+  function dpmChartSeries(run) {
+    if (run.missionType === "DISRUPTION") {
+      const windows = run.dpmWindows6m || Parser.helpers.calculateFixedDpmWindows(run, 6 * 60);
+      const seconds = sum(windows.map((window) => window.seconds));
+      const count = sum(windows.map((window) => window.count));
+      return {
+        values: windows.map((window) => window.dpm),
+        labels: windows.map((window) => `${dpmElapsed(window.from)}–${dpmElapsed(window.to)}`),
+        tooltips: windows.map((window) => `${dpmElapsed(window.from)}–${dpmElapsed(window.to)}`),
+        axis: windows.map((window) => dpmElapsed(window.to)),
+        mean: seconds ? count / seconds * 60 : 0,
+        subtitle: "Six-minute active-time windows, against the run average.",
+        empty: "Not enough active mission time to chart.",
+      };
+    }
     const values = run.dpmPerRotation || [];
-    if (!values.length) return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">Not enough rotation boundaries to chart.</p></section>`;
+    return {
+      values,
+      labels: values.map((_, index) => `R${index + 1}`),
+      tooltips: values.map((_, index) => `Rotation ${index + 1}`),
+      axis: values.map((_, index) => `R${index + 1}`),
+      mean: avg(values),
+      subtitle: "Per rotation, against the run average.",
+      empty: "Not enough rotation boundaries to chart.",
+    };
+  }
+
+  function renderDpm(run) {
+    const series = dpmChartSeries(run);
+    const values = series.values;
+    if (!values.length) return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">${h(series.empty)}</p></section>`;
     const width = 520, height = 190, pad = { l: 25, r: 25, t: 15, b: 25 };
     const min = Math.min(...values) * .9, max = Math.max(...values) * 1.08;
     const x = (index) => values.length === 1
@@ -442,18 +478,18 @@
       : pad.l + index / (values.length - 1) * (width - pad.l - pad.r);
     const y = (value) => pad.t + (max - value) / Math.max(.001, max - min) * (height - pad.t - pad.b);
     const points = values.map((value, index) => `${x(index)},${y(value)}`).join(" ");
-    const mean = avg(values);
+    const mean = series.mean;
     const best = Math.max(...values), worst = Math.min(...values);
     const dots = values.map((value,index) => {
       const pointX = x(index), pointY = y(value);
-      const label = `Rotation ${index + 1}: ${fmt(value, 1)} DPM`;
+      const label = `${series.tooltips[index]}: ${fmt(value, 1)} DPM`;
       return `<g class="chart-point"><circle class="chart-dot" cx="${pointX}" cy="${pointY}" r="3"/><circle class="chart-hit" cx="${pointX}" cy="${pointY}" r="10" tabindex="0" role="img" aria-label="${h(label)}" data-label="${h(label)}" data-x="${pointX}" data-y="${pointY}" data-chart-width="${width}" data-chart-height="${height}"></circle></g>`;
     }).join("");
     const averageTop = y(mean) / height * 100;
     const axisLabels = values.length === 1
-      ? `<text class="chart-label" x="${x(0)}" y="${height-5}" text-anchor="middle">R1</text>`
-      : `<text class="chart-label" x="${pad.l}" y="${height-5}" text-anchor="start">R1</text><text class="chart-label" x="${width-pad.r}" y="${height-5}" text-anchor="end">R${values.length}</text>`;
-    return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">Per rotation, against the run average.</p><div class="line-chart-wrap"><svg class="line-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="Drones per minute line chart"><line class="chart-grid" x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${height-pad.b}"/><line class="chart-grid" x1="${pad.l}" y1="${height-pad.b}" x2="${width-pad.r}" y2="${height-pad.b}"/><line class="chart-average" x1="${pad.l}" y1="${y(mean)}" x2="${width-pad.r}" y2="${y(mean)}"/><polyline class="chart-line" points="${points}"/>${dots}${axisLabels}</svg><span class="chart-average-badge" style="--average-top:${averageTop.toFixed(2)}%">AVG ${fmt(mean,1)}</span><div class="chart-tooltip" role="status" hidden data-html2canvas-ignore="true"></div></div><div class="heat-legend"><span class="chart-accent">best R${values.indexOf(best)+1} · ${fmt(best,1)}</span><span>worst R${values.indexOf(worst)+1} · ${fmt(worst,1)}</span></div></section>`;
+      ? `<text class="chart-label" x="${x(0)}" y="${height-5}" text-anchor="middle">${h(series.axis[0])}</text>`
+      : `<text class="chart-label" x="${pad.l}" y="${height-5}" text-anchor="start">${h(series.axis[0])}</text><text class="chart-label" x="${width-pad.r}" y="${height-5}" text-anchor="end">${h(series.axis.at(-1))}</text>`;
+    return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">${h(series.subtitle)}</p><div class="line-chart-wrap"><svg class="line-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="Drones per minute line chart"><line class="chart-grid" x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${height-pad.b}"/><line class="chart-grid" x1="${pad.l}" y1="${height-pad.b}" x2="${width-pad.r}" y2="${height-pad.b}"/><line class="chart-average" x1="${pad.l}" y1="${y(mean)}" x2="${width-pad.r}" y2="${y(mean)}"/><polyline class="chart-line" points="${points}"/>${dots}${axisLabels}</svg><span class="chart-average-badge" style="--average-top:${averageTop.toFixed(2)}%">AVG ${fmt(mean,1)}</span><div class="chart-tooltip" role="status" hidden data-html2canvas-ignore="true"></div></div><div class="heat-legend"><span class="chart-accent">best ${h(series.labels[values.indexOf(best)])} · ${fmt(best,1)}</span><span>worst ${h(series.labels[values.indexOf(worst)])} · ${fmt(worst,1)}</span></div></section>`;
   }
 
   function setupDpmTooltips(root) {

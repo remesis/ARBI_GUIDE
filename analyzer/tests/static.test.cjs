@@ -196,10 +196,21 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260819-62"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260819-63"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(html, /parser\.js\?v=20260819-62/);
+  assert.match(html, /parser\.js\?v=20260819-63/);
+});
+
+test("Disruption drone pace uses six-minute active-time windows", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
+  assert.match(parser, /run\.dpmWindows6m = run\.missionType === "DISRUPTION"/);
+  assert.match(parser, /calculateFixedDpmWindows\(run, 6 \* 60\)/);
+  assert.match(js, /run\.missionType === "DISRUPTION"/);
+  assert.match(js, /Six-minute active-time windows, against the run average\./);
+  assert.match(js, /labels: windows\.map\(\(window\) => `\$\{dpmElapsed\(window\.from\)\}–\$\{dpmElapsed\(window\.to\)\}`\)/);
+  assert.match(js, /mean: seconds \? count \/ seconds \* 60 : 0/);
 });
 
 test("loading a log selects its newest run longer than five minutes", () => {

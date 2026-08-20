@@ -18,7 +18,7 @@
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260819-3";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260819-4";
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
   const HIGH_DENSITY_SATURATION_EDGES = [8, 15, 23, 30, 33, 36, 39, 42, 45];
@@ -869,6 +869,7 @@
     run.dronesDespawned = run.droneDespawnTimestamps.filter((timestamp) => timestamp >= run.startTime && timestamp <= run.endTime).length;
     run.dronesPerRotation = calculateDronesPerRotation(run);
     run.dpmPerRotation = calculateDpmPerRotation(run);
+    run.dpmWindows6m = run.missionType === "DISRUPTION" ? calculateFixedDpmWindows(run, 6 * 60) : [];
     run.avgDroneInterval = run.droneTimestamps.length > 1
       ? (run.droneTimestamps[run.droneTimestamps.length - 1] - run.droneTimestamps[0]) / (run.droneTimestamps.length - 1)
       : 0;
@@ -968,6 +969,30 @@
     return run.dronesPerRotation.map((count, index) => {
       const minutes = Math.max(phases[index]?.seconds || 0, 10) / 60;
       return count / minutes;
+    });
+  }
+
+  function calculateFixedDpmWindows(run, windowSeconds = 6 * 60) {
+    const start = Number(run.startTime || 0);
+    const end = Number(run.endTime || 0);
+    const activeDuration = Number(run.activeDuration || 0);
+    const size = Math.max(1, Number(windowSeconds || 0));
+    if (end <= start || activeDuration <= 0) return [];
+
+    const counts = Array.from({ length: Math.ceil(activeDuration / size) }, () => 0);
+    (run.droneTimestamps || []).forEach((timestamp) => {
+      if (timestamp < start || timestamp > end) return;
+      if ((run.pauseIntervals || []).some((pair) => timestamp > pair[0] && timestamp < pair[1])) return;
+      const activeElapsed = Math.max(0, timestamp - start - pauseSeconds(run, start, timestamp));
+      const index = Math.min(counts.length - 1, Math.floor(activeElapsed / size));
+      counts[index] += 1;
+    });
+
+    return counts.map((count, index) => {
+      const from = index * size;
+      const to = Math.min(activeDuration, from + size);
+      const seconds = Math.max(0, to - from);
+      return { from, to, seconds, count, dpm: seconds ? count / seconds * 60 : 0 };
     });
   }
 
@@ -1455,6 +1480,7 @@
       calculateTelemetryCoverage,
       calculateWavePhases,
       calculateRotationPhases,
+      calculateFixedDpmWindows,
       longestGaps,
       tileFromPath,
     },

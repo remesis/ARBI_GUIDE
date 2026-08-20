@@ -253,7 +253,30 @@ test("uses Disruption round state for completed rotations, reward pauses, and pe
   assert.deepEqual(run.dronesPerRotation, [4, 4]);
   assert.ok(Math.abs(run.dpmPerRotation[0] - 2.6666666667) < .000001);
   assert.ok(Math.abs(run.dpmPerRotation[1] - 2.4) < .000001);
+  assert.equal(run.dpmWindows6m.length, 1);
+  assert.equal(run.dpmWindows6m[0].count, 8);
+  assert.equal(run.dpmWindows6m[0].seconds, 190);
+  assert.ok(Math.abs(run.dpmWindows6m[0].dpm - (48 / 19)) < .000001);
   assert.equal(run.saturationPerRotation.length, 2);
+});
+
+test("bins Disruption drone pace into pause-adjusted six-minute windows", () => {
+  const windows = Parser.helpers.calculateFixedDpmWindows({
+    startTime: 0,
+    endTime: 900,
+    activeDuration: 780,
+    pauseIntervals: [[300, 420]],
+    droneTimestamps: [60, 120, 240, 330, 480, 540, 660, 780, 850],
+  });
+  assert.equal(windows.length, 3);
+  assert.deepEqual(windows.map((window) => [window.from, window.to, window.seconds, window.count]), [
+    [0, 360, 360, 3],
+    [360, 720, 360, 4],
+    [720, 780, 60, 1],
+  ]);
+  assert.ok(Math.abs(windows[0].dpm - 0.5) < .000001);
+  assert.ok(Math.abs(windows[1].dpm - (2 / 3)) < .000001);
+  assert.ok(Math.abs(windows[2].dpm - 1) < .000001);
 });
 
 test("an opening Disruption role rejoin can move the active start past the first round-state marker", () => {
