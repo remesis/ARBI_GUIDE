@@ -9,7 +9,9 @@
   const MIN_RUN_ENEMIES = 40;
   const DROP_CHANCE = 0.15;
   const RETRIEVER_CHANCE = 0.18;
-  const ROTATION_CHANCE = 0.10;
+  const EARLY_ROTATION_BONUS_CHANCE = 0.07;
+  const LATE_ROTATION_BONUS_CHANCE = 0.10;
+  const EARLY_ROTATION_COUNT = 4;
   const WAVES_PER_ROTATION = 3;
   // Defense opens its extraction vote after a deterministic five-second
   // post-wave transition. EE.log keeps emitting the vote-screen marker even
@@ -1216,11 +1218,21 @@
     return gaps.sort((a, b) => b[0] - a[0]).slice(0, limit);
   }
 
-  function computeVitus(droneKills, rotations) {
+  function computeVitus(droneKills, rotations, missionType = "") {
     const rot = Math.max(0, rotations || 0);
     const drones = Math.max(0, droneKills || 0);
-    const rotationMean = rot + rot * ROTATION_CHANCE * WAVES_PER_ROTATION;
-    const rotationVariance = rot * ROTATION_CHANCE * (1 - ROTATION_CHANCE) * WAVES_PER_ROTATION ** 2;
+    const mode = String(missionType).trim().toUpperCase().replace(/[_-]+/g, " ");
+    const bonusVitus = mode === "MIRROR DEFENSE" ? 2 : 3;
+    const earlyRotations = Math.min(rot, EARLY_ROTATION_COUNT);
+    const lateRotations = Math.max(0, rot - EARLY_ROTATION_COUNT);
+    const rotationMean = rot + bonusVitus * (
+      earlyRotations * EARLY_ROTATION_BONUS_CHANCE
+      + lateRotations * LATE_ROTATION_BONUS_CHANCE
+    );
+    const rotationVariance = bonusVitus ** 2 * (
+      earlyRotations * EARLY_ROTATION_BONUS_CHANCE * (1 - EARLY_ROTATION_BONUS_CHANCE)
+      + lateRotations * LATE_ROTATION_BONUS_CHANCE * (1 - LATE_ROTATION_BONUS_CHANCE)
+    );
     const meanDrops = drones * DROP_CHANCE;
     const varianceDrops = drones * DROP_CHANCE * (1 - DROP_CHANCE);
     const meanValue = 4 * RETRIEVER_CHANCE + 2 * (1 - RETRIEVER_CHANCE);

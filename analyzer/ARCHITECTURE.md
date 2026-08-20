@@ -50,6 +50,11 @@ mission types retain the original three-enemy buckets and the 15+ threshold.
 Expected Vitus luck totals are inclusive upper bounds for their displayed
 bands: an actual total above one row advances to the next row instead of being
 assigned to the numerically nearest scenario.
+Expected Vitus models a 15% drone drop chance and an 18% Resourceful Retriever
+duplication chance. Each completed reward cycle adds one guaranteed Vitus plus
+a bonus roll: 7% for cycles 1-4 and 10% afterward. The bonus is three Vitus in
+normal modes and two in Mirror Defense. Mission type is therefore an explicit
+input to the mean and variance calculation.
 The headline luck label uses the report's red-to-green performance ramp from
 Worst Case through God Roll and recolors immediately when Actual Vitus changes.
 

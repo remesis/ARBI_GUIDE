@@ -589,6 +589,19 @@ test("reports the share of active mission time covered by trustworthy enemy-coun
   assert.equal(Parser.helpers.calculateTelemetryCoverage(run), 30);
 });
 
+test("models early and later rotation rewards, including Mirror Defense's two-Vitus bonus", () => {
+  const early = Parser.computeVitus(0, 4, "DEFENSE");
+  const normal = Parser.computeVitus(0, 5, "DEFENSE");
+  const mirror = Parser.computeVitus(0, 5, "MIRROR_DEFENSE");
+  const withDrones = Parser.computeVitus(100, 2, "DEFENSE");
+
+  assert.ok(Math.abs(early.mean - 4.84) < 1e-9);
+  assert.ok(Math.abs(early.standardDeviation - Math.sqrt(2.3436)) < 1e-9);
+  assert.ok(Math.abs(normal.mean - 6.14) < 1e-9);
+  assert.ok(Math.abs(mirror.mean - 5.76) < 1e-9);
+  assert.ok(Math.abs(withDrones.mean - 37.82) < 1e-9);
+});
+
 test("classifies actual Vitus totals by scenario upper bounds", () => {
   const scenarios = [
     { total: 1025, label: "Worst Case" },
