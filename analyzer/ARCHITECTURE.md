@@ -68,7 +68,8 @@ The exact submitted fields are:
 - total observed spawn events;
 - each observed spawn-point key, XYZ position, and aggregate count;
 - mission duration, drone kills, completed reward cycles, and Defense wave
-  count inside `run_metrics`;
+  count inside `run_metrics`, plus the reduced run-eligibility boolean required
+  by the current ingestion contract;
 - a canonical SHA-256 hash over the original spawn-identity fields.
 
 The v2 envelope deliberately keeps the original `arbi-solnode-spawns/v1`
@@ -88,6 +89,10 @@ duplicates. A failed request is not cached and is retried the next time the user
 analyzes the log. This gives the desired growing-log behavior: after two runs are
 accepted, analyzing the same still-growing file after a third run submits only
 the third hash.
+
+The cache namespace is versioned. A contract change may advance it once so
+already accepted hashes are reconciled without changing their canonical spawn
+identity.
 
 The browser cache is an optimization. D1's primary key on `run_hash` is the
 authoritative cross-browser and cache-clear duplicate guard.
@@ -121,7 +126,9 @@ It:
 - rejects unknown fields, excessive bodies, invalid bounds, duplicate point
   keys, and mismatched event totals;
 - recomputes the canonical SHA-256 hash rather than trusting the client;
-- uses `INSERT OR IGNORE` under the D1 `run_hash` primary key;
+- keeps coordinate rows insert-only under the D1 `run_hash` primary key and may
+  reconcile the reduced current-contract record for that same hash; rollout-era
+  payloads remain insert-only and cannot overwrite a current record;
 - stores the validated reduced record under its canonical run hash;
 - applies a Rate Limiting binding to public browser submissions when configured
   (the authenticated bot has its own Discord command cooldown and durable

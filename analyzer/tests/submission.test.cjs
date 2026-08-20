@@ -19,7 +19,13 @@ function payload(hash = "a".repeat(64)) {
     run_offset_seconds: 123.4,
     observed_spawn_events: 7,
     spawn_points: [{ point_key: "/Layer/NpcSpawnPoint1", position: [1, 2, 3], count: 7 }],
-    run_metrics: { mission_seconds: 600, drone_kills: 100, reward_cycles: 2, defense_waves: 6 },
+    run_metrics: {
+      mission_seconds: 600,
+      drone_kills: 100,
+      reward_cycles: 2,
+      defense_waves: 6,
+      four_member_majority: true,
+    },
     run_hash: hash,
   };
 }

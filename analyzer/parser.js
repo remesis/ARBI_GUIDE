@@ -305,6 +305,39 @@
     return Math.max(0, Math.min(b, p1) - Math.max(a, p0));
   }
 
+  function fullSquadCoverage(run, from, to) {
+    if (!(to > from)) return 0;
+    const events = [];
+    run.playerPresence.forEach((presence) => {
+      const intervals = [...presence.intervals];
+      if (presence.since !== null) intervals.push([presence.since, to]);
+      intervals.forEach(([left, right]) => {
+        const start = Math.max(from, left);
+        const end = Math.min(to, right);
+        if (end <= start) return;
+        events.push([start, 1], [end, -1]);
+      });
+    });
+    events.sort((left, right) => left[0] - right[0]);
+
+    let connected = 0;
+    let cursor = from;
+    let covered = 0;
+    for (let index = 0; index < events.length;) {
+      const timestamp = events[index][0];
+      if (connected >= 3) covered += timestamp - cursor;
+      let delta = 0;
+      while (index < events.length && events[index][0] === timestamp) {
+        delta += events[index][1];
+        index += 1;
+      }
+      connected += delta;
+      cursor = timestamp;
+    }
+    if (connected >= 3) covered += to - cursor;
+    return Math.max(0, Math.min(1, covered / (to - from)));
+  }
+
   function pauseSeconds(run, a, b) {
     return run.pauseIntervals.reduce((sum, pair) => sum + overlap(a, b, pair[0], pair[1]), 0);
   }
@@ -928,6 +961,8 @@
     run.openingRejoinTime = finalizedCore.ready;
     run.startTime = finalizedCore.start;
     run.totalDuration = run.endTime > run.startTime ? run.endTime - run.startTime : 0;
+    run.fullSquadCoverage = fullSquadCoverage(run, run.startTime, run.endTime);
+    run.fullSquadMajority = run.fullSquadCoverage > 0.5;
     run.squadmates = finalizedCore.names;
     delete run.playerPresence;
     delete run.openingOperationalLoads;
@@ -1547,6 +1582,7 @@
       defense_waves: run.missionType === "DEFENSE"
         ? Object.keys(run.waveStarts || {}).length
         : 0,
+      four_member_majority: run.fullSquadMajority === true,
     };
     const runHash = await sha256(stableStringify(identity));
     return {

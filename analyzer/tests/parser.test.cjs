@@ -58,6 +58,7 @@ test("parses multiple local Arbitration runs and retains structured spawn points
     drone_kills: runs[0].droneKills,
     reward_cycles: runs[0].rotations,
     defense_waves: Object.keys(runs[0].waveStarts).length,
+    four_member_majority: false,
   });
   assert.match(payload.run_hash, /^(?:[a-f0-9]{64}|test-[a-f0-9]{8})$/);
   const serialized = JSON.stringify(payload);
@@ -214,6 +215,7 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
     drone_kills: 7,
     reward_cycles: 2,
     defense_waves: 0,
+    four_member_majority: false,
   });
 });
 
@@ -244,6 +246,8 @@ test("a finalized squad invited after Survival scouting moves the active start",
   assert.equal(run.openingRejoinTime, 35);
   assert.equal(run.startTime, 35);
   assert.deepEqual(run.squadmates, ["Alpha", "Beta", "Gamma"]);
+  assert.equal(run.fullSquadCoverage, 1);
+  assert.equal(run.fullSquadMajority, true);
 });
 
 test("uses Disruption round state for completed rotations, reward pauses, and per-rotation rates", () => {
@@ -357,6 +361,27 @@ test("a finalized replacement can move Disruption timing past an early tileset-p
   assert.equal(run.startTime, 18);
   assert.deepEqual(run.squadmates, ["Alpha", "Beta", "Gamma"]);
   assert.ok(!run.squadmates.includes("Prebuffer"));
+  assert.ok(run.fullSquadCoverage > 0.8);
+  assert.equal(run.fullSquadMajority, true);
+});
+
+test("three-player runs do not qualify for full-squad aggregate metrics", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Alpha loadout loader finished.",
+    "0.3 Game [Info]: Beta loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at SolNode26",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Lith (Earth) - Arbitration",
+    "3.0 WaveDefend.lua: Defense wave: 1",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    lines.push(`${4 + index}.0 AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index}`);
+  }
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.fullSquadCoverage, 0);
+  assert.equal(run.fullSquadMajority, false);
 });
 
 test("roster refreshes and duplicate loadouts cannot move the opening timer", () => {

@@ -2,9 +2,9 @@
   "use strict";
 
   const ENDPOINT = "/api/analyzer/spawns";
-  // v2 intentionally gets a fresh browser cache so records accepted under the
+  // v3 intentionally gets a fresh browser cache so records accepted under the
   // earlier contract can be reconciled once under the same canonical hash.
-  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v2";
+  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v3";
   const CACHE_LIMIT = 5000;
   const PRODUCTION_HOSTS = new Set(["arbi.guide"]);
 
@@ -53,6 +53,7 @@
       && metrics.reward_cycles >= 0
       && Number.isInteger(metrics.defense_waves)
       && metrics.defense_waves >= 0
+      && typeof metrics.four_member_majority === "boolean"
     );
   }
 
