@@ -581,12 +581,38 @@
     const actual = Number(run.actualVitus);
     const classified = Number.isFinite(actual) && actual > 0 ? Parser.classifyVitusScenario(result.scenarios, actual) : result.scenarios[3];
     const luckColor = vitusLuckColor(result.scenarios, classified);
-    return `<section class="card vitus-card"><h3 class="card-title">Expected Vitus</h3><p class="card-subtitle">100% pickup, both boosters, Resourceful Retriever on.</p><div class="highlight-panel vitus-entry-panel"><div class="vitus-entry-group"><span class="vitus-entry-label">Actual Vitus</span><input id="actualVitusInput" class="vitus-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="enter" value="${h(run.actualVitus || "")}"><span id="vitusRate" class="vitus-rate">${h(formatVitusRate(run))}</span></div><div id="vitusLuck" class="vitus-luck" style="--luck-color:${luckColor}"><strong>${h(classified.label)}</strong><div class="mini">expected ${fmt(result.mean)}</div></div></div><table class="vitus-table"><thead><tr><th>CHANCE</th><th>TOTAL</th><th>LUCK LEVEL</th></tr></thead><tbody>${result.scenarios.map((scenario) => `<tr class="${scenario === classified ? "active" : ""}"><td>${scenario.chance}</td><td><strong>${fmt(scenario.total)}</strong></td><td>${h(scenario.label)}</td></tr>`).join("")}</tbody></table></section>`;
+    return `<section class="card vitus-card"><h3 class="card-title">Expected Vitus</h3><p class="card-subtitle">100% pickup, both boosters, Resourceful Retriever on.</p><div class="highlight-panel vitus-entry-panel"><div class="vitus-entry-group"><span class="vitus-entry-label">Actual Vitus</span><input id="actualVitusInput" class="vitus-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="enter" value="${h(run.actualVitus || "")}"><span id="vitusRate" class="vitus-rate">${h(formatVitusRate(run))}</span></div><div id="vitusLuck" class="vitus-luck" style="--luck-color:${luckColor}"><strong>${h(formatVitusLuckHeadline(result, actual, classified))}</strong><div class="mini">expected ${fmt(result.mean)}</div></div></div><table class="vitus-table"><thead><tr><th>CHANCE</th><th>TOTAL</th><th>LUCK LEVEL</th></tr></thead><tbody>${result.scenarios.map((scenario) => `<tr class="${scenario === classified ? "active" : ""}"><td>${scenario.chance}</td><td><strong>${fmt(scenario.total)}</strong></td><td>${h(scenario.label)}</td></tr>`).join("")}</tbody></table></section>`;
   }
 
   function vitusLuckColor(scenarios, classified) {
     const index = Math.max(0, scenarios.indexOf(classified));
     return heatColor(index / Math.max(1, scenarios.length - 1)).color;
+  }
+
+  function standardNormalCdf(z) {
+    const x = Math.abs(Number(z));
+    const t = 1 / (1 + .2316419 * x);
+    const density = Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
+    const tail = density * t * (.319381530 + t * (-.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return clamp(z >= 0 ? 1 - tail : tail, 0, 1);
+  }
+
+  function vitusPercentile(result, actual) {
+    const mean = Number(result?.mean);
+    const deviation = Number(result?.standardDeviation);
+    const value = Number.isFinite(actual) && actual > 0 ? actual : mean;
+    let percentile = 50;
+    if (Number.isFinite(value) && Number.isFinite(mean) && Number.isFinite(deviation) && deviation > 0) {
+      percentile = standardNormalCdf((value - mean) / deviation) * 100;
+    } else if (Number.isFinite(value) && Number.isFinite(mean) && value !== mean) {
+      percentile = value < mean ? .1 : 99.9;
+    }
+    const rounded = Math.round(clamp(percentile, .1, 99.9) * 10) / 10;
+    return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
+  }
+
+  function formatVitusLuckHeadline(result, actual, classified) {
+    return `${vitusPercentile(result, actual)} ${classified.label}`;
   }
 
   function formatVitusRate(run) {
@@ -604,7 +630,7 @@
     $("#vitusRate").textContent = formatVitusRate(run);
     const luck = $("#vitusLuck");
     luck.style.setProperty("--luck-color", vitusLuckColor(result.scenarios, classified));
-    luck.innerHTML = `<strong>${h(classified.label)}</strong><div class="mini">${actual > 0 ? `${actual >= result.mean ? "+" : ""}${fmt(actual-result.mean)} vs expected` : `expected ${fmt(result.mean)}`}</div>`;
+    luck.innerHTML = `<strong>${h(formatVitusLuckHeadline(result, actual, classified))}</strong><div class="mini">${actual > 0 ? `${actual >= result.mean ? "+" : ""}${fmt(actual-result.mean)} vs expected` : `expected ${fmt(result.mean)}`}</div>`;
     $$(".vitus-table tbody tr").forEach((row,index) => row.classList.toggle("active", result.scenarios[index] === classified));
   }
 

@@ -48,6 +48,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /data-tooltip="\$\{h\(tooltip\)\}"/);
   assert.match(js, /data-label="\$\{h\(label\)\}"/);
   assert.match(js, /id="vitusRate" class="vitus-rate"/);
+  assert.match(js, /class="vitus-entry-label">Actual Vitus<\/span>/);
   assert.match(js, /actual \* 60 \/ seconds/);
   assert.match(js, /\$\("#vitusRate"\)\.textContent = formatVitusRate\(run\)/);
   assert.match(js, /function focusActualVitusEntry\(\)/);
@@ -383,8 +384,31 @@ test("actual Vitus luck headline follows the red-to-green performance grade", ()
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
   assert.match(js, /function vitusLuckColor\(scenarios, classified\)/);
   assert.match(js, /heatColor\(index \/ Math\.max\(1, scenarios\.length - 1\)\)\.color/);
+  assert.match(js, /function standardNormalCdf\(z\)/);
+  assert.match(js, /function vitusPercentile\(result, actual\)/);
+  assert.match(js, /return `\$\{vitusPercentile\(result, actual\)\} \$\{classified\.label\}`/);
+  assert.match(js, /formatVitusLuckHeadline\(result, actual, classified\)/);
   assert.match(js, /luck\.style\.setProperty\("--luck-color", vitusLuckColor\(result\.scenarios, classified\)\)/);
   assert.match(css, /\.vitus-luck strong\s*\{[^}]*color:\s*var\(--luck-color, #f5f5f7\)/);
+  assert.match(css, /\.vitus-rate\s*\{[^}]*font-size:\s*18px/);
+  assert.match(css, /\.vitus-input\s*\{[^}]*width:\s*72px/);
+});
+
+test("actual Vitus percentile stays readable at the distribution extremes", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const cdfSource = js.match(/function standardNormalCdf\(z\) \{[\s\S]*?\n  \}/)?.[0];
+  const percentileSource = js.match(/function vitusPercentile\(result, actual\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(cdfSource);
+  assert.ok(percentileSource);
+  const percentile = new Function(
+    "clamp",
+    `${cdfSource}; ${percentileSource}; return vitusPercentile;`,
+  )((value, low, high) => Math.min(high, Math.max(low, value)));
+  const result = { mean: 624, standardDeviation: 40 };
+  assert.equal(percentile(result, Number.NaN), "50%");
+  assert.equal(percentile(result, 624), "50%");
+  assert.equal(percentile(result, 69), "0.1%");
+  assert.equal(percentile(result, 1200), "99.9%");
 });
 
 test("every 3D tileset page groups its guide links like the homepage", () => {
