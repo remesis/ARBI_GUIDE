@@ -314,6 +314,10 @@ test("small report annotations use brighter colors and larger type", () => {
 
 test("report timestamps use readable mission-relative elapsed time", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  assert.match(js, /function phaseDuration\(seconds\)/);
+  assert.match(js, /value < 60 \? `\$\{fmt\(value, 1\)\}s` : shortDuration\(value\)/);
+  assert.match(js, /phaseDuration\(avg\(phase\.items\.map/);
+  assert.match(js, /phaseDuration\(item\.seconds\)/);
   assert.match(js, /function elapsedAt\(run, timestamp\)/);
   assert.match(js, /Number\(timestamp \|\| 0\) - start/);
   assert.match(js, /parts\.push\(`\$\{hours\}h`\)/);

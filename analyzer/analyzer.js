@@ -138,6 +138,11 @@
     return parts.join(" ");
   }
 
+  function phaseDuration(seconds) {
+    const value = Math.max(0, Number(seconds || 0));
+    return value < 60 ? `${fmt(value, 1)}s` : shortDuration(value);
+  }
+
   function elapsedAt(run, timestamp) {
     const start = Number(run?.startTime || 0);
     return shortDuration(Math.max(0, Number(timestamp || 0) - start));
@@ -356,7 +361,7 @@
             ${kpi("Total duration", duration(run.totalDuration), `${phase.items.length} ${phase.noun}${phase.items.length === 1 ? "" : "s"}`) }
             ${kpi("Drones / min", fmt(droneRate, 1), "Drone pace")}
             ${kpi("Avg drone interval", `${fmt(run.avgDroneInterval, 2)}s`, "Between spawns")}
-            ${kpi(`Avg ${phase.noun}`, phase.items.length ? `${fmt(avg(phase.items.map((item) => item.seconds)), 1)}s` : "—", "Active phase time")}
+            ${kpi(`Avg ${phase.noun}`, phase.items.length ? phaseDuration(avg(phase.items.map((item) => item.seconds))) : "—", "Active phase time")}
             ${kpi("Enemies / min", fmt(enemyRate), "Spawn pace")}
             ${phaseDroneKpi}
           </div>
@@ -618,7 +623,7 @@
     const gaps = (run.longestSpawnGaps && run.longestSpawnGaps.length ? run.longestSpawnGaps : run.longestDroneGaps || []).slice(0,5);
     const weak = (run.dpmPerRotation || []).map((value,index) => ({ label:`Rot ${index+1}`, value })).sort((a,b)=>a.value-b.value).slice(0,5);
     const items = (list, formatter) => list.length ? list.map(formatter).join("") : `<div class="bottleneck-item"><span>Unavailable</span><span>—</span></div>`;
-    return `<section class="card"><h3 class="card-title">Bottlenecks</h3><p class="card-subtitle">Where this run lost time. Gaps exclude parsed pause intervals.</p><div class="bottleneck-grid"><div class="bottleneck-column"><h4>Slowest ${h(phase.noun)}s</h4>${items(slow,(item)=>`<div class="bottleneck-item"><strong>${h(phase.defense?`Wave ${item.label}`:item.label)}</strong><span>${fmt(item.seconds,1)}s</span></div>`)}</div><div class="bottleneck-column"><h4>Longest spawn gaps</h4>${items(gaps,(item)=>`<div class="bottleneck-item"><strong>${fmt(item[0],1)}s</strong><span>at ${elapsedAt(run, item[1])}</span></div>`)}</div><div class="bottleneck-column"><h4>Weakest rotations</h4>${items(weak,(item)=>`<div class="bottleneck-item"><strong>${item.label}</strong><span>${fmt(item.value,1)} dpm</span></div>`)}</div></div></section>`;
+    return `<section class="card"><h3 class="card-title">Bottlenecks</h3><p class="card-subtitle">Where this run lost time. Gaps exclude parsed pause intervals.</p><div class="bottleneck-grid"><div class="bottleneck-column"><h4>Slowest ${h(phase.noun)}s</h4>${items(slow,(item)=>`<div class="bottleneck-item"><strong>${h(phase.defense?`Wave ${item.label}`:item.label)}</strong><span>${phaseDuration(item.seconds)}</span></div>`)}</div><div class="bottleneck-column"><h4>Longest spawn gaps</h4>${items(gaps,(item)=>`<div class="bottleneck-item"><strong>${fmt(item[0],1)}s</strong><span>at ${elapsedAt(run, item[1])}</span></div>`)}</div><div class="bottleneck-column"><h4>Weakest rotations</h4>${items(weak,(item)=>`<div class="bottleneck-item"><strong>${item.label}</strong><span>${fmt(item.value,1)} dpm</span></div>`)}</div></div></section>`;
   }
 
   function renderSpawnColumn(run) {
