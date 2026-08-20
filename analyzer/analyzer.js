@@ -379,7 +379,7 @@
       </div>
       <footer class="report-footer"><span>https://arbi.guide/analyzer</span><span>discord.gg/Arbitrations</span></footer>`;
 
-    prepareDashboardLayout($("#reportRoot"));
+    prepareDashboardLayout($("#reportRoot"), run);
     setupDpmTooltips($("#reportRoot"));
     setupAnalyzerTooltips($("#reportRoot"));
     scheduleReportFit();
@@ -809,7 +809,7 @@
     }
   }
 
-  function prepareDashboardLayout(report) {
+  function prepareDashboardLayout(report, run) {
     const grid = report.querySelector(".report-grid");
     const left = grid?.querySelector(":scope > .left-column");
     const center = grid?.querySelector(":scope > .center-column");
@@ -819,6 +819,8 @@
     const [coreKpis, vitus, saturation, composition] = [...left.children];
     const [clearMap, performanceCharts, bottlenecks, cadence] = [...center.children];
     const [dpm, perRotation] = [...performanceCharts.children];
+
+    if (run?.missionType === "DEFENSE") grid.classList.add("dashboard-defense");
 
     composition.classList.add("dashboard-composition-card");
     cadence.classList.add("dashboard-cadence-card");

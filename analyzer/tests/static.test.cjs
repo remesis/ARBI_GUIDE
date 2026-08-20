@@ -108,6 +108,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.dashboard-spawn-detail\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1\.2fr\) minmax\(0, \.8fr\)/);
   assert.match(css, /\.dashboard-layout:not\(\.dashboard-no-spawns\) \.left-column\s*\{[^}]*grid-template-rows:\s*auto auto auto 1fr/);
   assert.match(css, /\.dashboard-no-spawns \.left-column\s*\{[^}]*grid-template-rows:\s*auto auto 1fr/);
+  assert.match(css, /\.dashboard-layout \.center-column\s*\{[^}]*align-content:\s*start/);
+  assert.match(css, /\.dashboard-layout\.dashboard-defense \.center-column\s*\{[^}]*grid-template-rows:\s*auto auto minmax\(0, 1fr\)[^}]*align-content:\s*stretch/);
   assert.match(css, /\.dashboard-workspace-top \.right-column\s*\{[^}]*grid-template-rows:\s*auto auto 1fr/);
   assert.match(css, /\.dashboard-minimap-card \.minimap-wrap\s*\{[^}]*flex:\s*1/);
   assert.match(js, /composition\.classList\.add\("dashboard-composition-card"\)/);
@@ -131,6 +133,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.analyzer-hover-tooltip\s*\{[^}]*position:\s*fixed[^}]*z-index:\s*10000/);
   assert.match(css, /\.dashboard-no-spawns \.dashboard-cadence-card\s*\{[^}]*height:\s*auto/);
   assert.match(js, /function prepareDashboardLayout/);
+  assert.match(js, /prepareDashboardLayout\(\$\("#reportRoot"\), run\)/);
+  assert.match(js, /run\?\.missionType === "DEFENSE"/);
   assert.match(js, /left\.replaceChildren\(coreKpis, vitus, bottlenecks, composition\)/);
   assert.match(js, /center\.replaceChildren\(perRotation, saturation, dpm\)/);
   assert.match(js, /workspace\.append\(workspaceTop, clearMap\)/);

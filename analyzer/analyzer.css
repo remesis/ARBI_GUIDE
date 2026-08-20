@@ -325,6 +325,8 @@ body.empty-page-drag::after {
 .dashboard-layout:not(.dashboard-no-spawns) .left-column { grid-template-rows: auto auto auto 1fr; }
 .dashboard-no-spawns .left-column { grid-template-rows: auto auto 1fr; }
 .dashboard-no-spawns .center-column { grid-area: auto; grid-column: 2; }
+.dashboard-layout .center-column { align-content: start; }
+.dashboard-layout.dashboard-defense .center-column { grid-template-rows: auto auto minmax(0, 1fr); align-content: stretch; }
 .dashboard-no-spawns .dashboard-interception-column { grid-area: auto; grid-column: 3; grid-template-rows: auto auto auto; align-content: start; }
 .dashboard-workspace { grid-column: 2 / 4; display: grid; gap: var(--report-gap); min-width: 0; }
 .dashboard-workspace-top { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--report-gap); align-items: stretch; }
