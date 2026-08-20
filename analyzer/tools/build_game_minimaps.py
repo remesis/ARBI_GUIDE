@@ -107,6 +107,8 @@ ANALYZER_SPAWN_SUPPLEMENTS = {
 # Analyzer-only minimap without changing the 3D viewer geometry.
 GAS_SPAWN_02_GROUP = "callisto+sinai+io~2"
 GAS_SPAWN_02_MAX_MAP_HEIGHT = 10.0
+CORPUS_SHIP_DEFENSE_GROUP = "cytherean+xini+gulliver+romula+proteus"
+CORPUS_SHIP_MIN_CONNECTED_AREA = 1000
 GAS_SPAWN_02_CONNECTOR = np.asarray([
     [-9.5, -4.0, 5.0],
     [9.5, -4.0, 5.0],
@@ -285,6 +287,13 @@ def render_map(
         # side of the displayed map, while world +Z runs upward.
         result[:, 0] = size - result[:, 0]
         result[:, 1] = size - result[:, 1]
+        if group_id == CORPUS_SHIP_DEFENSE_GROUP:
+            # This arena reads more naturally in the same clockwise orientation
+            # players use for its in-game minimap. Rotate geometry, baked
+            # objective markers, and the exported spawn matrix together.
+            base = result.copy()
+            result[:, 0] = size - base[:, 1]
+            result[:, 1] = base[:, 0]
         return np.rint(result).astype(np.int32)
 
     # Transparent RGBA output: the Analyzer card supplies the neutral backdrop.
@@ -374,6 +383,16 @@ def render_map(
             line = project(detail).reshape((-1, 1, 2))
             cv2.polylines(image, [line], False, (153, 156, 163, 210), 3, cv2.LINE_AA)
 
+    if group_id == CORPUS_SHIP_DEFENSE_GROUP:
+        # ObjDefense01 contains eight tiny detached ceiling fragments (four
+        # two-dot pairs) outside the connected arena. Remove only those isolated
+        # components; every playable room remains in the dominant component.
+        component_mask = (image[:, :, 3] > 0).astype(np.uint8)
+        count, labels, stats, _ = cv2.connectedComponentsWithStats(component_mask, 8)
+        for component in range(1, count):
+            if int(stats[component, cv2.CC_STAT_AREA]) < CORPUS_SHIP_MIN_CONNECTED_AREA:
+                image[labels == component] = 0
+
     territory = [
         item for item in map_objective
         if item.get("type") == "TerritoryObjectiveMarkerInfo"
@@ -428,6 +447,7 @@ def render_map(
     asset_versions = {
         "stofler": "bottom-floor-20260816",
         GAS_SPAWN_02_GROUP: "clean-floor-20260819",
+        CORPUS_SHIP_DEFENSE_GROUP: "clockwise-clean-20260820",
     }
     asset_version = asset_versions.get(output_path.stem)
     return {
@@ -435,15 +455,28 @@ def render_map(
         + (f"?v={asset_version}" if asset_version else ""),
         "width": size,
         "height": size,
-        "matrix": [
-            round(-scale, 9), 0.0, round(float(size + lo[0] * scale - pad[0]), 9),
-            0.0, round(-scale, 9), round(float(size + lo[1] * scale - pad[1]), 9),
-        ],
+        "matrix": (
+            [
+                0.0, round(scale, 9), round(float(pad[1] - lo[1] * scale), 9),
+                round(-scale, 9), 0.0, round(float(size + lo[0] * scale - pad[0]), 9),
+            ]
+            if group_id == CORPUS_SHIP_DEFENSE_GROUP
+            else [
+                round(-scale, 9), 0.0, round(float(size + lo[0] * scale - pad[0]), 9),
+                0.0, round(-scale, 9), round(float(size + lo[1] * scale - pad[1]), 9),
+            ]
+        ),
         "calibrated": True,
         "source": "tile-geometry",
         "interceptionMarkers": len(territory),
         "levelPaths": overlay.get("levelPaths", []),
         "spawnPoints": mapped_spawns,
+        **({
+            "proceduralSpawnExtras": {
+                "minMatchedPoints": 24,
+                "minObservedCoverage": 0.9,
+            }
+        } if group_id == CORPUS_SHIP_DEFENSE_GROUP else {}),
         **({"floorFilter": overlay["floorFilter"]} if overlay.get("floorFilter") else {}),
     }
 

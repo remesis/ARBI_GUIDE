@@ -48,14 +48,20 @@
     for (const point of points) {
       const [flatX, flatZ] = transform(point);
       const mapped = [flatX + offset[0], point.y + offset[1], flatZ + offset[2]];
-      const match = reference
-        .filter((candidate) => !used.has(`${candidate.id}:${candidate.index}`))
-        .map((candidate) => ({ candidate, distance: distance(mapped, candidate.position) }))
-        .sort((left, right) => left.distance - right.distance)[0];
-      if (!match || match.distance > tolerance) return null;
-      used.add(`${match.candidate.id}:${match.candidate.index}`);
-      error += match.distance;
-      matches.push({ point, position: match.candidate.position });
+      let bestIndex = -1;
+      let bestDistance = Infinity;
+      for (let index = 0; index < reference.length; index += 1) {
+        if (used.has(index)) continue;
+        const candidateDistance = distance(mapped, reference[index].position);
+        if (candidateDistance < bestDistance) {
+          bestIndex = index;
+          bestDistance = candidateDistance;
+        }
+      }
+      if (bestIndex < 0 || bestDistance > tolerance) return null;
+      used.add(bestIndex);
+      error += bestDistance;
+      matches.push({ point, position: reference[bestIndex].position });
     }
     return { matches, error };
   }
@@ -106,16 +112,32 @@
     for (const point of points) {
       const [flatX, flatZ] = transform(point);
       const mapped = [flatX + offset[0], point.y + offset[1], flatZ + offset[2]];
-      const match = reference
-        .filter((candidate) => !used.has(`${candidate.id}:${candidate.index}`))
-        .map((candidate) => ({ candidate, distance: distance(mapped, candidate.position) }))
-        .sort((left, right) => left.distance - right.distance)[0];
-      if (!match || match.distance > tolerance) continue;
-      used.add(`${match.candidate.id}:${match.candidate.index}`);
-      error += match.distance;
-      matches.push({ point, position: match.candidate.position });
+      let bestIndex = -1;
+      let bestDistance = Infinity;
+      for (let index = 0; index < reference.length; index += 1) {
+        if (used.has(index)) continue;
+        const candidateDistance = distance(mapped, reference[index].position);
+        if (candidateDistance < bestDistance) {
+          bestIndex = index;
+          bestDistance = candidateDistance;
+        }
+      }
+      if (bestIndex < 0 || bestDistance > tolerance) continue;
+      used.add(bestIndex);
+      error += bestDistance;
+      matches.push({ point, position: reference[bestIndex].position });
     }
     return { matches, error };
+  }
+
+  function mappedPoints(points, transform, offset) {
+    return points.map((point) => {
+      const [flatX, flatZ] = transform(point);
+      return {
+        point,
+        position: [flatX + offset[0], point.y + offset[1], flatZ + offset[2]],
+      };
+    });
   }
 
   // Some multi-stage Defense maps retain spawn records from earlier arenas in
@@ -159,11 +181,13 @@
         if (!best
           || result.matches.length > best.matches.length
           || (result.matches.length === best.matches.length && result.error < best.error)) {
-          best = result;
+          best = { ...result, mapped: mappedPoints(points, transform, offset) };
         }
       }
     }
-    return best ? { mode: "subset", matches: best.matches } : { mode: "none", matches: [] };
+    return best
+      ? { mode: "subset", matches: best.matches, mapped: best.mapped }
+      : { mode: "none", matches: [], mapped: [] };
   }
 
   function verifySpawnPositions(points, config, tolerance = .25) {
@@ -175,5 +199,26 @@
     return { mode: "none", matches: [] };
   }
 
-  return { verifySpawnPositions, matchingSubset };
+  function verifyDisplayPositions(points, config, tolerance = .25) {
+    const exact = verifySpawnPositions(points, config, tolerance);
+    if (exact.matches.length === points.length || !config?.proceduralSpawnExtras) return exact;
+
+    const subset = matchingSubset(points, config, tolerance);
+    const policy = config.proceduralSpawnExtras;
+    const minMatchedPoints = Number(policy.minMatchedPoints || 12);
+    const minObservedCoverage = Number(policy.minObservedCoverage || .9);
+    const matchedCount = subset.matches.length;
+    const observedCoverage = points.length ? matchedCount / points.length : 0;
+    if (matchedCount < minMatchedPoints || observedCoverage < minObservedCoverage) {
+      return { mode: "none", matches: [] };
+    }
+    return {
+      mode: "mapped-subset",
+      matches: subset.mapped,
+      matchedCount,
+      observedCoverage,
+    };
+  }
+
+  return { verifySpawnPositions, verifyDisplayPositions, matchingSubset };
 });

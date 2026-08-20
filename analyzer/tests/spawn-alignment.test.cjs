@@ -42,6 +42,23 @@ test("withholds a procedural overlay when any point does not fit the tile", () =
   assert.deepEqual(result.matches, []);
 });
 
+test("maps reviewed procedural extras after a high-confidence tile match", () => {
+  const reviewedConfig = {
+    ...config,
+    proceduralSpawnExtras: { minMatchedPoints: 4, minObservedCoverage: .8 },
+  };
+  const extraPosition = [81.25, 4.5, 72.75];
+  const points = [...referencePositions, extraPosition].map(proceduralPoint);
+  const result = Alignment.verifyDisplayPositions(points, reviewedConfig);
+  assert.equal(result.mode, "mapped-subset");
+  assert.equal(result.matchedCount, referencePositions.length);
+  assert.equal(result.matches.length, points.length);
+  assert.deepEqual(
+    result.matches.at(-1).position.map((value) => Math.round(value * 1000) / 1000),
+    extraPosition,
+  );
+});
+
 test("finds a floor-specific subset inside a translated multi-floor run", () => {
   const bottom = referencePositions.map(proceduralPoint);
   const upper = [

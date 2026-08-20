@@ -705,7 +705,7 @@
     const candidates = configs.map((config, index) => {
       // Procedural tiles renumber spawn IDs for each generated mission. Pass every
       // coordinate through so the position matcher can recover the layout.
-      const result = SpawnAlignment.verifySpawnPositions(coordinatePoints, config);
+      const result = SpawnAlignment.verifyDisplayPositions(coordinatePoints, config);
       const complete = coordinatePoints.length > 0 && result.matches.length === coordinatePoints.length;
       const observedLevels = new Set([run.levelPath, ...(run.levelComponents || [])].filter(Boolean));
       const levelMatches = (config.levelPaths || []).filter((path) => observedLevels.has(path)).length;

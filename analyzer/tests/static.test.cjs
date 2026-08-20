@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog\.js\?v=20260819-2/);
+  assert.match(html, /minimaps\/catalog\.js\?v=20260820-1/);
   assert.match(html, /analyzer\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -26,7 +26,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /openMinimapLightbox/);
   assert.match(js, /setSpawnBubbleHighlight/);
   assert.match(js, /data-spawn-id/);
-  assert.match(js, /verifySpawnPositions\(coordinatePoints, config\)/);
+  assert.match(js, /verifyDisplayPositions\(coordinatePoints, config\)/);
   assert.match(js, /run\.levelComponents/);
   assert.match(js, /levelMatches \* 100000/);
   assert.match(js, /setupTopbarHeightObserver\(\)/);
@@ -404,6 +404,14 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   assert.ok(bundle.catalog.stofler.spawnPoints[299]);
   assert.ok(bundle.catalog.stofler.spawnPoints[335]);
   assert.match(bundle.catalog.stofler.src, /bottom-floor-20260816/);
+  const corpusShip = bundle.catalog["cytherean+xini+gulliver+romula+proteus"];
+  assert.match(corpusShip.src, /clockwise-clean-20260820/);
+  assert.equal(corpusShip.matrix[0], 0);
+  assert.ok(corpusShip.matrix[1] > 0);
+  assert.ok(corpusShip.matrix[3] < 0);
+  assert.equal(corpusShip.matrix[4], 0);
+  assert.equal(corpusShip.proceduralSpawnExtras.minMatchedPoints, 24);
+  assert.equal(corpusShip.proceduralSpawnExtras.minObservedCoverage, .9);
   assert.equal(bundle.nodes.SolNode85.length, 2);
 });
 
