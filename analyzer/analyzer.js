@@ -353,7 +353,7 @@
             ${kpi("Drones killed", fmt(run.droneKills), "Shield drones")}
             ${kpi("Enemies spawned", fmt(run.enemySpawns), "Non-ticking filtered")}
             ${kpi("Enemies / drone", fmt(run.droneKills ? run.enemySpawns / run.droneKills : 0, 2), "Spawned per drone")}
-            ${kpi("Total duration", duration(run.totalDuration), `${phase.items.length} ${phase.noun}s`) }
+            ${kpi("Total duration", duration(run.totalDuration), `${phase.items.length} ${phase.noun}${phase.items.length === 1 ? "" : "s"}`) }
             ${kpi("Drones / min", fmt(droneRate, 1), "Drone pace")}
             ${kpi("Avg drone interval", `${fmt(run.avgDroneInterval, 2)}s`, "Between spawns")}
             ${kpi(`Avg ${phase.noun}`, phase.items.length ? `${fmt(avg(phase.items.map((item) => item.seconds)), 1)}s` : "—", "Active phase time")}
@@ -432,7 +432,9 @@
     if (!values.length) return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">Not enough rotation boundaries to chart.</p></section>`;
     const width = 520, height = 190, pad = { l: 25, r: 25, t: 15, b: 25 };
     const min = Math.min(...values) * .9, max = Math.max(...values) * 1.08;
-    const x = (index) => pad.l + (values.length === 1 ? 0 : index / (values.length - 1) * (width - pad.l - pad.r));
+    const x = (index) => values.length === 1
+      ? pad.l + (width - pad.l - pad.r) / 2
+      : pad.l + index / (values.length - 1) * (width - pad.l - pad.r);
     const y = (value) => pad.t + (max - value) / Math.max(.001, max - min) * (height - pad.t - pad.b);
     const points = values.map((value, index) => `${x(index)},${y(value)}`).join(" ");
     const mean = avg(values);
@@ -443,7 +445,10 @@
       return `<g class="chart-point"><circle class="chart-dot" cx="${pointX}" cy="${pointY}" r="3"/><circle class="chart-hit" cx="${pointX}" cy="${pointY}" r="10" tabindex="0" role="img" aria-label="${h(label)}" data-label="${h(label)}" data-x="${pointX}" data-y="${pointY}" data-chart-width="${width}" data-chart-height="${height}"></circle></g>`;
     }).join("");
     const averageTop = y(mean) / height * 100;
-    return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">Per rotation, against the run average.</p><div class="line-chart-wrap"><svg class="line-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="Drones per minute line chart"><line class="chart-grid" x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${height-pad.b}"/><line class="chart-grid" x1="${pad.l}" y1="${height-pad.b}" x2="${width-pad.r}" y2="${height-pad.b}"/><line class="chart-average" x1="${pad.l}" y1="${y(mean)}" x2="${width-pad.r}" y2="${y(mean)}"/><polyline class="chart-line" points="${points}"/>${dots}<text class="chart-label" x="${pad.l}" y="${height-5}" text-anchor="start">R1</text><text class="chart-label" x="${width-pad.r}" y="${height-5}" text-anchor="end">R${values.length}</text></svg><span class="chart-average-badge" style="--average-top:${averageTop.toFixed(2)}%">AVG ${fmt(mean,1)}</span><div class="chart-tooltip" role="status" hidden data-html2canvas-ignore="true"></div></div><div class="heat-legend"><span class="chart-accent">best R${values.indexOf(best)+1} · ${fmt(best,1)}</span><span>worst R${values.indexOf(worst)+1} · ${fmt(worst,1)}</span></div></section>`;
+    const axisLabels = values.length === 1
+      ? `<text class="chart-label" x="${x(0)}" y="${height-5}" text-anchor="middle">R1</text>`
+      : `<text class="chart-label" x="${pad.l}" y="${height-5}" text-anchor="start">R1</text><text class="chart-label" x="${width-pad.r}" y="${height-5}" text-anchor="end">R${values.length}</text>`;
+    return `<section class="card"><h3 class="card-title">Drones per minute</h3><p class="card-subtitle">Per rotation, against the run average.</p><div class="line-chart-wrap"><svg class="line-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="Drones per minute line chart"><line class="chart-grid" x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${height-pad.b}"/><line class="chart-grid" x1="${pad.l}" y1="${height-pad.b}" x2="${width-pad.r}" y2="${height-pad.b}"/><line class="chart-average" x1="${pad.l}" y1="${y(mean)}" x2="${width-pad.r}" y2="${y(mean)}"/><polyline class="chart-line" points="${points}"/>${dots}${axisLabels}</svg><span class="chart-average-badge" style="--average-top:${averageTop.toFixed(2)}%">AVG ${fmt(mean,1)}</span><div class="chart-tooltip" role="status" hidden data-html2canvas-ignore="true"></div></div><div class="heat-legend"><span class="chart-accent">best R${values.indexOf(best)+1} · ${fmt(best,1)}</span><span>worst R${values.indexOf(worst)+1} · ${fmt(worst,1)}</span></div></section>`;
   }
 
   function setupDpmTooltips(root) {
@@ -568,8 +573,9 @@
     const saturation = run.saturation || { rows: [], abovePercent: 0 };
     const threshold = Number.isFinite(saturation.threshold) ? saturation.threshold : 15;
     const telemetryCoverage = Number.isFinite(run.telemetryCoverage) ? run.telemetryCoverage : 0;
+    const telemetryLabel = Math.round(telemetryCoverage * 10) / 10 === 100 ? "100" : fmt(telemetryCoverage, 1);
     const max = Math.max(1, ...saturation.rows.map((row) => row.percent));
-    return `<section class="card saturation-card"><h3 class="card-title">Enemy saturation</h3><p class="card-subtitle">Share of run time at each enemy count.</p><div class="metric-bars">${saturation.rows.map((row,index) => { const heat=heatColor(1-index/Math.max(1,saturation.rows.length-1)); return `<div class="metric-row"><span>${h(row.label)}</span><div class="bar-track"><div class="bar-fill" style="--width:${row.percent/max*100}%;--color:${heat.color}"></div></div><strong>${fmt(row.percent,1)}%</strong></div>`; }).join("")}</div><div class="highlight-panel saturation-summary" style="margin-top:13px"><div class="saturation-summary-item"><span class="mini">Time at ${threshold}+ enemies</span><div class="big">${fmt(saturation.abovePercent,1)}%</div></div><div class="saturation-summary-item telemetry-coverage"><span class="mini">Telemetry coverage</span><div class="big">${fmt(telemetryCoverage,1)}%</div></div></div></section>`;
+    return `<section class="card saturation-card"><h3 class="card-title">Enemy saturation</h3><p class="card-subtitle">Share of run time at each enemy count.</p><div class="metric-bars">${saturation.rows.map((row,index) => { const heat=heatColor(1-index/Math.max(1,saturation.rows.length-1)); return `<div class="metric-row"><span>${h(row.label)}</span><div class="bar-track"><div class="bar-fill" style="--width:${row.percent/max*100}%;--color:${heat.color}"></div></div><strong>${fmt(row.percent,1)}%</strong></div>`; }).join("")}</div><div class="highlight-panel saturation-summary" style="margin-top:13px"><div class="saturation-summary-item"><span class="mini">Time at ${threshold}+ enemies</span><div class="big">${fmt(saturation.abovePercent,1)}%</div></div><div class="saturation-summary-item telemetry-coverage"><span class="mini">Telemetry coverage</span><div class="big">${telemetryLabel}%</div></div></div></section>`;
   }
 
   function renderCadence(run) {

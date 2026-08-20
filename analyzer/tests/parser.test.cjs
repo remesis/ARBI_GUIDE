@@ -217,6 +217,66 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   });
 });
 
+test("uses Disruption round state for completed rotations, reward pauses, and per-rotation rates", () => {
+  const lines = [
+    "1.0 Game [Info]: EliteAlertMission at SolNode87",
+    "1.1 Game [Info]: Level=/Lotus/Levels/Proc/Corpus/CorpusGasCity/CorpusGasCityDisruption/Test.lp",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Ganymede (Jupiter) - Arbitration",
+    "10.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND",
+  ];
+  for (let index = 0; index < 24; index += 1) {
+    const time = 11 + index * 3;
+    const npc = index < 4 ? "CorpusEliteShieldDroneAgent" : "GasEliteSpacemanAgent";
+    lines.push(`${time.toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index + 1}`);
+  }
+  lines.push("100.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
+  lines.push("100.1 Script [Info]: SentientArtifactMission.lua: Disruption: Endless mission reward given (host)");
+  lines.push("120.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND");
+  for (let index = 0; index < 24; index += 1) {
+    const time = 121 + index * 3;
+    const npc = index < 4 ? "CorpusEliteShieldDroneAgent" : "GasEliteSpacemanAgent";
+    lines.push(`${time.toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 25} AI [Info]: MonitoredTicking ${index + 1}`);
+  }
+  lines.push("220.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
+  lines.push("220.1 Script [Info]: SentientArtifactMission.lua: Disruption: Endless mission reward given (host)");
+  lines.push("230.0 Script [Info]: ExtractionTimer.lua: EOM: All players extracting");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.equal(run.missionType, "DISRUPTION");
+  assert.equal(run.startTime, 10);
+  assert.equal(run.endTime, 230);
+  assert.equal(run.rotations, 2);
+  assert.deepEqual(run.rewardTimestamps, [100, 220]);
+  assert.deepEqual(run.pauseIntervals, [[100, 120], [220, 230]]);
+  assert.deepEqual(run.rotationDurations, [90, 100]);
+  assert.deepEqual(run.dronesPerRotation, [4, 4]);
+  assert.ok(Math.abs(run.dpmPerRotation[0] - 2.6666666667) < .000001);
+  assert.ok(Math.abs(run.dpmPerRotation[1] - 2.4) < .000001);
+  assert.equal(run.saturationPerRotation.length, 2);
+});
+
+test("an opening Disruption role rejoin can move the active start past the first round-state marker", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Alpha loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at SolNode87",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Ganymede (Jupiter) - Arbitration",
+    "5.0 Net [Info]: Player=Alpha, change=UNREGISTERED",
+    "10.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND",
+    "15.0 Game [Info]: Alpha loadout loader finished.",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "GasEliteSpacemanAgent";
+    lines.push(`${20 + index}.0 AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index + 1}`);
+  }
+  lines.push("70.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.startTime, 15);
+  assert.deepEqual(run.rotationDurations, [55]);
+});
+
 test("starts the run clock at the last early squad rejoin", () => {
   const lines = [
     "0.1 Game [Info]: Host loadout loader finished.",

@@ -192,10 +192,10 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260819-61"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260819-62"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(html, /parser\.js\?v=20260819-61/);
+  assert.match(html, /parser\.js\?v=20260819-62/);
 });
 
 test("loading a log selects its newest run longer than five minutes", () => {
@@ -288,7 +288,8 @@ test("saturation summary displays telemetry coverage as a smaller muted right-si
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
   assert.match(js, /class="saturation-summary-item telemetry-coverage"/);
   assert.match(js, /Telemetry coverage/);
-  assert.match(js, /fmt\(telemetryCoverage,1\)/);
+  assert.match(js, /telemetryLabel/);
+  assert.match(js, /=== 100 \? "100"/);
   assert.match(css, /\.saturation-summary\s*\{[^}]*grid-template-columns:\s*repeat\(2,/);
   assert.match(css, /\.saturation-summary-item\s*\{[^}]*grid-template-rows:\s*auto auto[^}]*row-gap:\s*10px/);
   assert.match(css, /\.saturation-summary \.big\s*\{[^}]*line-height:\s*1/);

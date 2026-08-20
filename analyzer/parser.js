@@ -18,7 +18,7 @@
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260819-2";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260819-3";
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
   const HIGH_DENSITY_SATURATION_EDGES = [8, 15, 23, 30, 33, 36, 39, 42, 45];
@@ -152,7 +152,7 @@
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -167,6 +167,7 @@
       levelComponents: [],
       isDefense: false,
       isInterception: false,
+      isDisruption: false,
       droneKills: 0,
       enemySpawns: 0,
       rawEnemySpawns: 0,
@@ -216,6 +217,7 @@
       return !startedWaves.length || Math.max(...startedWaves) <= WAVES_PER_ROTATION;
     }
     if (run.isInterception) return run.rounds < WAVES_PER_ROTATION;
+    if (run.isDisruption) return run.rounds < WAVES_PER_ROTATION;
     return run.preciseStart === null;
   }
 
@@ -314,6 +316,9 @@
       let hasTerritory = false;
       let hasSurvivalStart = false;
       let hasSurvivalReward = false;
+      let hasDisruptionRoundStart = false;
+      let hasDisruptionRoundDone = false;
+      let hasDisruptionReward = false;
       let hasExtraction = false;
       let hasPlayerJoin = false;
       let hasPlayerLeave = false;
@@ -340,6 +345,9 @@
         hasTerritory = line.includes("TerritoryMission.lua");
         hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival");
         hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier");
+        hasDisruptionRoundDone = line.includes("SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
+        hasDisruptionRoundStart = line.includes("SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND") && !hasDisruptionRoundDone;
+        hasDisruptionReward = line.includes("SentientArtifactMission.lua: Disruption: Endless mission reward given");
         hasExtraction = line.includes("ExtractionTimer.lua: EOM: All players extracting");
         hasPlayerJoin = line.includes("loadout loader finished");
         hasPlayerLeave = line.includes("change=UNREGISTERED");
@@ -366,6 +374,13 @@
           case "TerritoryMission.lua": hasTerritory = true; break;
           case "Survival: Starting survival": hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival"); break;
           case "Survival: Gave reward tier": hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier"); break;
+          case "Disruption: State change: ARTIFACT_ROUND":
+            hasDisruptionRoundDone = line.includes("SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
+            hasDisruptionRoundStart = !hasDisruptionRoundDone;
+            break;
+          case "Disruption: Endless mission reward given":
+            hasDisruptionReward = line.includes("SentientArtifactMission.lua: Disruption: Endless mission reward given");
+            break;
           case "EOM: All players extracting": hasExtraction = line.includes("ExtractionTimer.lua: EOM: All players extracting"); break;
           case "loadout loader finished": hasPlayerJoin = true; break;
           case "change=UNREGISTERED": hasPlayerLeave = true; break;
@@ -380,7 +395,7 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
 
       if (hasMission || hasMissionVote) {
         const match = line.match(hasMission ? P_MISSION : P_MISSION_VOTE);
@@ -484,6 +499,37 @@
           cur.rounds += 1;
           cur.lastReward = ts;
           cur.rewardTimestamps.push(ts);
+          cur.lastActivity = Math.max(cur.lastActivity, ts);
+        }
+        return;
+      }
+
+      // ARTIFACT_ROUND_DONE is replicated mission state and is therefore the
+      // primary completed-round boundary for both hosts and clients. The
+      // subsequent host reward line is retained as a fallback and deduplicated.
+      if (hasDisruptionRoundDone || hasDisruptionReward) {
+        cur.isDisruption = true;
+        if (ts && ts - cur.lastReward > 30) {
+          cur.rounds += 1;
+          cur.lastReward = ts;
+          cur.rewardTimestamps.push(ts);
+          cur.lastActivity = Math.max(cur.lastActivity, ts);
+          if (cur.pauseOpen === null) cur.pauseOpen = ts;
+        }
+        return;
+      }
+
+      if (hasDisruptionRoundStart) {
+        cur.isDisruption = true;
+        if (ts) {
+          // Some prebuffered logs join after the first round-state transition.
+          // Only claim an exact active start when this marker precedes the first
+          // completed reward; otherwise preserve the normal active-run fallback.
+          if (cur.preciseStart === null && !cur.rewardTimestamps.length) cur.preciseStart = ts;
+          if (cur.pauseOpen !== null) {
+            cur.pauseIntervals.push([cur.pauseOpen, ts]);
+            cur.pauseOpen = null;
+          }
           cur.lastActivity = Math.max(cur.lastActivity, ts);
         }
         return;
@@ -903,10 +949,12 @@
 
   function calculateDronesPerRotation(run) {
     if (!run.rewardTimestamps.length || !run.droneTimestamps.length) return [];
+    const phases = calculateRotationPhases(run);
     let droneIndex = 0;
-    return run.rewardTimestamps.map((reward) => {
+    return phases.map((phase) => {
       let count = 0;
-      while (droneIndex < run.droneTimestamps.length && run.droneTimestamps[droneIndex] <= reward) {
+      while (droneIndex < run.droneTimestamps.length && run.droneTimestamps[droneIndex] < phase.from) droneIndex += 1;
+      while (droneIndex < run.droneTimestamps.length && run.droneTimestamps[droneIndex] <= phase.to) {
         count += 1;
         droneIndex += 1;
       }
@@ -916,11 +964,9 @@
 
   function calculateDpmPerRotation(run) {
     if (!run.dronesPerRotation.length) return [];
-    let previous = startTime(run) || run.droneTimestamps[0];
+    const phases = calculateRotationPhases(run);
     return run.dronesPerRotation.map((count, index) => {
-      const reward = run.rewardTimestamps[index];
-      const minutes = Math.max(reward - previous, 10) / 60;
-      previous = reward;
+      const minutes = Math.max(phases[index]?.seconds || 0, 10) / 60;
       return count / minutes;
     });
   }
