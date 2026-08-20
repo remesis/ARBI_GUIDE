@@ -16,9 +16,10 @@
   // after the one-time completion/transmission asset markers are cached.
   const DEFENSE_VOTE_TRANSITION_SECONDS = 5;
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
+  const JOIN_EVIDENCE_WINDOW_SECONDS = 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260819-4";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260820-5";
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
   const HIGH_DENSITY_SATURATION_EDGES = [8, 15, 23, 30, 33, 36, 39, 42, 45];
@@ -146,13 +147,16 @@
   const P_LIVE = /AI \[Info\]:.*?Live (\d+)/;
   const P_LOADOUT = /Game \[Info\]: (.+?) loadout loader finished\./;
   const P_UNREGISTERED = /Player=([^,]+),\s*change=UNREGISTERED/;
+  const P_NAMED_JOIN = /ProcessSquadMessage received JOIN message from (.+?),\s*loadout:/;
+  const P_NAMED_LEAVE = /ProcessSquadMessage received LEAVE message from (.+?)\s*$/;
+  const P_SQUAD_ADD = /AddSquadMember:\s*(.+?),\s*mm=.*?\bsquadCount=\d+/;
   const P_INT_INIT = /TerritoryMission\.lua: .*?(?:control|captured)/i;
   const P_SPAWN_POINT = /^!?(\d+\.\d+).*WaveDefend\.lua: Spawned a \/Npc\/([A-Za-z0-9_]+?)\d* @ Vector\(([^)]+)\), spawn point: (\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+) @ Vector\(([^)]+)\)/;
   const P_AI_AGENT_INIT = /^!?(\d+\.\d+).*AI Agent Initialize\s+\/Npc\/([A-Za-z0-9_]+?)\d*\s+at NpcAiDirector\s+(\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+)/i;
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -189,6 +193,9 @@
       extractionTime: 0,
       openingRejoinTime: 0,
       openingDepartures: [],
+      openingOperationalLoads: [],
+      recentJoinEvidence: new Map(),
+      localInProgressAt: 0,
       playerPresence: new Map(),
       lastActivity: 0,
       lastReward: 0,
@@ -207,11 +214,13 @@
   }
 
   function startTime(run) {
+    if (Number.isFinite(run.startTime)) return run.startTime;
     const base = run.preciseStart || run.missionStart || run.droneTimestamps[0] || 0;
     return Math.max(base, run.openingRejoinTime || 0);
   }
 
   function isOpeningRejoinPhase(run) {
+    if (run.rewardTimestamps.length) return false;
     if (run.isDefense) {
       const startedWaves = Object.keys(run.waveStarts).map(Number).filter(Number.isFinite);
       return !startedWaves.length || Math.max(...startedWaves) <= WAVES_PER_ROTATION;
@@ -258,6 +267,34 @@
       .slice(0, 3)
       .map((entry) => entry.name));
     return names.filter((name) => selected.has(name));
+  }
+
+  function openingReadyTime(run, names) {
+    const selected = new Set(names);
+    return run.openingOperationalLoads.reduce((latest, entry) => (
+      selected.has(entry.name) ? Math.max(latest, entry.timestamp) : latest
+    ), 0);
+  }
+
+  function resolveFinalizedCore(run, to) {
+    const base = run.preciseStart || run.missionStart || run.droneTimestamps[0] || 0;
+    let names = finalizedSquadmates(run, base, to);
+    let ready = openingReadyTime(run, names);
+    let from = Math.max(base, ready);
+
+    // A later active start can change which of several transient opening
+    // players has the greatest real-run presence. Iterate to a stable core so
+    // timing and the displayed squad are derived from the same identities.
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const nextNames = finalizedSquadmates(run, from, to);
+      const nextReady = openingReadyTime(run, nextNames);
+      const nextFrom = Math.max(base, nextReady);
+      if (nextFrom === from && nextNames.join("\0") === names.join("\0")) break;
+      names = nextNames;
+      ready = nextReady;
+      from = nextFrom;
+    }
+    return { names, ready, start: from };
   }
 
   function overlap(a, b, p0, p1) {
@@ -322,6 +359,10 @@
       let hasExtraction = false;
       let hasPlayerJoin = false;
       let hasPlayerLeave = false;
+      let hasNamedJoin = false;
+      let hasNamedLeave = false;
+      let hasSquadAdd = false;
+      let hasLocalInProgress = false;
       let hasLiveCount = false;
 
       if (relevantToken === undefined) {
@@ -351,6 +392,10 @@
         hasExtraction = line.includes("ExtractionTimer.lua: EOM: All players extracting");
         hasPlayerJoin = line.includes("loadout loader finished");
         hasPlayerLeave = line.includes("change=UNREGISTERED");
+        hasNamedJoin = line.includes("ProcessSquadMessage received JOIN message from");
+        hasNamedLeave = line.includes("ProcessSquadMessage received LEAVE message from");
+        hasSquadAdd = line.includes("AddSquadMember:");
+        hasLocalInProgress = line.includes("LoadLevelMsg received. Client joining mission in-progress");
         hasLiveCount = line.includes("MonitoredTicking") || (line.includes("AI [Info]:") && line.includes("Live "));
       } else {
         switch (relevantToken) {
@@ -384,6 +429,10 @@
           case "EOM: All players extracting": hasExtraction = line.includes("ExtractionTimer.lua: EOM: All players extracting"); break;
           case "loadout loader finished": hasPlayerJoin = true; break;
           case "change=UNREGISTERED": hasPlayerLeave = true; break;
+          case "received JOIN message from": hasNamedJoin = true; break;
+          case "received LEAVE message from": hasNamedLeave = true; break;
+          case "AddSquadMember:": hasSquadAdd = true; break;
+          case "Client joining mission in-progress": hasLocalInProgress = true; break;
           case "MonitoredTicking":
             hasLiveCount = true;
             hasAgent = line.includes("OnAgentCreated");
@@ -395,7 +444,7 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
 
       if (hasMission || hasMissionVote) {
         const match = line.match(hasMission ? P_MISSION : P_MISSION_VOTE);
@@ -436,9 +485,13 @@
         }
         return;
       }
-      const lineTimestamp = (hasPlayerJoin || hasPlayerLeave)
+      const lineTimestamp = (hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress)
         ? Number((line.match(P_TIMESTAMP) || [])[1]) || 0
         : 0;
+      if (hasNamedJoin) this.playerJoinEvidence(line, lineTimestamp, P_NAMED_JOIN);
+      if (hasSquadAdd) this.playerJoinEvidence(line, lineTimestamp, P_SQUAD_ADD);
+      if (hasLocalInProgress && this.cur.isArbitration) this.cur.localInProgressAt = lineTimestamp;
+      if (hasNamedLeave) this.playerLeave(line, lineTimestamp, P_NAMED_LEAVE);
       if (hasPlayerJoin) this.playerJoin(line, lineTimestamp);
       if (hasPlayerLeave) this.playerLeave(line, lineTimestamp);
       if (!this.cur.isArbitration) return;
@@ -626,6 +679,14 @@
       next.host = this.cur.host;
       next.squadmates = [...this.cur.inMission];
       next.inMission = [...this.cur.inMission];
+      this.cur.recentJoinEvidence.forEach((timestamp, name) => {
+        if (ts >= timestamp && ts - timestamp <= JOIN_EVIDENCE_WINDOW_SECONDS) {
+          next.recentJoinEvidence.set(name, timestamp);
+        }
+      });
+      if (this.cur.localInProgressAt > 0 && ts >= this.cur.localInProgressAt && ts - this.cur.localInProgressAt <= JOIN_EVIDENCE_WINDOW_SECONDS) {
+        next.localInProgressAt = this.cur.localInProgressAt;
+      }
       next.inMission.forEach((name) => openPlayerPresence(next, name, ts));
       this.cur = next;
       if (!isArbitration) return;
@@ -710,6 +771,14 @@
       point.waveCounts[wave] = (point.waveCounts[wave] || 0) + 1;
     }
 
+    playerJoinEvidence(line, timestamp = 0, pattern = P_NAMED_JOIN) {
+      const match = line.match(pattern);
+      if (!match || !this.cur.isArbitration) return;
+      const name = cleanName(match[1]);
+      if (!name || name === this.cur.host) return;
+      this.cur.recentJoinEvidence.set(name, timestamp);
+    }
+
     playerJoin(line, timestamp = 0) {
       const match = line.match(P_LOADOUT);
       if (!match) return;
@@ -717,17 +786,29 @@
       if (!name) return;
       const cur = this.cur;
       const departureIndex = cur.openingDepartures.indexOf(name);
-      const isOpeningRejoin = cur.isArbitration
-        && departureIndex >= 0
+      const presence = cur.playerPresence.get(name);
+      const beginsPresence = name !== cur.host && (!presence || presence.since === null);
+      const evidenceAt = cur.recentJoinEvidence.get(name) || 0;
+      const hasRecentNamedEvidence = evidenceAt > 0
+        && timestamp >= evidenceAt
+        && timestamp - evidenceAt <= JOIN_EVIDENCE_WINDOW_SECONDS;
+      const hasRecentLocalEvidence = cur.localInProgressAt > 0
+        && timestamp >= cur.localInProgressAt
+        && timestamp - cur.localInProgressAt <= JOIN_EVIDENCE_WINDOW_SECONDS;
+      const wasKnownRoster = cur.inMission.includes(name) || cur.squadmates.includes(name);
+      const isOpeningOperationalLoad = cur.isArbitration
+        && beginsPresence
         && timestamp >= cur.missionStart
         && timestamp - cur.missionStart <= OPENING_REJOIN_WINDOW_SECONDS
-        && isOpeningRejoinPhase(cur);
+        && isOpeningRejoinPhase(cur)
+        && (departureIndex >= 0 || hasRecentNamedEvidence || hasRecentLocalEvidence || wasKnownRoster);
       if (departureIndex >= 0) {
         cur.openingDepartures.splice(departureIndex, 1);
       }
-      if (isOpeningRejoin) {
-        cur.openingRejoinTime = Math.max(cur.openingRejoinTime, timestamp);
+      if (isOpeningOperationalLoad) {
+        cur.openingOperationalLoads.push({ name, timestamp });
       }
+      cur.recentJoinEvidence.delete(name);
       if (!cur.host) cur.host = name;
       else if (name !== cur.host) {
         if (!cur.inMission.includes(name)) cur.inMission.push(name);
@@ -736,8 +817,8 @@
       }
     }
 
-    playerLeave(line, timestamp = 0) {
-      const match = line.match(P_UNREGISTERED);
+    playerLeave(line, timestamp = 0, pattern = P_UNREGISTERED) {
+      const match = line.match(pattern);
       if (!match) return;
       const name = cleanName(match[1]);
       const cur = this.cur;
@@ -836,11 +917,15 @@
   }
 
   function deriveRun(run) {
-    run.startTime = startTime(run);
     run.endTime = endTime(run);
+    const finalizedCore = resolveFinalizedCore(run, run.endTime);
+    run.openingRejoinTime = finalizedCore.ready;
+    run.startTime = finalizedCore.start;
     run.totalDuration = run.endTime > run.startTime ? run.endTime - run.startTime : 0;
-    run.squadmates = finalizedSquadmates(run, run.startTime, run.endTime);
+    run.squadmates = finalizedCore.names;
     delete run.playerPresence;
+    delete run.openingOperationalLoads;
+    delete run.recentJoinEvidence;
     const paused = pauseSeconds(run, run.startTime, run.endTime);
     run.activeDuration = Math.max(0, run.totalDuration - paused);
     const nodeKey = canonicalNode(run.nodeKey);

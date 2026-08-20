@@ -300,6 +300,79 @@ test("an opening Disruption role rejoin can move the active start past the first
   assert.deepEqual(run.rotationDurations, [55]);
 });
 
+test("a finalized replacement can move Disruption timing past an early tileset-preview marker", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Alpha loadout loader finished.",
+    "0.3 Game [Info]: Beta loadout loader finished.",
+    "0.4 Game [Info]: Prebuffer loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at SolNode87",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Ganymede (Jupiter) - Arbitration",
+    "3.0 Net [Info]: MatchingServiceWeb::ProcessSquadMessage received LEAVE message from Prebuffer",
+    "4.0 Game [Info]: ClientImpl::PlayersChanged. Player=Prebuffer, change=UNREGISTERED",
+    "10.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND",
+    "12.0 Net [Info]: MatchingServiceWeb::ProcessSquadMessage received JOIN message from Gamma, loadout: 123 bytes",
+    "12.1 Net [Info]: AddSquadMember: Gamma, mm=ABC123, squadCount=4",
+    "18.0 Game [Info]: Gamma loadout loader finished.",
+    "18.5 Game [Info]: Gamma loadout loader finished.",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "GasEliteSpacemanAgent";
+    lines.push(`${20 + index}.0 AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index + 1}`);
+  }
+  lines.push("70.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.preciseStart, 10);
+  assert.equal(run.openingRejoinTime, 18);
+  assert.equal(run.startTime, 18);
+  assert.deepEqual(run.squadmates, ["Alpha", "Beta", "Gamma"]);
+  assert.ok(!run.squadmates.includes("Prebuffer"));
+});
+
+test("roster refreshes and duplicate loadouts cannot move the opening timer", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Alpha loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at SolNode87",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Ganymede (Jupiter) - Arbitration",
+    "10.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND",
+    "11.0 Net [Info]: AddSquadMember: Alpha, mm=ABC123, squadCount=2",
+    "15.0 Game [Info]: Alpha loadout loader finished.",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "GasEliteSpacemanAgent";
+    lines.push(`${20 + index}.0 AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index + 1}`);
+  }
+  lines.push("70.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.openingRejoinTime, 0);
+  assert.equal(run.startTime, 10);
+});
+
+test("a reconnect after reward progression cannot reset Disruption timing", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Alpha loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at SolNode87",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Ganymede (Jupiter) - Arbitration",
+    "10.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND",
+    "70.0 Script [Info]: SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE",
+    "80.0 Game [Info]: ClientImpl::PlayersChanged. Player=Alpha, change=UNREGISTERED",
+    "90.0 Net [Info]: AddSquadMember: Alpha, mm=ABC123, squadCount=2",
+    "95.0 Game [Info]: Alpha loadout loader finished.",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "GasEliteSpacemanAgent";
+    lines.push(`${100 + index}.0 AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index + 1}`);
+  }
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.openingRejoinTime, 0);
+  assert.equal(run.startTime, 10);
+});
+
 test("starts the run clock at the last early squad rejoin", () => {
   const lines = [
     "0.1 Game [Info]: Host loadout loader finished.",

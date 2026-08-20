@@ -18,6 +18,19 @@ browser. The Pages bundle never uploads an `EE.log` or arbitrary log lines.
    also carry coordinate-bearing spawn points; other modes send an empty point
    list while still contributing the reduced run record.
 
+The local report derives its displayed squad and active timer from one
+finalized mission core. It correlates named join, squad-add, leave/unregister,
+and local in-progress-loading evidence by cleaned player identity within a
+short window, then uses `loadout loader finished` as the operational timestamp.
+Only a new presence episode belonging to the presence-ranked final core can
+move the start, and only during the opening window before reward progression.
+The selected start is the later of finalized-core readiness and the exact
+mission-active marker. Duplicate loadouts, roster refreshes, anonymous joins,
+and late reconnects cannot reset it. This excludes transient prebuffers while
+retaining a core player who disconnects late, and prevents Disruption's early
+door/tileset-preview state from starting measured play before the final squad
+is operational.
+
 For Survival, the parser anchors active time to `Survival: Starting survival`,
 uses the one-per-cycle `Survival: Gave reward tier` mission event for reward
 boundaries, and ends the run at `EOM: All players extracting`. The frequently
