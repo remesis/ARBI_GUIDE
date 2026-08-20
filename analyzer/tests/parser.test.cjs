@@ -217,6 +217,35 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   });
 });
 
+test("a finalized squad invited after Survival scouting moves the active start", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Alpha loadout loader finished.",
+    "0.3 Game [Info]: Beta loadout loader finished.",
+    "0.4 Game [Info]: Prebuffer loadout loader finished.",
+    "1.0 Game [Info]: EliteAlertMission at ClanNode23",
+    "2.0 ThemedSquadOverlay.lua: Mission name: Gabii (Ceres) - Arbitration",
+    "10.0 Script [Info]: SurvivalMission.lua: Survival: Starting survival",
+    "15.0 Net [Info]: MatchingServiceWeb::ProcessSquadMessage received LEAVE message from Prebuffer",
+    "16.0 Game [Info]: ClientImpl::PlayersChanged. Player=Prebuffer, change=UNREGISTERED",
+    "30.0 Net [Info]: MatchingServiceWeb::ProcessSquadMessage received JOIN message from Gamma, loadout: 123 bytes",
+    "30.1 Net [Info]: AddSquadMember: Gamma, mm=ABC123, squadCount=4",
+    "35.0 Game [Info]: Gamma loadout loader finished.",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    lines.push(`${40 + index}.0 AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index + 1}`);
+  }
+  lines.push("310.0 Script [Info]: SurvivalMission.lua: Survival: Gave reward tier 1 at 300");
+  lines.push("320.0 Script [Info]: ExtractionTimer.lua: EOM: All players extracting");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.preciseStart, 10);
+  assert.equal(run.openingRejoinTime, 35);
+  assert.equal(run.startTime, 35);
+  assert.deepEqual(run.squadmates, ["Alpha", "Beta", "Gamma"]);
+});
+
 test("uses Disruption round state for completed rotations, reward pauses, and per-rotation rates", () => {
   const lines = [
     "1.0 Game [Info]: EliteAlertMission at SolNode87",

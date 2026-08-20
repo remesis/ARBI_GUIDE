@@ -29,7 +29,8 @@ mission-active marker. Duplicate loadouts, roster refreshes, anonymous joins,
 and late reconnects cannot reset it. This excludes transient prebuffers while
 retaining a core player who disconnects late, and prevents Disruption's early
 door/tileset-preview state from starting measured play before the final squad
-is operational.
+is operational. Survival uses the same finalized-core lower-bound rule when a
+host scouts the generated tileset before inviting the squad.
 
 For Survival, the parser anchors active time to `Survival: Starting survival`,
 uses the one-per-cycle `Survival: Gave reward tier` mission event for reward

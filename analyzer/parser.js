@@ -19,7 +19,7 @@
   const JOIN_EVIDENCE_WINDOW_SECONDS = 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260820-5";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260820-6";
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
   const HIGH_DENSITY_SATURATION_EDGES = [8, 15, 23, 30, 33, 36, 39, 42, 45];
@@ -172,6 +172,7 @@
       isDefense: false,
       isInterception: false,
       isDisruption: false,
+      isSurvival: false,
       droneKills: 0,
       enemySpawns: 0,
       rawEnemySpawns: 0,
@@ -227,6 +228,7 @@
     }
     if (run.isInterception) return run.rounds < WAVES_PER_ROTATION;
     if (run.isDisruption) return run.rounds < WAVES_PER_ROTATION;
+    if (run.isSurvival) return true;
     return run.preciseStart === null;
   }
 
@@ -537,6 +539,7 @@
       }
 
       if (hasSurvivalStart) {
+        cur.isSurvival = true;
         if (ts) {
           cur.preciseStart = ts;
           cur.lastActivity = Math.max(cur.lastActivity, ts);
@@ -548,6 +551,7 @@
       // a rotation boundary. The mission-script line below is emitted once for
       // each completed five-minute reward cycle.
       if (hasSurvivalReward) {
+        cur.isSurvival = true;
         if (ts && ts - cur.lastReward > 30) {
           cur.rounds += 1;
           cur.lastReward = ts;
@@ -938,7 +942,9 @@
       ? catalogMissionType.toLocaleUpperCase()
       : (Object.keys(run.waveStarts).length || run.isDefense
         ? "DEFENSE"
-        : (run.isInterception ? "INTERCEPTION" : "UNKNOWN"));
+        : (run.isInterception
+          ? "INTERCEPTION"
+          : (run.isSurvival ? "SURVIVAL" : "UNKNOWN")));
     run.faction = node ? node[3] : "Unknown";
     run.tileset = node ? node[4] : tileFromPath(run.levelPath);
     const saturationScale = HIGH_DENSITY_SATURATION_TYPES.has(run.missionType)
