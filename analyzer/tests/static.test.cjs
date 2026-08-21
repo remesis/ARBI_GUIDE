@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog-20260821-5\.js/);
+  assert.match(html, /minimaps\/catalog-20260821-6\.js/);
   assert.match(html, /analyzer-20260821-93\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -176,10 +176,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.topbar \.search-wrap input, \.topbar \.search-wrap button\s*\{\s*font:\s*revert/);
   const catalog = fs.readFileSync(path.join(analyzerDir, "minimaps", "catalog.js"), "utf8");
   const immutableCatalog = fs.readFileSync(
-    path.join(analyzerDir, "minimaps", "catalog-20260821-5.js"),
+    path.join(analyzerDir, "minimaps", "catalog-20260821-6.js"),
     "utf8",
   );
-  assert.match(html, /minimaps\/catalog-20260821-5\.js/);
+  assert.match(html, /minimaps\/catalog-20260821-6\.js/);
   assert.equal(immutableCatalog, catalog);
   assert.match(catalog, /tile-geometry/);
   assert.match(catalog, /spawnPoints/);
@@ -524,6 +524,21 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
     const pixelY = corpusShip.matrix[3] * x + corpusShip.matrix[4] * z + corpusShip.matrix[5];
     assert.ok(pixelX >= 60 && pixelX <= 940);
     assert.ok(pixelY >= 60 && pixelY <= 940);
+  }
+  const hydron = bundle.catalog["hydron+helene+odin"];
+  assert.match(hydron.src, /hydron\+helene\+odin-counterclockwise\.webp/);
+  assert.match(hydron.src, /counterclockwise-20260821/);
+  assert.equal(hydron.matrix[0], 0);
+  assert.ok(hydron.matrix[1] < 0);
+  assert.ok(hydron.matrix[3] > 0);
+  assert.equal(hydron.matrix[4], 0);
+  for (const [, positions] of Object.entries(hydron.spawnPoints)) {
+    for (const [x, , z] of positions) {
+      const pixelX = hydron.matrix[0] * x + hydron.matrix[1] * z + hydron.matrix[2];
+      const pixelY = hydron.matrix[3] * x + hydron.matrix[4] * z + hydron.matrix[5];
+      assert.ok(pixelX >= 0 && pixelX <= hydron.width);
+      assert.ok(pixelY >= 0 && pixelY <= hydron.height);
+    }
   }
   const orokinTower = bundle.catalog["mithra+taranis+belenus"];
   assert.match(orokinTower.src, /ceiling-trim-20260820/);

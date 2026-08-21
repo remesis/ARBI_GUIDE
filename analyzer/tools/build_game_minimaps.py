@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-5.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-6.js"
 
 
 GROUP_NODES = {
@@ -223,6 +223,7 @@ OROKIN_TOWER_DEFENSE_GROUP = "mithra+taranis+belenus"
 OROKIN_TOWER_CEILING_BAND_MIN_HEIGHT = 2.0
 CORPUS_SHIP_DEFENSE_GROUP = "cytherean+xini+gulliver+romula+proteus"
 CORPUS_SHIP_MIN_CONNECTED_AREA = 1000
+HYDRON_DEFENSE_GROUP = "hydron+helene+odin"
 # ObjDefense01 stops at the two high side doors, while real Defense layouts
 # attach spawn-room pieces beyond them. These clean envelopes are backed by the
 # reviewed D1 positions at Y=12.2-13.8; they deliberately omit roof/truss detail
@@ -471,6 +472,13 @@ def render_map(
             base = result.copy()
             result[:, 0] = size - base[:, 1]
             result[:, 1] = base[:, 0]
+        elif group_id == HYDRON_DEFENSE_GROUP:
+            # Keep this reviewed arena in its counterclockwise orientation.
+            # Objective positions pass through this projection, while their
+            # letters are drawn afterward and therefore remain upright.
+            base = result.copy()
+            result[:, 0] = base[:, 1]
+            result[:, 1] = size - base[:, 0]
         return np.rint(result).astype(np.int32)
 
     # Transparent RGBA output: the Analyzer card supplies the neutral backdrop.
@@ -649,6 +657,7 @@ def render_map(
         GAS_SPAWN_02_GROUP: "clean-floor-20260819",
         OROKIN_TOWER_DEFENSE_GROUP: "ceiling-trim-20260820",
         CORPUS_SHIP_DEFENSE_GROUP: "runtime-side-rooms-20260821",
+        HYDRON_DEFENSE_GROUP: "counterclockwise-20260821",
     }
     asset_version = asset_versions.get(group_id)
     return {
@@ -662,10 +671,21 @@ def render_map(
                 round(-scale, 9), 0.0, round(float(size + lo[0] * scale - pad[0]), 9),
             ]
             if group_id == CORPUS_SHIP_DEFENSE_GROUP
-            else [
-                round(-scale, 9), 0.0, round(float(size + lo[0] * scale - pad[0]), 9),
-                0.0, round(-scale, 9), round(float(size + lo[1] * scale - pad[1]), 9),
-            ]
+            else (
+                [
+                    0.0, round(-scale, 9),
+                    round(float(size + lo[1] * scale - pad[1]), 9),
+                    round(scale, 9), 0.0,
+                    round(float(pad[0] - lo[0] * scale), 9),
+                ]
+                if group_id == HYDRON_DEFENSE_GROUP
+                else [
+                    round(-scale, 9), 0.0,
+                    round(float(size + lo[0] * scale - pad[0]), 9),
+                    0.0, round(-scale, 9),
+                    round(float(size + lo[1] * scale - pad[1]), 9),
+                ]
+            )
         ),
         "calibrated": True,
         "source": "tile-geometry",
@@ -708,11 +728,12 @@ def main() -> None:
         overlay = display_overlay(group_id, overlay)
         positions, faces = read_wfg(source_dir / f"{group['mesh']}.wfg")
         label = " / ".join(node["name"] for node in current_group.get("nodes", []))
-        output_name = (
-            f"{group_id}-clockwise.webp"
-            if group_id == CORPUS_SHIP_DEFENSE_GROUP
-            else f"{group_id}.webp"
-        )
+        if group_id == CORPUS_SHIP_DEFENSE_GROUP:
+            output_name = f"{group_id}-clockwise.webp"
+        elif group_id == HYDRON_DEFENSE_GROUP:
+            output_name = f"{group_id}-counterclockwise.webp"
+        else:
+            output_name = f"{group_id}.webp"
         entry = render_map(group_id, positions, faces, overlay, output_dir / output_name)
         entry["spawnPoints"] = merge_spawn_supplements(
             entry["spawnPoints"],

@@ -188,7 +188,7 @@ established the same procedural transform with 219-282 authored matches. All
 seven rows now match their complete 283-350 point sets against the resulting
 406-reference catalog. Live D1 never feeds the browser
 catalog directly. The page loads the byte-identical immutable
-`minimaps/catalog-20260821-5.js` asset while `catalog.js` remains the maintained
+`minimaps/catalog-20260821-6.js` asset while `catalog.js` remains the maintained
 generated source. At least 24 reference matches and 90% observed-point coverage
 are still required before the recovered transform maps any future points beyond
 that reviewed set. This prevents valid runtime extras from hiding the whole
@@ -218,6 +218,11 @@ instead of restoring the unrelated roof/truss layer. An Analyzer-only
 connected-component trim still removes the four detached ceiling-fragment pairs.
 This presentation cleanup applies to Cytherean, Xini, Gulliver, Romula, and
 Proteus; submitted-log coordinates remain the only bubbles drawn for a run.
+
+The shared Hydron / Helene / Odin arena is displayed 90 degrees
+counterclockwise using the same projection-level rotation. Its geometry,
+objective positions, and submitted-log spawn matrix rotate together; the
+A/B/C/D glyphs are drawn after projection so the letters remain upright.
 
 ## Verification
 
