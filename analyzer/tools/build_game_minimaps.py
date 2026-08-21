@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-6.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-7.js"
 
 
 GROUP_NODES = {
@@ -192,6 +192,22 @@ CORPUS_SHIP_D1_SPAWN_SUPPLEMENT_POSITIONS = (
     (64.869, -19.954, 19.272),
 )
 
+# These nine authored Corpus Ship references are hidden only in the 3D viewer
+# because current telemetry has not activated them. Preserve their original IDs
+# in the Analyzer so viewer curation cannot silently change submitted-log
+# alignment behavior.
+CORPUS_SHIP_VIEWER_HIDDEN_SPAWN_REFERENCES = {
+    "392": [[6.522, -20.0, -31.078]],
+    "439": [[-18.608, -6.8, -30.625]],
+    "440": [[-13.074, -6.8, -28.641]],
+    "482": [[0.0, 2.25, -0.25]],
+    "562": [[-49.5, 4.2, 32.1]],
+    "566": [[-49.5, 4.2, 27.35]],
+    "570": [[49.5, 4.2, -32.65]],
+    "574": [[49.5, 4.2, -27.9]],
+    "578": [[66.95, 1.15, -6.25]],
+}
+
 # GasSpawn02 has five live edge points that are instantiated by the procedural
 # defense composition but are absent from the authored WFO overlay. Keep these
 # Analyzer-only references separate from the 3D viewer overlay so the approved
@@ -205,10 +221,13 @@ ANALYZER_SPAWN_SUPPLEMENTS = {
         "runtime-edge-5": [[-78.529, -4.0, 79.5831]],
     },
     "cytherean+xini+gulliver+romula+proteus": {
-        f"d1-defense-{index:03d}": [[*position]]
-        for index, position in enumerate(
-            CORPUS_SHIP_D1_SPAWN_SUPPLEMENT_POSITIONS, start=1
-        )
+        **CORPUS_SHIP_VIEWER_HIDDEN_SPAWN_REFERENCES,
+        **{
+            f"d1-defense-{index:03d}": [[*position]]
+            for index, position in enumerate(
+                CORPUS_SHIP_D1_SPAWN_SUPPLEMENT_POSITIONS, start=1
+            )
+        },
     },
 }
 
@@ -224,6 +243,12 @@ OROKIN_TOWER_CEILING_BAND_MIN_HEIGHT = 2.0
 CORPUS_SHIP_DEFENSE_GROUP = "cytherean+xini+gulliver+romula+proteus"
 CORPUS_SHIP_MIN_CONNECTED_AREA = 1000
 HYDRON_DEFENSE_GROUP = "hydron+helene+odin"
+HYF_DEFENSE_GROUP = "hyf"
+# Hyf's ramps make its authored spawn heights nearly continuous, so generic
+# height clustering collapses its playable decks into a single -6 m slice.
+# Composite the four real floor planes and stop below the roof band near +5 m.
+HYF_PLAYABLE_FLOOR_HEIGHTS = (-6.0, -2.0, 0.0, 2.0)
+HYF_ADDITIONAL_FLOOR_TOLERANCE = 1.1
 # ObjDefense01 stops at the two high side doors, while real Defense layouts
 # attach spawn-room pieces beyond them. These clean envelopes are backed by the
 # reviewed D1 positions at Y=12.2-13.8; they deliberately omit roof/truss detail
@@ -492,9 +517,16 @@ def render_map(
     heights = cluster_heights(spawn_heights + objective_heights)
     if group_id == GAS_SPAWN_02_GROUP:
         heights = [height for height in heights if height < GAS_SPAWN_02_MAX_MAP_HEIGHT]
+    elif group_id == HYF_DEFENSE_GROUP:
+        heights = list(HYF_PLAYABLE_FLOOR_HEIGHTS)
     chunk_size = 160_000
 
     for band_index, height in enumerate(heights):
+        height_tolerance = (
+            HYF_ADDITIONAL_FLOOR_TOLERANCE
+            if group_id == HYF_DEFENSE_GROUP and band_index > 0
+            else 3.0
+        )
         mask = np.zeros((size, size), dtype=np.uint8)
         for start in range(0, len(faces), chunk_size):
             tri = positions[faces[start : start + chunk_size]]
@@ -507,7 +539,7 @@ def render_map(
             keep = (
                 (normal_length > 1e-5)
                 & (np.abs(normals[:, 1]) / np.maximum(normal_length, 1e-9) > 0.58)
-                & (np.abs(centroids[:, 1] - height) <= 3.0)
+                & (np.abs(centroids[:, 1] - height) <= height_tolerance)
                 & (area > 0.01)
                 & (area < 520.0)
                 & (centroids[:, 0] >= lo[0])
@@ -531,6 +563,11 @@ def render_map(
             for room in CORPUS_SHIP_RUNTIME_SPAWN_ROOMS:
                 floor = project(room).reshape((-1, 1, 2))
                 cv2.fillPoly(mask, [floor], 255, lineType=cv2.LINE_AA)
+        if group_id == HYF_DEFENSE_GROUP and band_index > 0:
+            # Extend the established low-floor silhouette only into blank map
+            # space. This restores the upper and lower-middle playable decks
+            # without repainting the interior with ceiling/furniture clutter.
+            mask[image[:, :, 3] > 0] = 0
 
         # Close sub-pixel extraction seams without flattening real doorways and
         # holes, then draw only the resulting room/perimeter contours.
@@ -658,6 +695,7 @@ def render_map(
         OROKIN_TOWER_DEFENSE_GROUP: "ceiling-trim-20260820",
         CORPUS_SHIP_DEFENSE_GROUP: "runtime-side-rooms-20260821",
         HYDRON_DEFENSE_GROUP: "counterclockwise-20260821",
+        HYF_DEFENSE_GROUP: "multi-floor-20260821",
     }
     asset_version = asset_versions.get(group_id)
     return {

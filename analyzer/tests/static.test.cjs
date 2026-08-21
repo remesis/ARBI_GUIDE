@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog-20260821-6\.js/);
+  assert.match(html, /minimaps\/catalog-20260821-7\.js/);
   assert.match(html, /analyzer-20260821-93\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -176,10 +176,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.topbar \.search-wrap input, \.topbar \.search-wrap button\s*\{\s*font:\s*revert/);
   const catalog = fs.readFileSync(path.join(analyzerDir, "minimaps", "catalog.js"), "utf8");
   const immutableCatalog = fs.readFileSync(
-    path.join(analyzerDir, "minimaps", "catalog-20260821-6.js"),
+    path.join(analyzerDir, "minimaps", "catalog-20260821-7.js"),
     "utf8",
   );
-  assert.match(html, /minimaps\/catalog-20260821-6\.js/);
+  assert.match(html, /minimaps\/catalog-20260821-7\.js/);
   assert.equal(immutableCatalog, catalog);
   assert.match(catalog, /tile-geometry/);
   assert.match(catalog, /spawnPoints/);
@@ -514,6 +514,8 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   assert.equal(corpusShip.proceduralSpawnExtras.minMatchedPoints, 24);
   assert.equal(corpusShip.proceduralSpawnExtras.minObservedCoverage, .9);
   assert.equal(Object.values(corpusShip.spawnPoints).flat().length, 406);
+  assert.deepEqual(Array.from(corpusShip.spawnPoints["392"][0]), [6.522, -20, -31.078]);
+  assert.deepEqual(Array.from(corpusShip.spawnPoints["578"][0]), [66.95, 1.15, -6.25]);
   assert.deepEqual(Array.from(corpusShip.spawnPoints["d1-defense-001"][0]), [-83.3, -1.889, -2.4]);
   assert.deepEqual(Array.from(corpusShip.spawnPoints["d1-defense-090"][0]), [64.869, -19.954, 19.272]);
   const elevatedRuntimePoints = Object.values(corpusShip.spawnPoints).flat()
@@ -540,6 +542,9 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
       assert.ok(pixelY >= 0 && pixelY <= hydron.height);
     }
   }
+  const hyf = bundle.catalog.hyf;
+  assert.match(hyf.src, /multi-floor-20260821/);
+  assert.equal(Object.values(hyf.spawnPoints).flat().length, 146);
   const orokinTower = bundle.catalog["mithra+taranis+belenus"];
   assert.match(orokinTower.src, /ceiling-trim-20260820/);
   assert.deepEqual(Array.from(orokinTower.matrix), [

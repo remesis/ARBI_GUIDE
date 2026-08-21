@@ -85,7 +85,7 @@
     },
     "cytherean+xini+gulliver+romula+proteus": {
       "mesh": "e85c8910b49c9972",
-      "overlay": "4e442c4459e6a1d1.wfo",
+      "overlay": "77b10482bbeb10e8.wfo",
       "tileset": "Corpus Ship",
       "mission": "Defense / Interception",
       "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
@@ -914,5 +914,5 @@
   "generated": "2026-08-21",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "298f17c776063c1d"
+  "buildHash": "e80b3ae52138b01b"
 }
