@@ -107,6 +107,8 @@ ANALYZER_SPAWN_SUPPLEMENTS = {
 # Analyzer-only minimap without changing the 3D viewer geometry.
 GAS_SPAWN_02_GROUP = "callisto+sinai+io~2"
 GAS_SPAWN_02_MAX_MAP_HEIGHT = 10.0
+OROKIN_TOWER_DEFENSE_GROUP = "mithra+taranis+belenus"
+OROKIN_TOWER_CEILING_BAND_MIN_HEIGHT = 2.0
 CORPUS_SHIP_DEFENSE_GROUP = "cytherean+xini+gulliver+romula+proteus"
 CORPUS_SHIP_MIN_CONNECTED_AREA = 1000
 GAS_SPAWN_02_CONNECTOR = np.asarray([
@@ -356,15 +358,33 @@ def render_map(
         fill_alpha = int(66 + level * 24)
         band_layer = np.zeros_like(image)
         band_layer[mask > 0] = (fill_gray, fill_gray + 2, fill_gray + 7, fill_alpha)
+        exterior = None
+        if (
+            group_id == OROKIN_TOWER_DEFENSE_GROUP
+            and height >= OROKIN_TOWER_CEILING_BAND_MIN_HEIGHT
+        ):
+            # OrokinTowerDefense's upper authored band includes the elevated
+            # spawn closets plus a dense ceiling/truss layer over the lower
+            # playable silhouette. Keep only upper-band geometry that extends
+            # into the exterior background; the validated spawn transform and
+            # every authored spawn reference remain untouched.
+            outside = (image[:, :, 3] == 0).astype(np.uint8) * 255
+            cv2.floodFill(outside, None, (0, 0), 128)
+            exterior = outside == 128
+            band_layer[~exterior] = 0
         if contours:
             shadow = np.zeros_like(image)
             cv2.drawContours(shadow, contours, -1, (0, 0, 0, 135), 7, cv2.LINE_AA)
             cv2.drawContours(band_layer, contours, -1, (178, 181, 188, 220), 3, cv2.LINE_AA)
+            if exterior is not None:
+                band_layer[~exterior] = 0
+                shadow[~exterior] = 0
             shadow_alpha = shadow[:, :, 3:4].astype(np.float32) / 255.0
             image[:, :, :3] = (
                 image[:, :, :3].astype(np.float32) * (1.0 - shadow_alpha)
             ).astype(np.uint8)
             image[:, :, 3] = np.maximum(image[:, :, 3], shadow[:, :, 3])
+
         source_alpha = band_layer[:, :, 3:4].astype(np.float32) / 255.0
         target_alpha = image[:, :, 3:4].astype(np.float32) / 255.0
         out_alpha = source_alpha + target_alpha * (1.0 - source_alpha)
@@ -447,6 +467,7 @@ def render_map(
     asset_versions = {
         "stofler": "bottom-floor-20260816",
         GAS_SPAWN_02_GROUP: "clean-floor-20260819",
+        OROKIN_TOWER_DEFENSE_GROUP: "ceiling-trim-20260820",
         CORPUS_SHIP_DEFENSE_GROUP: "clockwise-clean-20260820",
     }
     asset_version = asset_versions.get(group_id)

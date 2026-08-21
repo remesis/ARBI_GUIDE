@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog\.js\?v=20260820-2/);
+  assert.match(html, /minimaps\/catalog\.js\?v=20260820-3/);
   assert.match(html, /analyzer-20260820-85\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -493,6 +493,14 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   assert.equal(corpusShip.matrix[4], 0);
   assert.equal(corpusShip.proceduralSpawnExtras.minMatchedPoints, 24);
   assert.equal(corpusShip.proceduralSpawnExtras.minObservedCoverage, .9);
+  const orokinTower = bundle.catalog["mithra+taranis+belenus"];
+  assert.match(orokinTower.src, /ceiling-trim-20260820/);
+  assert.deepEqual(Array.from(orokinTower.matrix), [
+    -5.205633803, 0, 499.999969482,
+    0, -5.205633803, 500,
+  ]);
+  assert.equal(orokinTower.interceptionMarkers, 4);
+  assert.equal(Object.keys(orokinTower.spawnPoints).length, 95);
   assert.equal(bundle.nodes.SolNode85.length, 2);
 });
 
