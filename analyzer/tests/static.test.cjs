@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog\.js\?v=20260820-3/);
-  assert.match(html, /analyzer-20260820-87\.js/);
+  assert.match(html, /analyzer-20260820-88\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -207,7 +207,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260820-87.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260820-88.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /100% pickup, both boosters, Resourceful Retriever on\./);
@@ -449,13 +449,13 @@ test("actual Vitus chance appears for every luck level as a top or bottom tail",
   assert.equal(formatPercent(.0094), "<0.01%");
 });
 
-test("Expected Vitus table presents symmetric bottom and top chances", () => {
+test("Expected Vitus table presents symmetric numeric chances", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const source = js.match(/function formatVitusScenarioChance\(chance\) \{[\s\S]*?\n  \}/)?.[0];
   assert.ok(source);
   const context = {};
   vm.runInNewContext(`${source}; result = ["99%", "90%", "75%", "50%", "25%", "10%", "1%"].map(formatVitusScenarioChance);`, context);
-  assert.deepEqual(Array.from(context.result), ["Bottom 1%", "Bottom 10%", "Bottom 25%", "Median", "Top 25%", "Top 10%", "Top 1%"]);
+  assert.deepEqual(Array.from(context.result), ["1%", "10%", "25%", "50%", "25%", "10%", "1%"]);
 });
 
 test("every 3D tileset page groups its guide links like the homepage", () => {
