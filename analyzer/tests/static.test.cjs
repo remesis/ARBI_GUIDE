@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog\.js\?v=20260820-3/);
-  assert.match(html, /analyzer-20260820-86\.js/);
+  assert.match(html, /analyzer-20260820-87\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -207,7 +207,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260820-86.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260820-87.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /100% pickup, both boosters, Resourceful Retriever on\./);
@@ -402,7 +402,7 @@ test("actual Vitus luck headline follows the red-to-green performance grade", ()
   assert.match(js, /const lowerTail = actual <= mean/);
   assert.match(js, /lowerTail \? cumulative : 1 - cumulative/);
   assert.match(js, /return `\$\{actual <= result\.mean \? "Bottom" : "Top"\} \$\{chance\} Luck`/);
-  assert.match(js, /<th>PERCENTILE<\/th><th>TOTAL<\/th><th>LUCK LEVEL<\/th>/);
+  assert.match(js, /<th>CHANCE<\/th><th>TOTAL<\/th><th>LUCK LEVEL<\/th>/);
   assert.match(js, /id="vitusDelta" class="mini vitus-delta"/);
   assert.match(js, /id="vitusLuck"[\s\S]*?<strong>\$\{h\(classified\.label\)\}<\/strong><div class="mini vitus-tail">/);
   assert.match(js, /luck\.style\.setProperty\("--luck-color", vitusLuckColor\(result\.scenarios, classified\)\)/);
@@ -449,13 +449,13 @@ test("actual Vitus chance appears for every luck level as a top or bottom tail",
   assert.equal(formatPercent(.0094), "<0.01%");
 });
 
-test("Expected Vitus table presents ascending percentile thresholds", () => {
+test("Expected Vitus table presents symmetric bottom and top chances", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const source = js.match(/function formatVitusScenarioPercentile\(chance\) \{[\s\S]*?\n  \}/)?.[0];
+  const source = js.match(/function formatVitusScenarioChance\(chance\) \{[\s\S]*?\n  \}/)?.[0];
   assert.ok(source);
   const context = {};
-  vm.runInNewContext(`${source}; result = ["99%", "90%", "75%", "50%", "25%", "10%", "1%"].map(formatVitusScenarioPercentile);`, context);
-  assert.deepEqual(Array.from(context.result), ["1st", "10th", "25th", "50th", "75th", "90th", "99th"]);
+  vm.runInNewContext(`${source}; result = ["99%", "90%", "75%", "50%", "25%", "10%", "1%"].map(formatVitusScenarioChance);`, context);
+  assert.deepEqual(Array.from(context.result), ["Bottom 1%", "Bottom 10%", "Bottom 25%", "Median", "Top 25%", "Top 10%", "Top 1%"]);
 });
 
 test("every 3D tileset page groups its guide links like the homepage", () => {
