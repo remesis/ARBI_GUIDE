@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog\.js\?v=20260820-3/);
-  assert.match(html, /analyzer-20260821-92\.js/);
+  assert.match(html, /analyzer-20260821-93\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -207,10 +207,10 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260821-92.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260821-93.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
-  assert.match(js, /100% pickup, both boosters, Resourceful Retriever on\./);
+  assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
   assert.doesNotMatch(js, /MISSING RESOURCEFUL RETRIEVER MOD/);
   assert.doesNotMatch(parser, /BeastResourceDoublingMod|resourcefulRetrieverDetected/);
 });
