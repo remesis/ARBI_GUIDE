@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog\.js\?v=20260820-3/);
+  assert.match(html, /minimaps\/catalog-20260821-5\.js/);
   assert.match(html, /analyzer-20260821-93\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -175,12 +175,21 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.topbar\s*\{[^}]*--panel:\s*#121821[^}]*--border:\s*#273242[^}]*--text:\s*#e9eef5/);
   assert.match(css, /\.topbar \.search-wrap input, \.topbar \.search-wrap button\s*\{\s*font:\s*revert/);
   const catalog = fs.readFileSync(path.join(analyzerDir, "minimaps", "catalog.js"), "utf8");
+  const immutableCatalog = fs.readFileSync(
+    path.join(analyzerDir, "minimaps", "catalog-20260821-5.js"),
+    "utf8",
+  );
+  assert.match(html, /minimaps\/catalog-20260821-5\.js/);
+  assert.equal(immutableCatalog, catalog);
   assert.match(catalog, /tile-geometry/);
   assert.match(catalog, /spawnPoints/);
   assert.match(catalog, /interceptionMarkers/);
   const minimapBuilder = fs.readFileSync(path.join(analyzerDir, "tools", "build_game_minimaps.py"), "utf8");
   assert.match(minimapBuilder, /text_width \/ 2 \+ 1/);
   assert.match(minimapBuilder, /text_height - baseline\) \/ 2 \+ 4/);
+  assert.match(minimapBuilder, /CORPUS_SHIP_RUNTIME_SPAWN_ROOMS/);
+  assert.match(minimapBuilder, /merge_spawn_supplements/);
+  assert.match(minimapBuilder, /group_id == CORPUS_SHIP_DEFENSE_GROUP/);
 });
 
 test("production Analyzer starts cleared instead of loading bundled demo runs", () => {
@@ -497,13 +506,25 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   assert.match(bundle.catalog.stofler.src, /bottom-floor-20260816/);
   const corpusShip = bundle.catalog["cytherean+xini+gulliver+romula+proteus"];
   assert.match(corpusShip.src, /cytherean\+xini\+gulliver\+romula\+proteus-clockwise\.webp/);
-  assert.match(corpusShip.src, /clockwise-clean-20260820/);
+  assert.match(corpusShip.src, /runtime-side-rooms-20260821/);
   assert.equal(corpusShip.matrix[0], 0);
   assert.ok(corpusShip.matrix[1] > 0);
   assert.ok(corpusShip.matrix[3] < 0);
   assert.equal(corpusShip.matrix[4], 0);
   assert.equal(corpusShip.proceduralSpawnExtras.minMatchedPoints, 24);
   assert.equal(corpusShip.proceduralSpawnExtras.minObservedCoverage, .9);
+  assert.equal(Object.values(corpusShip.spawnPoints).flat().length, 406);
+  assert.deepEqual(Array.from(corpusShip.spawnPoints["d1-defense-001"][0]), [-83.3, -1.889, -2.4]);
+  assert.deepEqual(Array.from(corpusShip.spawnPoints["d1-defense-090"][0]), [64.869, -19.954, 19.272]);
+  const elevatedRuntimePoints = Object.values(corpusShip.spawnPoints).flat()
+    .filter(([, y, z]) => y >= 12 && Math.abs(z) >= 80);
+  assert.equal(elevatedRuntimePoints.length, 24);
+  for (const [x, , z] of elevatedRuntimePoints) {
+    const pixelX = corpusShip.matrix[0] * x + corpusShip.matrix[1] * z + corpusShip.matrix[2];
+    const pixelY = corpusShip.matrix[3] * x + corpusShip.matrix[4] * z + corpusShip.matrix[5];
+    assert.ok(pixelX >= 60 && pixelX <= 940);
+    assert.ok(pixelY >= 60 && pixelY <= 940);
+  }
   const orokinTower = bundle.catalog["mithra+taranis+belenus"];
   assert.match(orokinTower.src, /ceiling-trim-20260820/);
   assert.deepEqual(Array.from(orokinTower.matrix), [

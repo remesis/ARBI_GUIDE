@@ -179,9 +179,19 @@ match the selected tile catalog before drawing bubbles. If one coordinate-bearin
 point does not match, the full overlay is withheld rather than drawn on a
 potentially wrong variation. The fixed Corpus Ship Defense/Interception arena is
 the reviewed exception: runtime Defense composition can add points beyond its
-316 authored references, so at least 24 reference matches and 90% observed-point
-coverage are required before the recovered procedural transform maps the extra
-points. This prevents a small set of valid runtime extras from hiding the whole
+authored references. The 3D composite now supplies 330 authored positions: 316
+from `ObjDefense01` and 14 from its two real procedural end rooms. The Analyzer
+builder deduplicates a reviewed 90-position D1 snapshot against that WFO, then
+adds only the remaining 76 runtime-only positions. Those references were
+recovered after seven D1 rows spanning Proteus, Gulliver, and Romula each
+established the same procedural transform with 219-282 authored matches. All
+seven rows now match their complete 283-350 point sets against the resulting
+406-reference catalog. Live D1 never feeds the browser
+catalog directly. The page loads the byte-identical immutable
+`minimaps/catalog-20260821-5.js` asset while `catalog.js` remains the maintained
+generated source. At least 24 reference matches and 90% observed-point coverage
+are still required before the recovered transform maps any future points beyond
+that reviewed set. This prevents valid runtime extras from hiding the whole
 Proteus/Gulliver/Romula overlay without relaxing any other tileset. Procedural
 component paths found in `Required by object`
 loader lines distinguish variants that share the same generated `.lp` path.
@@ -199,11 +209,15 @@ contain spaces. Rebuild map assets with
 tile data changes.
 
 The shared Corpus Ship arena image is displayed 90 degrees clockwise. Its map
-geometry, Interception letters, and spawn matrix rotate together, and an
-Analyzer-only connected-component trim removes the four detached ceiling-fragment
-pairs while preserving the single connected playable arena. This presentation
-cleanup applies to Cytherean, Xini, Gulliver, Romula, and Proteus and does not
-modify their public 3D mesh or authored spawn overlay.
+geometry, Interception letters, and spawn matrix rotate together. Real Defense
+runs prove two elevated procedural spawn rooms beyond the high side doors. The
+public 3D composite now attaches the actual `SpawnDefenseWindow` and
+`DeadEndDefenseShrine` geometry, while the Analyzer minimap reserves canvas space
+and draws two clean room envelopes around the 24 canonical Y=12.2-13.8 positions
+instead of restoring the unrelated roof/truss layer. An Analyzer-only
+connected-component trim still removes the four detached ceiling-fragment pairs.
+This presentation cleanup applies to Cytherean, Xini, Gulliver, Romula, and
+Proteus; submitted-log coordinates remain the only bubbles drawn for a run.
 
 ## Verification
 
@@ -214,4 +228,5 @@ node --test analyzer/tests/*.test.cjs
 node --check analyzer/parser.js
 node --check analyzer/submission.js
 node --check analyzer/analyzer.js
+node analyzer/tools/audit_d1_spawn_overlays.mjs cytherean+xini+gulliver+romula+proteus
 ```

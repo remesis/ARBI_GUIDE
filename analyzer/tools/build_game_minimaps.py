@@ -3,7 +3,8 @@
 The source WFG/WFO files come from the site's 3D tileset pipeline. This script
 never uses screenshots from the guide.
 Spawn overlays and baked Interception objective markers share one exact
-world-to-image transform written to ``minimaps/catalog.js``.
+world-to-image transform written to ``minimaps/catalog.js`` and its current
+immutable production copy.
 """
 
 from __future__ import annotations
@@ -15,6 +16,9 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+
+
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-5.js"
 
 
 GROUP_NODES = {
@@ -86,6 +90,108 @@ SOURCE_GROUPS = {
 # reused as the Analyzer's spawn-reference cutoff.
 STOFLER_BASE_MAP_MAX_Y = -50.0
 
+# Reviewed Corpus Ship Defense reference candidates recovered from seven
+# reduced D1 coordinate rows spanning Gulliver, Romula, and Proteus. Every row
+# first established the same procedural transform with 219-282 authored WFO
+# matches; only then were the remaining runtime points projected into these
+# canonical coordinates and clustered at the production 0.25 m tolerance.
+# The 3D composite now authors 14 of these room positions, so
+# `merge_spawn_supplements()` drops candidates within 0.25 m of the WFO before
+# emitting the browser catalog. Keep this snapshot static: live D1 data must
+# never flow directly into the browser catalog.
+CORPUS_SHIP_D1_SPAWN_SUPPLEMENT_POSITIONS = (
+    (-83.3, -1.889, -2.4),
+    (-82.95, -1.889, 1.4),
+    (-80.95, -1.889, -0.25),
+    (-78.95, -1.889, -2.5),
+    (-78.55, -1.889, 1.45),
+    (-70.0, -19.987, -19.696),
+    (-70.0, -19.987, -18.196),
+    (-70.0, -19.987, -16.446),
+    (-68.0, -19.987, -18.196),
+    (-66.25, -19.987, -19.696),
+    (-66.25, -19.987, -18.196),
+    (-66.25, -19.987, -16.446),
+    (-63.453, -19.987, 17.534),
+    (-62.63, -19.987, -19.662),
+    (-61.291, -19.987, 19.789),
+    (-59.27, -19.987, -19.434),
+    (-59.27, -19.987, -16.831),
+    (-56.706, -19.987, -16.831),
+    (-56.06, -19.987, 19.789),
+    (-54.074, -19.987, -16.831),
+    (-21.85, -6.8, -26.85),
+    (-19.822, -3.0, -50.54),
+    (-19.773, -3.0, -53.467),
+    (-19.594, -3.0, -57.295),
+    (-18.58, -3.0, 56.33),
+    (-18.264, -3.0, 49.655),
+    (-18.264, -3.0, 52.35),
+    (-17.555, -3.0, -50.622),
+    (-16.832, -3.0, -53.92),
+    (-16.459, -3.0, -57.367),
+    (-16.273, -3.0, 55.752),
+    (-16.263, -3.0, 52.402),
+    (-15.928, -3.0, 49.795),
+    (-15.55, -6.8, -24.75),
+    (-7.495, 13.5, 92.752),
+    (-7.31, 13.8, 99.222),
+    (-7.025, 13.6, -94.001),
+    (-5.0, 13.2, 91.5),
+    (-4.721, -2.957, -42.16),
+    (-4.228, 12.7, -85.061),
+    (-4.126, 13.25, -93.011),
+    (-3.85, 13.013, -82.5),
+    (-2.55, -2.957, -41.427),
+    (-2.359, 12.973, -79.78),
+    (-2.019, 12.973, 79.204),
+    (-1.583, 12.9, -104.557),
+    (-1.25, 13.013, 84.75),
+    (-1.0, 13.185, -90.75),
+    (-0.891, -2.881, -42.319),
+    (-0.7, 13.4, 89.972),
+    (-0.425, 12.2, 85.486),
+    (0.425, 12.2, -85.986),
+    (0.7, 13.4, -90.472),
+    (1.0, 13.185, 90.25),
+    (1.25, 13.013, -85.25),
+    (1.525, -2.881, -41.395),
+    (1.583, 12.9, 104.057),
+    (2.019, 12.973, -79.704),
+    (2.359, 12.973, 79.28),
+    (3.85, 13.013, 82.0),
+    (4.126, 13.25, 92.511),
+    (4.228, 12.7, 84.561),
+    (5.0, 13.2, -92.0),
+    (5.12, -2.957, -42.811),
+    (7.025, 13.6, 93.501),
+    (7.31, 13.8, -99.722),
+    (7.495, 13.5, -93.252),
+    (7.788, -20.0, -30.805),
+    (15.515, -3.0, -50.073),
+    (15.704, -3.0, -52.871),
+    (15.924, -3.0, -55.775),
+    (16.894, -3.0, 56.507),
+    (16.914, -3.0, 53.05),
+    (16.961, -3.0, 50.132),
+    (17.997, -3.0, -49.649),
+    (18.5, -3.0, -52.746),
+    (19.224, -3.0, -56.21),
+    (19.498, -3.0, 56.086),
+    (19.532, -3.0, 52.707),
+    (19.633, -3.0, 50.156),
+    (51.505, -19.957, 18.133),
+    (54.452, -19.958, 15.841),
+    (58.325, -19.958, 16.207),
+    (59.445, -19.987, -17.042),
+    (62.307, -19.957, 15.799),
+    (62.41, -19.957, 17.684),
+    (63.376, -19.987, -17.042),
+    (64.187, -19.987, -19.426),
+    (64.865, -19.955, 16.158),
+    (64.869, -19.954, 19.272),
+)
+
 # GasSpawn02 has five live edge points that are instantiated by the procedural
 # defense composition but are absent from the authored WFO overlay. Keep these
 # Analyzer-only references separate from the 3D viewer overlay so the approved
@@ -97,6 +203,12 @@ ANALYZER_SPAWN_SUPPLEMENTS = {
         "runtime-edge-3": [[-82.779, -4.0, 79.0831]],
         "runtime-edge-4": [[84.0469, -3.978, 75.4819]],
         "runtime-edge-5": [[-78.529, -4.0, 79.5831]],
+    },
+    "cytherean+xini+gulliver+romula+proteus": {
+        f"d1-defense-{index:03d}": [[*position]]
+        for index, position in enumerate(
+            CORPUS_SHIP_D1_SPAWN_SUPPLEMENT_POSITIONS, start=1
+        )
     },
 }
 
@@ -111,6 +223,24 @@ OROKIN_TOWER_DEFENSE_GROUP = "mithra+taranis+belenus"
 OROKIN_TOWER_CEILING_BAND_MIN_HEIGHT = 2.0
 CORPUS_SHIP_DEFENSE_GROUP = "cytherean+xini+gulliver+romula+proteus"
 CORPUS_SHIP_MIN_CONNECTED_AREA = 1000
+# ObjDefense01 stops at the two high side doors, while real Defense layouts
+# attach spawn-room pieces beyond them. These clean envelopes are backed by the
+# reviewed D1 positions at Y=12.2-13.8; they deliberately omit roof/truss detail
+# that is irrelevant to a top-down Analyzer map.
+CORPUS_SHIP_RUNTIME_SPAWN_ROOMS = (
+    np.asarray([
+        [-9.0, 13.0, 74.0], [9.0, 13.0, 74.0],
+        [12.0, 13.0, 78.0], [12.0, 13.0, 106.0],
+        [9.0, 13.0, 110.0], [-9.0, 13.0, 110.0],
+        [-12.0, 13.0, 106.0], [-12.0, 13.0, 78.0],
+    ], dtype=np.float32),
+    np.asarray([
+        [-9.0, 13.0, -74.0], [-12.0, 13.0, -78.0],
+        [-12.0, 13.0, -106.0], [-9.0, 13.0, -110.0],
+        [9.0, 13.0, -110.0], [12.0, 13.0, -106.0],
+        [12.0, 13.0, -78.0], [9.0, 13.0, -74.0],
+    ], dtype=np.float32),
+)
 GAS_SPAWN_02_CONNECTOR = np.asarray([
     [-9.5, -4.0, 5.0],
     [9.5, -4.0, 5.0],
@@ -236,6 +366,20 @@ def display_overlay(group_id: str, overlay: dict) -> dict:
     its Analyzer map deliberately contains only the lowest playable floor and
     the ramps/rooms that descend into it.
     """
+    if group_id == CORPUS_SHIP_DEFENSE_GROUP:
+        result = dict(overlay)
+        # The two now-authored procedural rooms sit above the base arena. Keep
+        # their markers in `spawns` for alignment, but do not let that small
+        # high band move the core floor slice onto ObjDefense01's roof/trusses.
+        result["_mapSpawns"] = [
+            item for item in overlay.get("spawns", [])
+            if float(item.get("y", 0.0)) < 12.0
+        ]
+        result["_mapObjective"] = [
+            item for item in overlay.get("objective", [])
+            if float(item.get("y", 0.0)) < 12.0
+        ]
+        return result
     if group_id != "stofler":
         return overlay
     result = dict(overlay)
@@ -270,6 +414,29 @@ def display_overlay(group_id: str, overlay: dict) -> dict:
     return result
 
 
+def merge_spawn_supplements(
+    mapped_spawns: dict[str, list[list[float]]],
+    supplements: dict[str, list[list[float]]],
+    tolerance: float = 0.25,
+) -> dict[str, list[list[float]]]:
+    """Add reviewed runtime references without duplicating newly authored rooms."""
+    result = {key: [list(position) for position in positions]
+              for key, positions in mapped_spawns.items()}
+    known = [np.asarray(position, dtype=np.float64)
+             for positions in result.values() for position in positions]
+    for key, positions in supplements.items():
+        retained: list[list[float]] = []
+        for position in positions:
+            candidate = np.asarray(position, dtype=np.float64)
+            if any(np.linalg.norm(candidate - reference) <= tolerance for reference in known):
+                continue
+            retained.append(list(position))
+            known.append(candidate)
+        if retained:
+            result[key] = retained
+    return result
+
+
 def render_map(
     group_id: str,
     positions: np.ndarray,
@@ -279,6 +446,14 @@ def render_map(
     size: int = 1000,
 ) -> dict:
     lo, hi = map_bounds(overlay, positions)
+    if group_id == CORPUS_SHIP_DEFENSE_GROUP:
+        # Reserve real canvas space for the two procedural side rooms. Do not
+        # add their points to _mapSpawns: doing that would also pull unrelated
+        # ceiling height bands back into the flattened map.
+        room_points = np.concatenate(CORPUS_SHIP_RUNTIME_SPAWN_ROOMS)
+        room_xz = room_points[:, (0, 2)]
+        lo = np.minimum(lo, room_xz.min(axis=0) - 5.0)
+        hi = np.maximum(hi, room_xz.max(axis=0) + 5.0)
     span = np.maximum(hi - lo, 1.0)
     scale = (size - 76) / float(max(span))
     pad = ((size - 76) - span * scale) * 0.5 + 38
@@ -344,6 +519,10 @@ def render_map(
             for closet in GAS_SPAWN_02_SPAWN_CLOSETS:
                 floor = project(closet).reshape((-1, 1, 2))
                 cv2.fillPoly(mask, [floor], 255, lineType=cv2.LINE_AA)
+        if group_id == CORPUS_SHIP_DEFENSE_GROUP and band_index == len(heights) - 1:
+            for room in CORPUS_SHIP_RUNTIME_SPAWN_ROOMS:
+                floor = project(room).reshape((-1, 1, 2))
+                cv2.fillPoly(mask, [floor], 255, lineType=cv2.LINE_AA)
 
         # Close sub-pixel extraction seams without flattening real doorways and
         # holes, then draw only the resulting room/perimeter contours.
@@ -406,7 +585,8 @@ def render_map(
     if group_id == CORPUS_SHIP_DEFENSE_GROUP:
         # ObjDefense01 contains eight tiny detached ceiling fragments (four
         # two-dot pairs) outside the connected arena. Remove only those isolated
-        # components; every playable room remains in the dominant component.
+        # components; the reviewed runtime side-room envelopes are large enough
+        # to survive independently if a source-mesh doorway has a small seam.
         component_mask = (image[:, :, 3] > 0).astype(np.uint8)
         count, labels, stats, _ = cv2.connectedComponentsWithStats(component_mask, 8)
         for component in range(1, count):
@@ -468,7 +648,7 @@ def render_map(
         "stofler": "bottom-floor-20260816",
         GAS_SPAWN_02_GROUP: "clean-floor-20260819",
         OROKIN_TOWER_DEFENSE_GROUP: "ceiling-trim-20260820",
-        CORPUS_SHIP_DEFENSE_GROUP: "clockwise-clean-20260820",
+        CORPUS_SHIP_DEFENSE_GROUP: "runtime-side-rooms-20260821",
     }
     asset_version = asset_versions.get(group_id)
     return {
@@ -534,7 +714,10 @@ def main() -> None:
             else f"{group_id}.webp"
         )
         entry = render_map(group_id, positions, faces, overlay, output_dir / output_name)
-        entry["spawnPoints"].update(ANALYZER_SPAWN_SUPPLEMENTS.get(group_id, {}))
+        entry["spawnPoints"] = merge_spawn_supplements(
+            entry["spawnPoints"],
+            ANALYZER_SPAWN_SUPPLEMENTS.get(group_id, {}),
+        )
         entry["label"] = label
         catalog[group_id] = entry
         base_group_id = group_id.split("~", 1)[0]
@@ -545,6 +728,7 @@ def main() -> None:
     payload = {"version": 2, "catalog": catalog, "nodes": nodes}
     catalog_js = "globalThis.ArbitrationMinimapCatalog=" + json.dumps(payload, separators=(",", ":")) + ";\n"
     (output_dir / "catalog.js").write_text(catalog_js, encoding="utf-8")
+    (output_dir / IMMUTABLE_CATALOG_FILENAME).write_text(catalog_js, encoding="utf-8")
 
 
 if __name__ == "__main__":

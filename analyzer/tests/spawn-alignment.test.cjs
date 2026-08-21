@@ -92,3 +92,21 @@ test("GasSpawn02 includes its live procedural edge points", () => {
   assert.equal(result.mode, "transformed");
   assert.equal(result.matches.length, procedural.length);
 });
+
+test("Corpus Ship Defense includes the reviewed D1 runtime references", () => {
+  const corpusShip = globalThis.ArbitrationMinimapCatalog.catalog[
+    "cytherean+xini+gulliver+romula+proteus"
+  ];
+  const references = [
+    ...Object.entries(corpusShip.spawnPoints)
+      .filter(([id]) => !id.startsWith("d1-defense-"))
+      .slice(0, 8)
+      .map(([, positions]) => positions[0]),
+    ...["d1-defense-001", "d1-defense-035", "d1-defense-068", "d1-defense-090"]
+      .map((id) => corpusShip.spawnPoints[id][0]),
+  ];
+  const procedural = references.map(proceduralPoint);
+  const result = Alignment.verifySpawnPositions(procedural, corpusShip);
+  assert.equal(result.mode, "transformed");
+  assert.equal(result.matches.length, references.length);
+});
