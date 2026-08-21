@@ -84,7 +84,7 @@
       "sourceBytes": 55777376
     },
     "cytherean+xini+gulliver+romula+proteus": {
-      "mesh": "fa0ca15029374592",
+      "mesh": "e85c8910b49c9972",
       "overlay": "4e442c4459e6a1d1.wfo",
       "tileset": "Corpus Ship",
       "mission": "Defense / Interception",
@@ -123,21 +123,21 @@
       ],
       "meshFormat": 2,
       "meshCodec": "meshopt+br",
-      "meshBytes": 39272588,
-      "meshTransferBytes": 23432636,
+      "meshBytes": 39284268,
+      "meshTransferBytes": 23445946,
       "meshFiles": [
-        "fa0ca15029374592.part00.wfg2.br",
-        "fa0ca15029374592.part01.wfg2.br"
+        "e85c8910b49c9972.part00.wfg2.br",
+        "e85c8910b49c9972.part01.wfg2.br"
       ],
       "meshFileBytes": [
         20971520,
-        18301068
+        18312748
       ],
       "meshFileTransferBytes": [
-        12234435,
-        11198201
+        12243397,
+        11202549
       ],
-      "sourceBytes": 123807812
+      "sourceBytes": 123836140
     },
     "alator+kadesh+spear": {
       "mesh": "e93f399547af2db0",
@@ -914,5 +914,5 @@
   "generated": "2026-08-21",
   "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
   "dataFormat": "WFG2+meshopt+brotli",
-  "buildHash": "fe2703349d1d3089"
+  "buildHash": "298f17c776063c1d"
 }
