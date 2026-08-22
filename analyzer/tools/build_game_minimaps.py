@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-7.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-9.js"
 
 
 GROUP_NODES = {
@@ -231,13 +231,18 @@ ANALYZER_SPAWN_SUPPLEMENTS = {
     },
 }
 
-# The GasSpawn02 composition contains two sparse high-altitude helper bands
-# that project as ceiling clutter and two detached chevrons below the playable
-# arena. Its runtime connector is assembled procedurally and is therefore not
-# part of either static source mesh; draw the reviewed walkable link into the
+# Both Gas City compositions retain their three lowest authored height bands
+# across the main room and discard only the remaining ceiling bands. The
+# GasSpawn02 side-room stairs rise through the otherwise unsampled gap between
+# bands two and three, so their real walkable mesh is recovered separately.
+# Its runtime connector is assembled procedurally and is therefore not part of
+# either static source mesh; draw the reviewed walkable link into the
 # Analyzer-only minimap without changing the 3D viewer geometry.
+GAS_SPAWN_04_GROUP = "callisto+sinai+io"
 GAS_SPAWN_02_GROUP = "callisto+sinai+io~2"
-GAS_SPAWN_02_MAX_MAP_HEIGHT = 10.0
+GAS_CITY_RENDER_BANDS = 3
+GAS_CITY_MAIN_ROOM_HEIGHTS = (-17.947, -6.0, 4.0)
+GAS_SPAWN_02_SIDE_ROOM_HEIGHTS = (-17.947, -3.947, 12.5)
 OROKIN_TOWER_DEFENSE_GROUP = "mithra+taranis+belenus"
 OROKIN_TOWER_CEILING_BAND_MIN_HEIGHT = 2.0
 CORPUS_SHIP_DEFENSE_GROUP = "cytherean+xini+gulliver+romula+proteus"
@@ -285,11 +290,13 @@ GAS_SPAWN_02_CONNECTOR = np.asarray([
     [-11.0, -4.0, 12.0],
     [-9.5, -4.0, 10.0],
 ], dtype=np.float32)
+GAS_SPAWN_02_SIDE_ROOM_MIN_Z = float(GAS_SPAWN_02_CONNECTOR[:, 2].min())
 GAS_SPAWN_02_CONNECTOR_DETAILS = (
     np.asarray([[-7.0, -4.0, 10.0], [-7.0, -4.0, 48.0]], dtype=np.float32),
     np.asarray([[7.0, -4.0, 10.0], [7.0, -4.0, 48.0]], dtype=np.float32),
     np.asarray([[-7.0, -4.0, 25.0], [7.0, -4.0, 25.0]], dtype=np.float32),
 )
+GAS_SPAWN_02_MIN_INTERBAND_COMPONENT_AREA = 1000
 GAS_SPAWN_02_SPAWN_CLOSETS = (
     np.asarray([
         [71.0, -4.0, 67.0], [89.0, -4.0, 67.0],
@@ -470,6 +477,7 @@ def render_map(
     overlay: dict,
     output_path: Path,
     size: int = 1000,
+    main_room_geometry: tuple[np.ndarray, np.ndarray] | None = None,
 ) -> dict:
     lo, hi = map_bounds(overlay, positions)
     if group_id == CORPUS_SHIP_DEFENSE_GROUP:
@@ -514,46 +522,149 @@ def render_map(
     map_objective = overlay.get("_mapObjective", overlay.get("objective")) or []
     spawn_heights = [float(item.get("y", 0.0)) for item in map_spawns]
     objective_heights = [float(item.get("y", 0.0)) for item in map_objective]
-    heights = cluster_heights(spawn_heights + objective_heights)
-    if group_id == GAS_SPAWN_02_GROUP:
-        heights = [height for height in heights if height < GAS_SPAWN_02_MAX_MAP_HEIGHT]
+    source_heights = cluster_heights(spawn_heights + objective_heights)
+    heights = source_heights
+    gas_spawn_02_side_heights = None
+    gas_spawn_02_side_upper_cut = None
+    if group_id in (GAS_SPAWN_04_GROUP, GAS_SPAWN_02_GROUP):
+        # GasSpawn04 supplies the reviewed three-band treatment for the shared
+        # main room. GasSpawn02 uses different heights only beyond the real
+        # connector boundary, where its alternate side room begins.
+        heights = list(GAS_CITY_MAIN_ROOM_HEIGHTS)
+        if group_id == GAS_SPAWN_02_GROUP and len(source_heights) > len(heights):
+            gas_spawn_02_side_heights = list(GAS_SPAWN_02_SIDE_ROOM_HEIGHTS)
+            # GasSpawn02's 12.5 m third band sits only 3.5 m below its 16 m
+            # fourth band. The usual +/-3 m floor tolerance can therefore pick
+            # up the lower edges of sloped fourth-band triangles. Split those
+            # side-room bands at their midpoint while the shared main room keeps
+            # GasSpawn04's exact three heights.
+            gas_spawn_02_side_upper_cut = (
+                gas_spawn_02_side_heights[-1] + source_heights[len(heights)]
+            ) * 0.5
     elif group_id == HYF_DEFENSE_GROUP:
         heights = list(HYF_PLAYABLE_FLOOR_HEIGHTS)
     chunk_size = 160_000
+    geometry_sources = [(positions, faces, "all")]
+    if group_id == GAS_SPAWN_02_GROUP and main_room_geometry is not None:
+        main_positions, main_faces = main_room_geometry
+        geometry_sources = [
+            (main_positions, main_faces, "main"),
+            (positions, faces, "side"),
+        ]
 
     for band_index, height in enumerate(heights):
+        gas_spawn_02_side_height = (
+            gas_spawn_02_side_heights[band_index]
+            if gas_spawn_02_side_heights is not None
+            else None
+        )
         height_tolerance = (
             HYF_ADDITIONAL_FLOOR_TOLERANCE
             if group_id == HYF_DEFENSE_GROUP and band_index > 0
             else 3.0
         )
         mask = np.zeros((size, size), dtype=np.uint8)
-        for start in range(0, len(faces), chunk_size):
-            tri = positions[faces[start : start + chunk_size]]
-            ab = tri[:, 1] - tri[:, 0]
-            ac = tri[:, 2] - tri[:, 0]
-            normals = np.cross(ab, ac)
-            normal_length = np.linalg.norm(normals, axis=1)
-            centroids = tri.mean(axis=1)
-            area = normal_length * 0.5
-            keep = (
-                (normal_length > 1e-5)
-                & (np.abs(normals[:, 1]) / np.maximum(normal_length, 1e-9) > 0.58)
-                & (np.abs(centroids[:, 1] - height) <= height_tolerance)
-                & (area > 0.01)
-                & (area < 520.0)
-                & (centroids[:, 0] >= lo[0])
-                & (centroids[:, 0] <= hi[0])
-                & (centroids[:, 2] >= lo[1])
-                & (centroids[:, 2] <= hi[1])
-            )
-            selected = tri[keep]
-            if not len(selected):
-                continue
-            polygons = project(selected.reshape((-1, 3))).reshape((-1, 3, 2))
-            cv2.fillPoly(mask, polygons, 255, lineType=cv2.LINE_AA)
+        recover_gas_spawn_02_stairs = (
+            group_id == GAS_SPAWN_02_GROUP
+            and band_index == len(heights) - 1
+            and len(heights) >= 3
+        )
+        interband_mask = (
+            np.zeros((size, size), dtype=np.uint8)
+            if recover_gas_spawn_02_stairs
+            else None
+        )
+        for source_positions, source_faces, room_scope in geometry_sources:
+            for start in range(0, len(source_faces), chunk_size):
+                tri = source_positions[source_faces[start : start + chunk_size]]
+                ab = tri[:, 1] - tri[:, 0]
+                ac = tri[:, 2] - tri[:, 0]
+                normals = np.cross(ab, ac)
+                normal_length = np.linalg.norm(normals, axis=1)
+                centroids = tri.mean(axis=1)
+                area = normal_length * 0.5
+                height_match = (
+                    np.abs(centroids[:, 1] - height) <= height_tolerance
+                )
+                room_match = np.ones(len(tri), dtype=bool)
+                if room_scope == "main":
+                    room_match = centroids[:, 2] < GAS_SPAWN_02_SIDE_ROOM_MIN_Z
+                elif room_scope == "side":
+                    room_match = centroids[:, 2] >= GAS_SPAWN_02_SIDE_ROOM_MIN_Z
+                    height_match = (
+                        np.abs(centroids[:, 1] - gas_spawn_02_side_height)
+                        <= height_tolerance
+                    )
+                    if (
+                        gas_spawn_02_side_upper_cut is not None
+                        and band_index == len(heights) - 1
+                    ):
+                        height_match &= (
+                            centroids[:, 1] < gas_spawn_02_side_upper_cut
+                        )
+                keep = (
+                    (normal_length > 1e-5)
+                    & (np.abs(normals[:, 1]) / np.maximum(normal_length, 1e-9) > 0.58)
+                    & height_match
+                    & room_match
+                    & (area > 0.01)
+                    & (area < 520.0)
+                    & (centroids[:, 0] >= lo[0])
+                    & (centroids[:, 0] <= hi[0])
+                    & (centroids[:, 2] >= lo[1])
+                    & (centroids[:, 2] <= hi[1])
+                )
+                selected = tri[keep]
+                if len(selected):
+                    polygons = project(selected.reshape((-1, 3))).reshape((-1, 3, 2))
+                    cv2.fillPoly(mask, polygons, 255, lineType=cv2.LINE_AA)
 
-        if group_id == GAS_SPAWN_02_GROUP and abs(height + 4.0) <= 3.0:
+                if interband_mask is not None and room_scope != "main":
+                    # Rasterize the source mesh's actual walkable surfaces
+                    # between bands two and three. Component filtering below
+                    # retains the two substantial stair approaches and rejects
+                    # tiny prop and ceiling fragments; no stair outline is
+                    # authored by hand.
+                    interband_keep = (
+                        (normal_length > 1e-5)
+                        & (
+                            np.abs(normals[:, 1])
+                            / np.maximum(normal_length, 1e-9)
+                            > 0.58
+                        )
+                        & (
+                            centroids[:, 1]
+                            > gas_spawn_02_side_heights[-2] + height_tolerance
+                        )
+                        & (
+                            centroids[:, 1]
+                            < gas_spawn_02_side_height - height_tolerance
+                        )
+                        & (centroids[:, 2] >= GAS_SPAWN_02_SIDE_ROOM_MIN_Z)
+                        & (area > 0.01)
+                        & (area < 520.0)
+                        & (centroids[:, 0] >= lo[0])
+                        & (centroids[:, 0] <= hi[0])
+                        & (centroids[:, 2] >= lo[1])
+                        & (centroids[:, 2] <= hi[1])
+                    )
+                    interband = tri[interband_keep]
+                    if len(interband):
+                        polygons = project(interband.reshape((-1, 3))).reshape(
+                            (-1, 3, 2)
+                        )
+                        cv2.fillPoly(
+                            interband_mask,
+                            polygons,
+                            255,
+                            lineType=cv2.LINE_AA,
+                        )
+
+        if (
+            group_id == GAS_SPAWN_02_GROUP
+            and gas_spawn_02_side_height is not None
+            and abs(gas_spawn_02_side_height + 4.0) <= 3.0
+        ):
             connector = project(GAS_SPAWN_02_CONNECTOR).reshape((-1, 1, 2))
             cv2.fillPoly(mask, [connector], 255, lineType=cv2.LINE_AA)
             for closet in GAS_SPAWN_02_SPAWN_CLOSETS:
@@ -568,6 +679,29 @@ def render_map(
             # space. This restores the upper and lower-middle playable decks
             # without repainting the interior with ceiling/furniture clutter.
             mask[image[:, :, 3] > 0] = 0
+
+        if interband_mask is not None:
+            interband_mask = cv2.morphologyEx(
+                interband_mask,
+                cv2.MORPH_CLOSE,
+                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+            )
+            occupied = np.maximum(mask, image[:, :, 3])
+            occupied = cv2.dilate(occupied, np.ones((3, 3), dtype=np.uint8))
+            interband_mask[occupied > 0] = 0
+            component_count, component_labels, component_stats, _ = (
+                cv2.connectedComponentsWithStats(
+                    (interband_mask > 0).astype(np.uint8), 8
+                )
+            )
+            retained = np.zeros_like(interband_mask)
+            minimum_area = int(
+                GAS_SPAWN_02_MIN_INTERBAND_COMPONENT_AREA * (size / 1000.0) ** 2
+            )
+            for component in range(1, component_count):
+                if int(component_stats[component, cv2.CC_STAT_AREA]) >= minimum_area:
+                    retained[component_labels == component] = 255
+            mask = np.maximum(mask, retained)
 
         # Close sub-pixel extraction seams without flattening real doorways and
         # holes, then draw only the resulting room/perimeter contours.
@@ -691,7 +825,8 @@ def render_map(
 
     asset_versions = {
         "stofler": "bottom-floor-20260816",
-        GAS_SPAWN_02_GROUP: "clean-floor-20260819",
+        GAS_SPAWN_04_GROUP: "three-band-20260821",
+        GAS_SPAWN_02_GROUP: "shared-main-mesh-stairs-20260821",
         OROKIN_TOWER_DEFENSE_GROUP: "ceiling-trim-20260820",
         CORPUS_SHIP_DEFENSE_GROUP: "runtime-side-rooms-20260821",
         HYDRON_DEFENSE_GROUP: "counterclockwise-20260821",
@@ -758,6 +893,7 @@ def main() -> None:
     current_manifest = json.loads((current_dir / "maps.json").read_text(encoding="utf-8"))
     catalog: dict[str, dict] = {}
     nodes: dict[str, list[str]] = {}
+    gas_spawn_04_geometry: tuple[np.ndarray, np.ndarray] | None = None
     for group_id, (source_name, source_group_id) in SOURCE_GROUPS.items():
         source_dir = source_dirs[source_name]
         group = manifests[source_name]["groups"][source_group_id]
@@ -772,7 +908,20 @@ def main() -> None:
             output_name = f"{group_id}-counterclockwise.webp"
         else:
             output_name = f"{group_id}.webp"
-        entry = render_map(group_id, positions, faces, overlay, output_dir / output_name)
+        entry = render_map(
+            group_id,
+            positions,
+            faces,
+            overlay,
+            output_dir / output_name,
+            main_room_geometry=(
+                gas_spawn_04_geometry
+                if group_id == GAS_SPAWN_02_GROUP
+                else None
+            ),
+        )
+        if group_id == GAS_SPAWN_04_GROUP:
+            gas_spawn_04_geometry = (positions, faces)
         entry["spawnPoints"] = merge_spawn_supplements(
             entry["spawnPoints"],
             ANALYZER_SPAWN_SUPPLEMENTS.get(group_id, {}),
