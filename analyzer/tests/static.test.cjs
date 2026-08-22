@@ -17,11 +17,15 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260822-2\.js/);
-  assert.match(html, /analyzer-20260822-94\.js/);
+  assert.match(html, /analyzer-20260822-95\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
   assert.match(js, /new ClipboardItem/);
+  assert.match(js, /await inlineImagesForExport\(stage\)/);
+  assert.match(js, /for \(let attempt = 0; attempt < 3; attempt \+= 1\)/);
+  assert.match(js, /img\.src = await blobDataUrl\(blob\)/);
+  assert.match(js, /The tile image could not be embedded/);
   assert.doesNotMatch(js, /WIDTH\.stages|changeWidth/);
   assert.match(js, /openMinimapLightbox/);
   assert.match(js, /setSpawnBubbleHighlight/);
@@ -217,7 +221,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-94.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-95.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
