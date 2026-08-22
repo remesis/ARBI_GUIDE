@@ -318,12 +318,12 @@ body.empty-page-drag::after {
 @keyframes copyPulse { 0%,100% { box-shadow: 0 0 0 1px rgba(240,29,39,.2), 0 0 14px rgba(240,29,39,.15); } 50% { box-shadow: 0 0 0 1px rgba(255,76,83,.5), 0 0 28px rgba(240,29,39,.34); } }
 
 .report-grid { display: grid; gap: var(--report-gap); margin-top: 20px; align-items: start; }
-.report-grid.dashboard-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: none; align-items: stretch; }
+.report-grid.dashboard-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: none; align-items: start; }
 .report-grid.dashboard-no-spawns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .column { display: grid; gap: 16px; min-width: 0; }
 .dashboard-layout .left-column { grid-area: auto; grid-column: 1; }
-.dashboard-layout:not(.dashboard-no-spawns) .left-column { grid-template-rows: auto auto auto 1fr; }
-.dashboard-no-spawns .left-column { grid-template-rows: auto auto 1fr; }
+.dashboard-layout:not(.dashboard-no-spawns) .left-column { grid-template-rows: repeat(4, auto); align-content: start; }
+.dashboard-no-spawns .left-column { grid-template-rows: repeat(3, auto); align-content: start; }
 .dashboard-no-spawns .center-column { grid-area: auto; grid-column: 2; }
 .dashboard-layout .center-column { align-content: start; }
 .dashboard-layout.dashboard-defense .center-column { grid-template-rows: auto auto minmax(0, 1fr); align-content: stretch; }
@@ -336,18 +336,18 @@ body.empty-page-drag::after {
 .dashboard-spawn-detail { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: var(--report-gap); align-items: stretch; }
 .dashboard-minimap-card,
 .dashboard-busiest-card,
-.dashboard-cadence-card,
-.dashboard-composition-card { height: 100%; }
+.dashboard-cadence-card { height: 100%; }
 .dashboard-minimap-card,
-.dashboard-cadence-card,
-.dashboard-composition-card { display: flex; flex-direction: column; }
+.dashboard-cadence-card { display: flex; flex-direction: column; }
+.dashboard-composition-card { height: auto; align-self: start; }
 .dashboard-minimap-card .minimap-wrap { flex: 1; }
 .dashboard-minimap-card .minimap-wrap img { width: 100%; height: 100%; object-fit: contain; }
 .dashboard-cadence-card .metric-bars { flex: 1; align-content: space-evenly; }
 .dashboard-cadence-card > .split-row { margin-top: auto !important; }
 .dashboard-composition-card .composition-bar { flex: 0 0 32px; height: 32px; }
-.dashboard-composition-card .composition-list { flex: 1; grid-auto-rows: 1fr; align-items: center; }
+.dashboard-composition-card .composition-list { grid-auto-rows: auto; align-items: center; }
 .dashboard-layout > .activity-card { grid-column: 1 / 4; width: 100%; }
+.dashboard-layout > .dashboard-clear-map-full { grid-column: 1 / 4; width: 100%; }
 .dashboard-workspace > .card { width: 100%; }
 .dashboard-per-rotation .heat-map { grid-template-columns: repeat(10, minmax(0, 1fr)); }
 .dashboard-layout .clear-heat-map { grid-template-columns: repeat(23, minmax(24px, 1fr)); }
@@ -460,8 +460,8 @@ body.empty-page-drag::after {
 .minimap-wrap[role="button"]:hover, .minimap-wrap[role="button"]:focus-visible { outline-color: var(--accent); }
 .minimap-wrap img { display: block; width: 100%; height: auto; object-fit: contain; opacity: 1; }
 .minimap-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.spawn-bubble { fill: var(--bubble-fill, rgba(240,29,39,.28)); stroke: var(--elevation-ring, #67b7f5); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.minimap-lightbox .spawn-bubble, .export-stage .spawn-bubble { stroke-width: 2; }
+.spawn-bubble { fill: var(--bubble-fill-compact, var(--bubble-fill, rgba(240,29,39,.46))); stroke: var(--elevation-ring, #67b7f5); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.minimap-lightbox .spawn-bubble, .export-stage .spawn-bubble { fill: var(--bubble-fill, rgba(240,29,39,.28)); stroke-width: 2; }
 .spawn-label { visibility: hidden; opacity: 0; fill: white; font-size: 15px; font-weight: 900; text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: #1a090b; stroke-width: 3px; }
 .spawn-bubble, .spawn-label { transform-box: fill-box; transform-origin: center; transition: transform .14s ease, fill .14s ease, stroke .14s ease, filter .14s ease, opacity .14s ease; }
 .spawn-bubble.is-rank-highlighted { fill: rgba(255,255,255,.82); stroke: #fff; stroke-width: 3; transform: scale(1.28); filter: drop-shadow(0 0 7px rgba(255,255,255,.95)); }

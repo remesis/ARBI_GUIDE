@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260822-4\.js/);
-  assert.match(html, /analyzer-20260822-96\.js/);
+  assert.match(html, /analyzer-20260822-97\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -99,15 +99,16 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.spawn-bubble\.is-rank-highlighted/);
   assert.match(css, /\.spawn-label\s*\{[^}]*visibility:\s*hidden[^}]*opacity:\s*0/);
   assert.match(css, /\.spawn-label\.is-rank-highlighted\s*\{[^}]*visibility:\s*visible[^}]*opacity:\s*1/);
-  assert.match(css, /\.spawn-bubble\s*\{[^}]*--bubble-fill[^}]*--elevation-ring[^}]*stroke-width:\s*1/);
-  assert.match(css, /\.minimap-lightbox \.spawn-bubble, \.export-stage \.spawn-bubble\s*\{[^}]*stroke-width:\s*2/);
+  assert.match(css, /\.spawn-bubble\s*\{[^}]*--bubble-fill-compact[^}]*--bubble-fill[^}]*--elevation-ring[^}]*stroke-width:\s*1/);
+  assert.match(css, /\.minimap-lightbox \.spawn-bubble, \.export-stage \.spawn-bubble\s*\{[^}]*fill:\s*var\(--bubble-fill[^}]*stroke-width:\s*2/);
   assert.match(js, /function spawnBubbleHeatColor/);
+  assert.match(js, /compactFill: `hsla\(\$\{hue\},100%,50%,\$\{\(\.46 \+ t \* \.34\)\.toFixed\(2\)\}\)`/);
   assert.match(js, /SPAWN_ELEVATION_COLORS = \["#0b4399", "#1768c5", "#2d91eb", "#67b7f5", "#b9ddff"\]/);
   assert.match(js, /function tileElevationBands\(config\)/);
   assert.match(js, /\.2, \.4, \.6, \.8/);
   assert.match(js, /function spawnElevationLevel\(height, bands\)/);
   assert.match(js, /bands\.findIndex\(\(maximum\) => height <= maximum\)/);
-  assert.match(js, /--bubble-fill:\$\{heat\.fill\};--elevation-ring:\$\{elevationColor\}/);
+  assert.match(js, /--bubble-fill:\$\{heat\.fill\};--bubble-fill-compact:\$\{heat\.compactFill\};--elevation-ring:\$\{elevationColor\}/);
   assert.match(js, /class="elevation-legend"/);
   assert.match(js, /Five elevation levels from low to high/);
   assert.match(css, /\.elevation-scale\s*\{[^}]*grid-template-columns:\s*repeat\(5, 1fr\)/);
@@ -123,8 +124,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.dashboard-workspace\s*\{[^}]*grid-column:\s*2 \/ 4/);
   assert.match(css, /\.dashboard-workspace-top\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(css, /\.dashboard-spawn-detail\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1\.2fr\) minmax\(0, \.8fr\)/);
-  assert.match(css, /\.dashboard-layout:not\(\.dashboard-no-spawns\) \.left-column\s*\{[^}]*grid-template-rows:\s*auto auto auto 1fr/);
-  assert.match(css, /\.dashboard-no-spawns \.left-column\s*\{[^}]*grid-template-rows:\s*auto auto 1fr/);
+  assert.match(css, /\.report-grid\.dashboard-layout\s*\{[^}]*align-items:\s*start/);
+  assert.match(css, /\.dashboard-layout:not\(\.dashboard-no-spawns\) \.left-column\s*\{[^}]*grid-template-rows:\s*repeat\(4, auto\)[^}]*align-content:\s*start/);
+  assert.match(css, /\.dashboard-no-spawns \.left-column\s*\{[^}]*grid-template-rows:\s*repeat\(3, auto\)[^}]*align-content:\s*start/);
+  assert.match(css, /\.dashboard-composition-card\s*\{[^}]*height:\s*auto[^}]*align-self:\s*start/);
   assert.match(css, /\.dashboard-layout \.center-column\s*\{[^}]*align-content:\s*start/);
   assert.match(css, /\.dashboard-layout\.dashboard-defense \.center-column\s*\{[^}]*grid-template-rows:\s*auto auto minmax\(0, 1fr\)[^}]*align-content:\s*stretch/);
   assert.match(css, /\.dashboard-workspace-top \.right-column\s*\{[^}]*grid-template-rows:\s*auto auto 1fr/);
@@ -134,6 +137,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /interceptionColumn\.className = "column right-column dashboard-interception-column"/);
   assert.match(js, /grid\.replaceChildren\(left, center, interceptionColumn\)/);
   assert.match(css, /\.dashboard-layout > \.activity-card\s*\{[^}]*grid-column:\s*1 \/ 4/);
+  assert.match(css, /\.dashboard-layout > \.dashboard-clear-map-full\s*\{[^}]*grid-column:\s*1 \/ 4/);
   assert.match(css, /\.dashboard-per-rotation \.heat-map\s*\{[^}]*repeat\(10/);
   assert.match(css, /\.dashboard-no-spawns \.clear-heat-map\s*\{[^}]*repeat\(10/);
   assert.match(css, /\.dashboard-layout \.clear-heat-map \.heat-cell small\s*\{[^}]*font-size:\s*11px/);
@@ -150,6 +154,11 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.analyzer-hover-tooltip\s*\{[^}]*position:\s*fixed[^}]*z-index:\s*10000/);
   assert.match(css, /\.dashboard-no-spawns \.dashboard-cadence-card\s*\{[^}]*height:\s*auto/);
   assert.match(js, /function prepareDashboardLayout/);
+  assert.match(js, /function syncDashboardClearMapLayout/);
+  assert.match(js, /syncDashboardClearMapLayout\(report\)/);
+  assert.match(js, /compositionBottom < clearMapTop - Math\.max\(\.5, scale\)/);
+  assert.match(js, /grid\.insertBefore\(clearMap, activity\)/);
+  assert.match(js, /else workspace\.append\(clearMap\)/);
   assert.match(js, /prepareDashboardLayout\(\$\("#reportRoot"\), run\)/);
   assert.match(js, /run\?\.missionType === "DEFENSE"/);
   assert.match(js, /left\.replaceChildren\(coreKpis, vitus, bottlenecks, composition\)/);
@@ -233,7 +242,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-96.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-97.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
