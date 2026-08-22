@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260822-3\.js/);
-  assert.match(html, /analyzer-20260822-95\.js/);
+  assert.match(html, /analyzer-20260822-96\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -99,9 +99,17 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.spawn-bubble\.is-rank-highlighted/);
   assert.match(css, /\.spawn-label\s*\{[^}]*visibility:\s*hidden[^}]*opacity:\s*0/);
   assert.match(css, /\.spawn-label\.is-rank-highlighted\s*\{[^}]*visibility:\s*visible[^}]*opacity:\s*1/);
-  assert.match(css, /\.spawn-bubble\s*\{[^}]*--bubble-fill[^}]*--bubble-stroke/);
+  assert.match(css, /\.spawn-bubble\s*\{[^}]*--bubble-fill[^}]*--elevation-ring[^}]*stroke-width:\s*2/);
   assert.match(js, /function spawnBubbleHeatColor/);
-  assert.match(js, /--bubble-fill:\$\{heat\.fill\};--bubble-stroke:\$\{heat\.stroke\}/);
+  assert.match(js, /SPAWN_ELEVATION_COLORS = \["#0b4399", "#1768c5", "#2d91eb", "#67b7f5", "#b9ddff"\]/);
+  assert.match(js, /function tileElevationBands\(config\)/);
+  assert.match(js, /\.2, \.4, \.6, \.8/);
+  assert.match(js, /function spawnElevationLevel\(height, bands\)/);
+  assert.match(js, /bands\.findIndex\(\(maximum\) => height <= maximum\)/);
+  assert.match(js, /--bubble-fill:\$\{heat\.fill\};--elevation-ring:\$\{elevationColor\}/);
+  assert.match(js, /class="elevation-legend"/);
+  assert.match(js, /Five elevation levels from low to high/);
+  assert.match(css, /\.elevation-scale\s*\{[^}]*grid-template-columns:\s*repeat\(5, 1fr\)/);
   assert.match(css, /\.report-logo\s*\{[^}]*display:\s*none/);
   assert.match(css, /\.export-stage \.report-logo\s*\{[^}]*display:\s*block/);
   assert.match(css, /\.export-stage\s*\{[^}]*width:\s*2022px/);
@@ -222,7 +230,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-95.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-96.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
