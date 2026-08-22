@@ -99,7 +99,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.spawn-bubble\.is-rank-highlighted/);
   assert.match(css, /\.spawn-label\s*\{[^}]*visibility:\s*hidden[^}]*opacity:\s*0/);
   assert.match(css, /\.spawn-label\.is-rank-highlighted\s*\{[^}]*visibility:\s*visible[^}]*opacity:\s*1/);
-  assert.match(css, /\.spawn-bubble\s*\{[^}]*--bubble-fill[^}]*--elevation-ring[^}]*stroke-width:\s*2/);
+  assert.match(css, /\.spawn-bubble\s*\{[^}]*--bubble-fill[^}]*--elevation-ring[^}]*stroke-width:\s*1/);
+  assert.match(css, /\.minimap-lightbox \.spawn-bubble, \.export-stage \.spawn-bubble\s*\{[^}]*stroke-width:\s*2/);
   assert.match(js, /function spawnBubbleHeatColor/);
   assert.match(js, /SPAWN_ELEVATION_COLORS = \["#0b4399", "#1768c5", "#2d91eb", "#67b7f5", "#b9ddff"\]/);
   assert.match(js, /function tileElevationBands\(config\)/);

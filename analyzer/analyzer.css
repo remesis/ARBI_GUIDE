@@ -460,7 +460,8 @@ body.empty-page-drag::after {
 .minimap-wrap[role="button"]:hover, .minimap-wrap[role="button"]:focus-visible { outline-color: var(--accent); }
 .minimap-wrap img { display: block; width: 100%; height: auto; object-fit: contain; opacity: 1; }
 .minimap-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.spawn-bubble { fill: var(--bubble-fill, rgba(240,29,39,.28)); stroke: var(--elevation-ring, #67b7f5); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.spawn-bubble { fill: var(--bubble-fill, rgba(240,29,39,.28)); stroke: var(--elevation-ring, #67b7f5); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.minimap-lightbox .spawn-bubble, .export-stage .spawn-bubble { stroke-width: 2; }
 .spawn-label { visibility: hidden; opacity: 0; fill: white; font-size: 15px; font-weight: 900; text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: #1a090b; stroke-width: 3px; }
 .spawn-bubble, .spawn-label { transform-box: fill-box; transform-origin: center; transition: transform .14s ease, fill .14s ease, stroke .14s ease, filter .14s ease, opacity .14s ease; }
 .spawn-bubble.is-rank-highlighted { fill: rgba(255,255,255,.82); stroke: #fff; stroke-width: 3; transform: scale(1.28); filter: drop-shadow(0 0 7px rgba(255,255,255,.95)); }
