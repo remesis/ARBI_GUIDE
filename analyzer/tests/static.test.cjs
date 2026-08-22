@@ -225,10 +225,10 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260822-68"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260822-69"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(html, /parser\.js\?v=20260822-68/);
+  assert.match(html, /parser\.js\?v=20260822-69/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {

@@ -53,10 +53,13 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.equal(payload.sol_node, "SolNode130");
   assert.equal(payload.spawn_points.length, 2);
   assert.equal(payload.run_offset_seconds, runs[0].startTime);
+  const saturationTotals = Parser.helpers.calculateSaturationTotals(runs[0], 15);
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: runs[0].totalDuration,
     drone_kills: runs[0].droneKills,
     enemy_spawns: runs[0].enemySpawns,
+    high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
+    enemy_telemetry_seconds: Math.round(saturationTotals.telemetrySeconds * 1000) / 1000,
     reward_cycles: runs[0].rotations,
     defense_waves: Object.keys(runs[0].waveStarts).length,
     four_member_majority: false,
@@ -211,14 +214,18 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   assert.equal(payload.schema, "arbi-analyzer-run/v2");
   assert.deepEqual(payload.spawn_points, []);
   assert.equal(payload.observed_spawn_events, 0);
+  const saturationTotals = Parser.helpers.calculateSaturationTotals(run, 30);
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: 130,
     drone_kills: 7,
     enemy_spawns: 48,
+    high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
+    enemy_telemetry_seconds: Math.round(saturationTotals.telemetrySeconds * 1000) / 1000,
     reward_cycles: 2,
     defense_waves: 0,
     four_member_majority: false,
   });
+  assert.ok(Math.abs(payload.run_metrics.high_enemy_seconds / payload.run_metrics.enemy_telemetry_seconds * 100 - run.saturation.abovePercent) < 0.001);
 });
 
 test("a finalized squad invited after Survival scouting moves the active start", () => {

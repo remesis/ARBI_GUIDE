@@ -2,9 +2,9 @@
   "use strict";
 
   const ENDPOINT = "/api/analyzer/spawns";
-  // v4 intentionally gets a fresh browser cache so records accepted before
-  // enemy totals were added can be reconciled under the same canonical hash.
-  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v4";
+  // v5 intentionally gets a fresh browser cache so records accepted before
+  // reduced saturation timing can be reconciled under the same canonical hash.
+  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v5";
   const CACHE_LIMIT = 5000;
   const PRODUCTION_HOSTS = new Set(["arbi.guide"]);
 
@@ -51,6 +51,11 @@
       && metrics.drone_kills >= 0
       && Number.isInteger(metrics.enemy_spawns)
       && metrics.enemy_spawns >= 0
+      && Number.isFinite(metrics.high_enemy_seconds)
+      && metrics.high_enemy_seconds >= 0
+      && Number.isFinite(metrics.enemy_telemetry_seconds)
+      && metrics.enemy_telemetry_seconds >= metrics.high_enemy_seconds
+      && metrics.enemy_telemetry_seconds <= metrics.mission_seconds + 0.01
       && Number.isInteger(metrics.reward_cycles)
       && metrics.reward_cycles >= 0
       && Number.isInteger(metrics.defense_waves)

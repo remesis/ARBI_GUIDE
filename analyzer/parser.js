@@ -1145,11 +1145,16 @@
   }
 
   function calculateRangeSaturation(run, rangeStart, rangeEnd, threshold = 15) {
+    const totals = calculateSaturationTotals(run, threshold, rangeStart, rangeEnd);
+    return totals.telemetrySeconds ? totals.highEnemySeconds / totals.telemetrySeconds * 100 : null;
+  }
+
+  function calculateSaturationTotals(run, threshold = 15, rangeStart = run.startTime, rangeEnd = run.endTime) {
     const segments = liveSegments(run, rangeStart, rangeEnd);
-    const total = segments.reduce((sum, segment) => sum + segment.duration, 0);
-    if (!total) return null;
-    const above = segments.reduce((sum, segment) => sum + (segment.count >= threshold ? segment.duration : 0), 0);
-    return above / total * 100;
+    return {
+      telemetrySeconds: segments.reduce((sum, segment) => sum + segment.duration, 0),
+      highEnemySeconds: segments.reduce((sum, segment) => sum + (segment.count >= threshold ? segment.duration : 0), 0),
+    };
   }
 
   function calculateRangeOccupancy(run, rangeStart, rangeEnd) {
@@ -1168,7 +1173,7 @@
   function calculateTelemetryCoverage(run) {
     const activeDuration = Number(run.activeDuration);
     if (!Number.isFinite(activeDuration) || activeDuration <= 0) return 0;
-    const coveredDuration = liveSegments(run).reduce((sum, segment) => sum + segment.duration, 0);
+    const coveredDuration = calculateSaturationTotals(run).telemetrySeconds;
     return Math.max(0, Math.min(100, coveredDuration / activeDuration * 100));
   }
 
@@ -1575,10 +1580,14 @@
       observed_spawn_events: spawnPoints.reduce((sum, point) => sum + point.count, 0),
       spawn_points: spawnPoints,
     };
+    const highEnemyThreshold = HIGH_DENSITY_SATURATION_TYPES.has(run.missionType) ? 30 : 15;
+    const saturationTotals = calculateSaturationTotals(run, highEnemyThreshold);
     const runMetrics = {
       mission_seconds: round(run.totalDuration || 0, 3),
       drone_kills: Math.max(0, Math.trunc(run.droneKills || 0)),
       enemy_spawns: Math.max(0, Math.trunc(run.enemySpawns || 0)),
+      high_enemy_seconds: round(saturationTotals.highEnemySeconds, 3),
+      enemy_telemetry_seconds: round(saturationTotals.telemetrySeconds, 3),
       reward_cycles: Math.max(0, Math.trunc(run.rotations || 0)),
       defense_waves: run.missionType === "DEFENSE"
         ? Object.keys(run.waveStarts || {}).length
@@ -1616,6 +1625,7 @@
       calculateCadence,
       calculateSaturation,
       calculateRangeSaturation,
+      calculateSaturationTotals,
       calculateRangeOccupancy,
       calculateTelemetryCoverage,
       calculateWavePhases,

@@ -67,10 +67,11 @@ The exact submitted fields are:
   identical runs in one growing log;
 - total observed spawn events;
 - each observed spawn-point key, XYZ position, and aggregate count;
-- mission duration, drone kills, the non-ticking-filtered enemy total,
-  completed reward cycles, and Defense wave count inside `run_metrics`, plus
-  the reduced run-eligibility boolean required by the current ingestion
-  contract;
+- mission duration, drone kills, the non-ticking-filtered enemy total, the
+  high-enemy and trustworthy-telemetry seconds behind the displayed saturation
+  percentage, completed reward cycles, and Defense wave count inside
+  `run_metrics`, plus the reduced run-eligibility boolean required by the
+  current ingestion contract;
 - a canonical SHA-256 hash over the original spawn-identity fields.
 
 The v2 envelope deliberately keeps the original `arbi-solnode-spawns/v1`
@@ -95,9 +96,9 @@ The cache namespace is versioned. A contract change may advance it once so
 already accepted hashes are reconciled without changing their canonical spawn
 identity.
 
-The current v4 namespace resubmits previously accepted runs once so D1 can add
-their filtered enemy total. Historical D1 rows stay `NULL` until that happens;
-missing totals are never treated as zero.
+The current v5 namespace resubmits previously accepted runs once so D1 can add
+their filtered enemy total and reduced saturation timing. Historical D1 rows
+stay `NULL` until that happens; missing totals are never treated as zero.
 
 The browser cache is an optimization. D1's primary key on `run_hash` is the
 authoritative cross-browser and cache-clear duplicate guard.
@@ -159,6 +160,13 @@ node. Both rates use only eligible rows whose enemy total is present, allowing
 the raw per-run facts to be trimmed or winsorized later without contaminating
 current averages with pre-field history. The populated-run count remains
 queryable from the raw table but is not shown as an extra dashboard column.
+
+`high_enemy_seconds / enemy_telemetry_seconds * 100` is exactly the value shown
+by the Analyzer's **Time at 15+ enemies** card. Survival and Disruption use the
+same local calculation at 30+ instead. The Worker derives that threshold from
+the server-owned mission mode, and the aggregate view displays the weighted
+result as values such as `0.3% at 15+`; neither a live-count timeline nor raw
+log events leave the client.
 
 On 2026-08-18, a D1 audit found three older submissions—one Larzac and two
 Stöfler—that matched a later row in every canonical spawn field and every
