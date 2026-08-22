@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260822-4\.js/);
-  assert.match(html, /analyzer-20260822-98\.js/);
+  assert.match(html, /analyzer-20260822-99\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -247,7 +247,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-98.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-99.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
@@ -272,7 +272,15 @@ test("Disruption drone pace uses six-minute active-time windows", () => {
   assert.match(js, /run\.missionType === "DISRUPTION"/);
   assert.match(js, /Six-minute active-time windows, against the run average\./);
   assert.match(js, /labels: windows\.map\(\(window\) => `\$\{dpmElapsed\(window\.from\)\}–\$\{dpmElapsed\(window\.to\)\}`\)/);
-  assert.match(js, /mean: seconds \? count \/ seconds \* 60 : 0/);
+  assert.match(js, /mean: runDroneRate\(run\)/);
+});
+
+test("DPM KPI and chart use the same run-wide average", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  assert.match(js, /const runDroneRate = \(run\) => run\?\.activeDuration \? Number\(run\.droneKills \|\| 0\) \/ run\.activeDuration \* 60 : 0/);
+  assert.match(js, /const droneRate = runDroneRate\(run\)/);
+  assert.equal((js.match(/mean: runDroneRate\(run\)/g) || []).length, 2);
+  assert.doesNotMatch(js, /mean: avg\(values\)/);
 });
 
 test("loading a log selects its newest run longer than five minutes", () => {
