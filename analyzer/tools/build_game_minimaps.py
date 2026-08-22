@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260822-2.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260822-3.js"
 
 
 GROUP_NODES = {
@@ -268,8 +268,10 @@ CORPUS_OUTPOST_SPAWN_ONLY_BAND_INDICES = {
 # The small Defense layout has three real raised platforms and one short
 # catwalk inside the central courtyard. Their tops either disconnect from the
 # surrounding floor or merge into it in a flattened projection, and none has a
-# spawn marker of its own. Select each source-mesh component at its exact floor
-# height so its perimeter remains legible without drawing any outline by hand.
+# spawn marker of its own. Its elevated north spawn room is similarly isolated
+# from the retained lower bands. Select each source-mesh component at its exact
+# floor height so its perimeter remains legible without drawing any outline by
+# hand.
 CORPUS_OUTPOST_COMPONENT_BAND_ANCHORS = {
     CORPUS_OUTPOST_DEFENSE_GROUP: {
         7.0: (
@@ -278,6 +280,7 @@ CORPUS_OUTPOST_COMPONENT_BAND_ANCHORS = {
         ),
         8.5: ((-22.4, 8.5, -26.6),),
         9.5: ((-1.5, 9.5, -30.1),),
+        10.5: ((-23.3, 10.5, 52.3),),
     },
 }
 CORPUS_OUTPOST_COMPONENT_ANCHORS = {
@@ -1101,7 +1104,7 @@ def render_map(
         GAS_SPAWN_04_GROUP: "runtime-edge-rooms-20260822",
         GAS_SPAWN_02_GROUP: "shared-main-mesh-stairs-20260821",
         KADESH_DEFENSE_GROUP: "clockwise-20260821",
-        CORPUS_OUTPOST_DEFENSE_GROUP: "raised-platforms-catwalk-trimmed-20260821",
+        CORPUS_OUTPOST_DEFENSE_GROUP: "north-spawn-room-20260822",
         f"{CORPUS_OUTPOST_DEFENSE_GROUP}~2": "clean-floor-20260821",
         f"{CORPUS_OUTPOST_DEFENSE_GROUP}~3": "right-spawn-floor-20260821",
         OROKIN_TOWER_DEFENSE_GROUP: "ceiling-trim-20260820",
