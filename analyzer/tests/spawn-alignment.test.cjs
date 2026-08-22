@@ -78,7 +78,10 @@ test("GasSpawn02 includes its live procedural edge points", () => {
   assert.match(gasSpawn02.src, /shared-main-mesh-stairs-20260821/);
   const references = [
     ...["1096", "1097", "1098", "1099", "1100", "1101"].map((id) => gasSpawn02.spawnPoints[id][0]),
-    ...["runtime-edge-1", "runtime-edge-2", "runtime-edge-3", "runtime-edge-4", "runtime-edge-5"]
+    ...[
+      "runtime-edge-1", "runtime-edge-2", "runtime-edge-3",
+      "runtime-edge-4", "runtime-edge-5", "runtime-edge-6",
+    ]
       .map((id) => gasSpawn02.spawnPoints[id][0]),
   ];
   const procedural = references.map((position, index) => ({
@@ -91,6 +94,14 @@ test("GasSpawn02 includes its live procedural edge points", () => {
   const result = Alignment.verifySpawnPositions(procedural, gasSpawn02);
   assert.equal(result.mode, "transformed");
   assert.equal(result.matches.length, procedural.length);
+});
+
+test("both Gas City layouts tolerate a small number of procedural extras", () => {
+  for (const id of ["callisto+sinai+io", "callisto+sinai+io~2"]) {
+    const layout = globalThis.ArbitrationMinimapCatalog.catalog[id];
+    assert.equal(layout.proceduralSpawnExtras.minMatchedPoints, 24);
+    assert.equal(layout.proceduralSpawnExtras.minObservedCoverage, .9);
+  }
 });
 
 test("Corpus Ship Defense includes the reviewed D1 runtime references", () => {

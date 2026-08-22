@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog-20260821-11\.js/);
+  assert.match(html, /minimaps\/catalog-20260822-1\.js/);
   assert.match(html, /analyzer-20260821-93\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -176,10 +176,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.topbar \.search-wrap input, \.topbar \.search-wrap button\s*\{\s*font:\s*revert/);
   const catalog = fs.readFileSync(path.join(analyzerDir, "minimaps", "catalog.js"), "utf8");
   const immutableCatalog = fs.readFileSync(
-    path.join(analyzerDir, "minimaps", "catalog-20260821-11.js"),
+    path.join(analyzerDir, "minimaps", "catalog-20260822-1.js"),
     "utf8",
   );
-  assert.match(html, /minimaps\/catalog-20260821-11\.js/);
+  assert.match(html, /minimaps\/catalog-20260822-1\.js/);
   assert.equal(immutableCatalog, catalog);
   assert.match(catalog, /tile-geometry/);
   assert.match(catalog, /spawnPoints/);
@@ -505,7 +505,23 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   assert.ok(bundle.catalog.stofler.spawnPoints[335]);
   assert.match(bundle.catalog.stofler.src, /bottom-floor-20260816/);
   const gasSpawn04 = bundle.catalog["callisto+sinai+io"];
-  assert.match(gasSpawn04.src, /three-band-20260821/);
+  assert.match(gasSpawn04.src, /runtime-edge-rooms-20260822/);
+  assert.equal(gasSpawn04.proceduralSpawnExtras.minMatchedPoints, 24);
+  assert.equal(gasSpawn04.proceduralSpawnExtras.minObservedCoverage, .9);
+  for (const id of ["runtime-edge-1", "runtime-edge-2", "runtime-edge-3"]) {
+    const [x, , z] = gasSpawn04.spawnPoints[id][0];
+    const pixelX = gasSpawn04.matrix[0] * x + gasSpawn04.matrix[2];
+    const pixelY = gasSpawn04.matrix[4] * z + gasSpawn04.matrix[5];
+    assert.ok(pixelX >= 20 && pixelX <= 980);
+    assert.ok(pixelY >= 20 && pixelY <= 980);
+  }
+  const gasSpawn02 = bundle.catalog["callisto+sinai+io~2"];
+  assert.equal(gasSpawn02.proceduralSpawnExtras.minMatchedPoints, 24);
+  assert.equal(gasSpawn02.proceduralSpawnExtras.minObservedCoverage, .9);
+  assert.deepEqual(
+    Array.from(gasSpawn02.spawnPoints["runtime-edge-6"][0]),
+    [77.0371, -4, 78.7949],
+  );
   const kadesh = bundle.catalog["alator+kadesh+spear"];
   assert.match(kadesh.src, /clockwise-20260821/);
   assert.equal(kadesh.matrix[0], 0);

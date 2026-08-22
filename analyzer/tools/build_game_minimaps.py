@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-11.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260822-1.js"
 
 
 GROUP_NODES = {
@@ -213,12 +213,20 @@ CORPUS_SHIP_VIEWER_HIDDEN_SPAWN_REFERENCES = {
 # Analyzer-only references separate from the 3D viewer overlay so the approved
 # minimap artwork and public tileset data remain unchanged.
 ANALYZER_SPAWN_SUPPLEMENTS = {
+    "callisto+sinai+io": {
+        # Reviewed canonical projections from three Io coordinate rows. The
+        # authored GasSpawn04 overlay clips these procedural edge-room points.
+        "runtime-edge-1": [[-87.5317, -3.7372, 91.4848]],
+        "runtime-edge-2": [[-82.3744, -4.0, 81.1271]],
+        "runtime-edge-3": [[86.9088, -4.0, 86.3935]],
+    },
     "callisto+sinai+io~2": {
         "runtime-edge-1": [[-85.779, -4.0, 77.0831]],
         "runtime-edge-2": [[86.6277, -4.0, 72.0354]],
         "runtime-edge-3": [[-82.779, -4.0, 79.0831]],
         "runtime-edge-4": [[84.0469, -3.978, 75.4819]],
         "runtime-edge-5": [[-78.529, -4.0, 79.5831]],
+        "runtime-edge-6": [[77.0371, -4.0, 78.7949]],
     },
     "cytherean+xini+gulliver+romula+proteus": {
         **CORPUS_SHIP_VIEWER_HIDDEN_SPAWN_REFERENCES,
@@ -300,6 +308,11 @@ CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE = 0.9
 OROKIN_TOWER_DEFENSE_GROUP = "mithra+taranis+belenus"
 OROKIN_TOWER_CEILING_BAND_MIN_HEIGHT = 2.0
 CORPUS_SHIP_DEFENSE_GROUP = "cytherean+xini+gulliver+romula+proteus"
+PROCEDURAL_SPAWN_EXTRA_GROUPS = {
+    GAS_SPAWN_04_GROUP,
+    GAS_SPAWN_02_GROUP,
+    CORPUS_SHIP_DEFENSE_GROUP,
+}
 CORPUS_SHIP_MIN_CONNECTED_AREA = 1000
 HYDRON_DEFENSE_GROUP = "hydron+helene+odin"
 HYF_DEFENSE_GROUP = "hyf"
@@ -542,6 +555,22 @@ def render_map(
         room_xz = room_points[:, (0, 2)]
         lo = np.minimum(lo, room_xz.min(axis=0) - 5.0)
         hi = np.maximum(hi, room_xz.max(axis=0) + 5.0)
+    elif group_id == GAS_SPAWN_04_GROUP:
+        # GasSpawn04's authored overlay uses percentile bounds which crop the
+        # far procedural spawn rooms. D1 establishes their real extents; use
+        # those reviewed coordinates only to frame the source mesh, keeping
+        # the generated floor art and spawn transform on the same projection.
+        runtime_points = np.asarray(
+            [
+                position
+                for positions in ANALYZER_SPAWN_SUPPLEMENTS[group_id].values()
+                for position in positions
+            ],
+            dtype=np.float32,
+        )
+        runtime_xz = runtime_points[:, (0, 2)]
+        lo = np.minimum(lo, runtime_xz.min(axis=0) - 5.0)
+        hi = np.maximum(hi, runtime_xz.max(axis=0) + 5.0)
     span = np.maximum(hi - lo, 1.0)
     scale = (size - 76) / float(max(span))
     pad = ((size - 76) - span * scale) * 0.5 + 38
@@ -1065,7 +1094,7 @@ def render_map(
 
     asset_versions = {
         "stofler": "bottom-floor-20260816",
-        GAS_SPAWN_04_GROUP: "three-band-20260821",
+        GAS_SPAWN_04_GROUP: "runtime-edge-rooms-20260822",
         GAS_SPAWN_02_GROUP: "shared-main-mesh-stairs-20260821",
         KADESH_DEFENSE_GROUP: "clockwise-20260821",
         CORPUS_OUTPOST_DEFENSE_GROUP: "raised-platforms-catwalk-trimmed-20260821",
@@ -1114,7 +1143,7 @@ def render_map(
                 "minMatchedPoints": 24,
                 "minObservedCoverage": 0.9,
             }
-        } if group_id == CORPUS_SHIP_DEFENSE_GROUP else {}),
+        } if group_id in PROCEDURAL_SPAWN_EXTRA_GROUPS else {}),
         **({"floorFilter": overlay["floorFilter"]} if overlay.get("floorFilter") else {}),
     }
 
