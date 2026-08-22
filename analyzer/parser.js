@@ -1241,6 +1241,8 @@
     return {
       rows: buckets.map((value, index) => ({ label: labels[index], percent: total ? value / total * 100 : 0 })),
       droughtPercent: total ? drought / total * 100 : 0,
+      droughtSeconds: drought,
+      totalSeconds: total,
       gaps,
     };
   }
@@ -1582,12 +1584,15 @@
     };
     const highEnemyThreshold = HIGH_DENSITY_SATURATION_TYPES.has(run.missionType) ? 30 : 15;
     const saturationTotals = calculateSaturationTotals(run, highEnemyThreshold);
+    const cadence = run.cadence || calculateCadence(run);
     const runMetrics = {
       mission_seconds: round(run.totalDuration || 0, 3),
       drone_kills: Math.max(0, Math.trunc(run.droneKills || 0)),
       enemy_spawns: Math.max(0, Math.trunc(run.enemySpawns || 0)),
       high_enemy_seconds: round(saturationTotals.highEnemySeconds, 3),
       enemy_telemetry_seconds: round(saturationTotals.telemetrySeconds, 3),
+      drone_dry_seconds: round(cadence.droughtSeconds || 0, 3),
+      drone_cadence_seconds: round(cadence.totalSeconds || 0, 3),
       reward_cycles: Math.max(0, Math.trunc(run.rotations || 0)),
       defense_waves: run.missionType === "DEFENSE"
         ? Object.keys(run.waveStarts || {}).length

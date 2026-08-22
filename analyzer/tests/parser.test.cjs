@@ -60,6 +60,8 @@ test("parses multiple local Arbitration runs and retains structured spawn points
     enemy_spawns: runs[0].enemySpawns,
     high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
     enemy_telemetry_seconds: Math.round(saturationTotals.telemetrySeconds * 1000) / 1000,
+    drone_dry_seconds: Math.round(runs[0].cadence.droughtSeconds * 1000) / 1000,
+    drone_cadence_seconds: Math.round(runs[0].cadence.totalSeconds * 1000) / 1000,
     reward_cycles: runs[0].rotations,
     defense_waves: Object.keys(runs[0].waveStarts).length,
     four_member_majority: false,
@@ -221,11 +223,14 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
     enemy_spawns: 48,
     high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
     enemy_telemetry_seconds: Math.round(saturationTotals.telemetrySeconds * 1000) / 1000,
+    drone_dry_seconds: Math.round(run.cadence.droughtSeconds * 1000) / 1000,
+    drone_cadence_seconds: Math.round(run.cadence.totalSeconds * 1000) / 1000,
     reward_cycles: 2,
     defense_waves: 0,
     four_member_majority: false,
   });
   assert.ok(Math.abs(payload.run_metrics.high_enemy_seconds / payload.run_metrics.enemy_telemetry_seconds * 100 - run.saturation.abovePercent) < 0.001);
+  assert.ok(Math.abs(payload.run_metrics.drone_dry_seconds / payload.run_metrics.drone_cadence_seconds * 100 - run.cadence.droughtPercent) < 0.001);
 });
 
 test("a finalized squad invited after Survival scouting moves the active start", () => {

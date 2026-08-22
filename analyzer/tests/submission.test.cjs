@@ -25,6 +25,8 @@ function payload(hash = "a".repeat(64)) {
       enemy_spawns: 1000,
       high_enemy_seconds: 5,
       enemy_telemetry_seconds: 500,
+      drone_dry_seconds: 29,
+      drone_cadence_seconds: 500,
       reward_cycles: 2,
       defense_waves: 6,
       four_member_majority: true,

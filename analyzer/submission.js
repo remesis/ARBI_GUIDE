@@ -2,9 +2,9 @@
   "use strict";
 
   const ENDPOINT = "/api/analyzer/spawns";
-  // v5 intentionally gets a fresh browser cache so records accepted before
-  // reduced saturation timing can be reconciled under the same canonical hash.
-  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v5";
+  // v6 intentionally gets a fresh browser cache so records accepted before
+  // reduced drone-cadence timing can be reconciled under the same canonical hash.
+  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v6";
   const CACHE_LIMIT = 5000;
   const PRODUCTION_HOSTS = new Set(["arbi.guide"]);
 
@@ -56,6 +56,10 @@
       && Number.isFinite(metrics.enemy_telemetry_seconds)
       && metrics.enemy_telemetry_seconds >= metrics.high_enemy_seconds
       && metrics.enemy_telemetry_seconds <= metrics.mission_seconds + 0.01
+      && Number.isFinite(metrics.drone_dry_seconds)
+      && metrics.drone_dry_seconds >= 0
+      && Number.isFinite(metrics.drone_cadence_seconds)
+      && metrics.drone_cadence_seconds >= metrics.drone_dry_seconds
       && Number.isInteger(metrics.reward_cycles)
       && metrics.reward_cycles >= 0
       && Number.isInteger(metrics.defense_waves)
