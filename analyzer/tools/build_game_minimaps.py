@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260822-3.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260822-4.js"
 
 
 GROUP_NODES = {
@@ -323,6 +323,18 @@ PROCEDURAL_SPAWN_EXTRA_GROUPS = {
 CORPUS_SHIP_MIN_CONNECTED_AREA = 1000
 HYDRON_DEFENSE_GROUP = "hydron+helene+odin"
 HYF_DEFENSE_GROUP = "hyf"
+ICE_PLANET_DEFENSE_GROUP = "ose+paimon+larzac"
+# Larzac's right-side spawn chain belongs to a real Y-shaped building whose
+# walkable top sits around 8.5 m even though its authored spawn markers sit at
+# 4.75 m. The generic +/-3 m middle band therefore misses the floor while
+# admitting the lower framework below it. Recover only the source-mesh
+# component around this reviewed anchor, and exclude the framework volume from
+# the broad middle-band projection instead of drawing replacement geometry.
+LARZAC_Y_BUILDING_HEIGHT = 8.5
+LARZAC_Y_BUILDING_HEIGHT_TOLERANCE = 0.55
+LARZAC_Y_BUILDING_ANCHOR = ((-46.7, 8.5, -50.0),)
+LARZAC_FRAMEWORK_MIN = np.asarray([-64.0, 1.5, -65.0], dtype=np.float32)
+LARZAC_FRAMEWORK_MAX = np.asarray([-42.0, 7.8, 18.0], dtype=np.float32)
 # Hyf's ramps make its authored spawn heights nearly continuous, so generic
 # height clustering collapses its playable decks into a single -6 m slice.
 # Composite the four real floor planes and stop below the roof band near +5 m.
@@ -685,6 +697,8 @@ def render_map(
             ) * 0.5
     elif group_id == HYF_DEFENSE_GROUP:
         heights = list(HYF_PLAYABLE_FLOOR_HEIGHTS)
+    elif group_id == ICE_PLANET_DEFENSE_GROUP:
+        heights = sorted([*heights, LARZAC_Y_BUILDING_HEIGHT])
     elif group_id in CORPUS_OUTPOST_HEIGHT_BAND_INDICES:
         heights = [
             heights[index]
@@ -725,21 +739,29 @@ def render_map(
                 group_id, ()
             )
         )
+        larzac_y_building_band = (
+            group_id == ICE_PLANET_DEFENSE_GROUP
+            and abs(height - LARZAC_Y_BUILDING_HEIGHT) < 0.01
+        )
         gas_spawn_02_side_height = (
             gas_spawn_02_side_heights[band_index]
             if gas_spawn_02_side_heights is not None
             else None
         )
         height_tolerance = (
-            CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
-            if component_only_band
+            LARZAC_Y_BUILDING_HEIGHT_TOLERANCE
+            if larzac_y_building_band
             else (
-                CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
-                if additional_height_band
+                CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
+                if component_only_band
                 else (
-                    HYF_ADDITIONAL_FLOOR_TOLERANCE
-                    if group_id == HYF_DEFENSE_GROUP and band_index > 0
-                    else 3.0
+                    CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
+                    if additional_height_band
+                    else (
+                        HYF_ADDITIONAL_FLOOR_TOLERANCE
+                        if group_id == HYF_DEFENSE_GROUP and band_index > 0
+                        else 3.0
+                    )
                 )
             )
         )
@@ -794,6 +816,16 @@ def render_map(
                     & (centroids[:, 2] >= lo[1])
                     & (centroids[:, 2] <= hi[1])
                 )
+                if (
+                    group_id == ICE_PLANET_DEFENSE_GROUP
+                    and abs(height - 4.75) < 0.01
+                ):
+                    framework = np.all(
+                        (centroids >= LARZAC_FRAMEWORK_MIN)
+                        & (centroids <= LARZAC_FRAMEWORK_MAX),
+                        axis=1,
+                    )
+                    keep &= ~framework
                 selected = tri[keep]
                 if len(selected):
                     polygons = project(selected.reshape((-1, 3))).reshape((-1, 3, 2))
@@ -917,6 +949,24 @@ def render_map(
                     & (distance_squared > 42 ** 2)
                     & (distance_squared < 92 ** 2)
                 )
+        if larzac_y_building_band:
+            # The Y-shaped building is a single real mesh component at this
+            # height. Keep only the component touched by its reviewed world
+            # anchor so adjacent roof and cliff fragments stay out of the
+            # Analyzer minimap.
+            mask = cv2.morphologyEx(
+                mask,
+                cv2.MORPH_CLOSE,
+                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+            )
+            count, labels, _, _ = cv2.connectedComponentsWithStats(
+                (mask > 0).astype(np.uint8), 8
+            )
+            retained = components_near_world_points(
+                labels, LARZAC_Y_BUILDING_ANCHOR
+            )
+            if count > 1:
+                mask[~np.isin(labels, list(retained))] = 0
         if group_id == CORPUS_SHIP_DEFENSE_GROUP and band_index == len(heights) - 1:
             for room in CORPUS_SHIP_RUNTIME_SPAWN_ROOMS:
                 floor = project(room).reshape((-1, 1, 2))
@@ -1111,6 +1161,7 @@ def render_map(
         CORPUS_SHIP_DEFENSE_GROUP: "runtime-side-rooms-20260821",
         HYDRON_DEFENSE_GROUP: "counterclockwise-20260821",
         HYF_DEFENSE_GROUP: "multi-floor-20260821",
+        ICE_PLANET_DEFENSE_GROUP: "y-building-20260822",
     }
     asset_version = asset_versions.get(group_id)
     return {

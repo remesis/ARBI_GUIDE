@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog-20260822-3\.js/);
+  assert.match(html, /minimaps\/catalog-20260822-4\.js/);
   assert.match(html, /analyzer-20260822-96\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -190,10 +190,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.topbar \.search-wrap input, \.topbar \.search-wrap button\s*\{\s*font:\s*revert/);
   const catalog = fs.readFileSync(path.join(analyzerDir, "minimaps", "catalog.js"), "utf8");
   const immutableCatalog = fs.readFileSync(
-    path.join(analyzerDir, "minimaps", "catalog-20260822-3.js"),
+    path.join(analyzerDir, "minimaps", "catalog-20260822-4.js"),
     "utf8",
   );
-  assert.match(html, /minimaps\/catalog-20260822-3\.js/);
+  assert.match(html, /minimaps\/catalog-20260822-4\.js/);
   assert.equal(immutableCatalog, catalog);
   assert.match(catalog, /tile-geometry/);
   assert.match(catalog, /spawnPoints/);
@@ -205,6 +205,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(minimapBuilder, /merge_spawn_supplements/);
   assert.match(minimapBuilder, /group_id == CORPUS_SHIP_DEFENSE_GROUP/);
   assert.match(minimapBuilder, /10\.5: \(\(-23\.3, 10\.5, 52\.3\),\)/);
+  assert.match(minimapBuilder, /LARZAC_Y_BUILDING_HEIGHT = 8\.5/);
+  assert.match(minimapBuilder, /LARZAC_FRAMEWORK_MIN/);
 });
 
 test("production Analyzer starts cleared instead of loading bundled demo runs", () => {
