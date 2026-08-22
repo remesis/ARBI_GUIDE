@@ -350,7 +350,7 @@ body.empty-page-drag::after {
 .dashboard-layout > .dashboard-clear-map-full { grid-column: 1 / 4; width: 100%; }
 .dashboard-workspace > .card { width: 100%; }
 .dashboard-per-rotation .heat-map { grid-template-columns: repeat(10, minmax(0, 1fr)); }
-.dashboard-layout .clear-heat-map { grid-template-columns: repeat(23, minmax(24px, 1fr)); }
+.dashboard-layout .clear-heat-map { grid-template-columns: repeat(25, minmax(24px, 1fr)); }
 .dashboard-no-spawns .clear-heat-map { grid-template-columns: repeat(10, minmax(0, 1fr)); }
 .dashboard-layout .clear-heat-map .heat-cell { font-size: 11px; line-height: 1.05; }
 .dashboard-layout .clear-heat-map .heat-cell small { display: inline-block; margin-top: 3px; font-size: 11px; font-weight: 850; }
@@ -596,7 +596,7 @@ body.minimap-lightbox-open { overflow: hidden; }
 .export-stage .bottleneck-grid { grid-template-columns: repeat(3, 1fr); }
 .export-stage .composition-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .export-stage .report-footer { flex-direction: row; color: #fff; font-size: 14px; }
-.export-stage .clear-heat-map { grid-template-columns: repeat(23, minmax(0, 1fr)); }
+.export-stage .clear-heat-map { grid-template-columns: repeat(25, minmax(0, 1fr)); }
 .export-stage .dashboard-no-spawns .clear-heat-map { grid-template-columns: repeat(10, minmax(0, 1fr)); }
 .export-stage .activity-row-label { width: 40px; font-size: 12px; }
 .export-stage .activity-axis-label { font-size: 12px; }
