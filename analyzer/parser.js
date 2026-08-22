@@ -21,7 +21,8 @@
   const JOIN_EVIDENCE_WINDOW_SECONDS = 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260820-6";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260822-7";
+  const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
   const HIGH_DENSITY_SATURATION_EDGES = [8, 15, 23, 30, 33, 36, 39, 42, 45];
@@ -184,6 +185,8 @@
       rewardTimestamps: [],
       enemyTimestamps: [],
       waveStarts: {},
+      currentWave: 0,
+      currentWaveStartedAt: -Infinity,
       waveEnds: [],
       waveCountdowns: [],
       liveCounts: [],
@@ -343,6 +346,11 @@
   }
 
   function waveOf(run, timestamp) {
+    // Spawn-point lines are emitted in time order immediately after the wave
+    // start marker. Avoid rebuilding and sorting the complete wave list for
+    // every spawn in very long Defense runs; retain the defensive fallback for
+    // old or malformed logs whose timestamps move backwards.
+    if (timestamp >= run.currentWaveStartedAt) return run.currentWave;
     let found = 0;
     Object.keys(run.waveStarts).map(Number).sort((a, b) => a - b).forEach((wave) => {
       if (run.waveStarts[wave] <= timestamp) found = wave;
@@ -695,7 +703,12 @@
       if (isDefWaveOne) cur.isDefense = true;
       if (waveMatch && ts) {
         cur.isDefense = true;
-        cur.waveStarts[Number(waveMatch[2])] = ts;
+        const wave = Number(waveMatch[2]);
+        cur.waveStarts[wave] = ts;
+        if (ts >= cur.currentWaveStartedAt) {
+          cur.currentWave = wave;
+          cur.currentWaveStartedAt = ts;
+        }
         cur.lastActivity = Math.max(cur.lastActivity, ts);
       }
       if (hasSleep && line.includes("_SleepBetweenWaves(3)") && ts) cur.waveEnds.push(ts);
@@ -1124,24 +1137,92 @@
     });
   }
 
-  function liveSegments(run, rangeStart = run.startTime, rangeEnd = run.endTime) {
-    const segments = [];
-    const live = run.liveCounts;
-    if (live.length <= 1 || run.endTime <= run.startTime) return segments;
-    for (let index = 0; index < live.length - 1; index += 1) {
-      const current = live[index];
-      const next = live[index + 1];
-      const sampledFrom = Math.max(current[0], run.startTime);
-      const sampledTo = Math.min(next[0], run.endTime);
-      const sampledDuration = sampledTo - sampledFrom;
-      if (sampledDuration <= 0 || sampledDuration > 29) continue;
-      if (run.pauseIntervals.some((pair) => overlap(sampledFrom, sampledTo, pair[0], pair[1]) > 0)) continue;
-      const from = Math.max(sampledFrom, rangeStart);
-      const to = Math.min(sampledTo, rangeEnd);
-      const duration = to - from;
-      if (duration > 0) segments.push({ count: current[1], cap: current[2], duration });
+  function indexedLiveSegments(run) {
+    const live = run.liveCounts || [];
+    const pauses = run.pauseIntervals || [];
+    const cached = LIVE_SEGMENT_CACHE.get(run);
+    if (cached
+      && cached.live === live
+      && cached.pauses === pauses
+      && cached.liveLength === live.length
+      && cached.pauseLength === pauses.length
+      && cached.startTime === run.startTime
+      && cached.endTime === run.endTime) {
+      return cached;
     }
-    return segments;
+
+    const segments = [];
+    let ordered = true;
+    const sortedPauses = pauses
+      .filter((pair) => Array.isArray(pair) && Number.isFinite(pair[0]) && Number.isFinite(pair[1]))
+      .slice()
+      .sort((left, right) => left[0] - right[0] || left[1] - right[1]);
+    let pauseIndex = 0;
+
+    if (live.length > 1 && run.endTime > run.startTime) {
+      for (let index = 0; index < live.length - 1; index += 1) {
+        const current = live[index];
+        const next = live[index + 1];
+        const sampledFrom = Math.max(current[0], run.startTime);
+        const sampledTo = Math.min(next[0], run.endTime);
+        const sampledDuration = sampledTo - sampledFrom;
+        if (sampledDuration <= 0 || sampledDuration > 29) continue;
+
+        while (pauseIndex < sortedPauses.length && sortedPauses[pauseIndex][1] <= sampledFrom) pauseIndex += 1;
+        let overlapsPause = false;
+        for (let candidate = pauseIndex; candidate < sortedPauses.length; candidate += 1) {
+          const pause = sortedPauses[candidate];
+          if (pause[0] >= sampledTo) break;
+          if (overlap(sampledFrom, sampledTo, pause[0], pause[1]) > 0) {
+            overlapsPause = true;
+            break;
+          }
+        }
+        if (overlapsPause) continue;
+        if (segments.length) {
+          const previous = segments[segments.length - 1];
+          if (sampledFrom < previous.from || sampledTo < previous.to) ordered = false;
+        }
+        segments.push({ from: sampledFrom, to: sampledTo, count: current[1], cap: current[2] });
+      }
+    }
+
+    const result = {
+      live,
+      pauses,
+      liveLength: live.length,
+      pauseLength: pauses.length,
+      startTime: run.startTime,
+      endTime: run.endTime,
+      ordered,
+      segments,
+    };
+    LIVE_SEGMENT_CACHE.set(run, result);
+    return result;
+  }
+
+  function forEachLiveSegment(run, rangeStart, rangeEnd, callback) {
+    const indexed = indexedLiveSegments(run);
+    const segments = indexed.segments;
+    let index = 0;
+    if (indexed.ordered) {
+      let low = 0;
+      let high = segments.length;
+      while (low < high) {
+        const middle = (low + high) >>> 1;
+        if (segments[middle].to <= rangeStart) low = middle + 1;
+        else high = middle;
+      }
+      index = low;
+    }
+    for (; index < segments.length; index += 1) {
+      const segment = segments[index];
+      if (indexed.ordered && segment.from >= rangeEnd) break;
+      const from = Math.max(segment.from, rangeStart);
+      const to = Math.min(segment.to, rangeEnd);
+      const duration = to - from;
+      if (duration > 0) callback(segment, duration);
+    }
   }
 
   function calculateRangeSaturation(run, rangeStart, rangeEnd, threshold = 15) {
@@ -1150,23 +1231,26 @@
   }
 
   function calculateSaturationTotals(run, threshold = 15, rangeStart = run.startTime, rangeEnd = run.endTime) {
-    const segments = liveSegments(run, rangeStart, rangeEnd);
-    return {
-      telemetrySeconds: segments.reduce((sum, segment) => sum + segment.duration, 0),
-      highEnemySeconds: segments.reduce((sum, segment) => sum + (segment.count >= threshold ? segment.duration : 0), 0),
-    };
+    let telemetrySeconds = 0;
+    let highEnemySeconds = 0;
+    forEachLiveSegment(run, rangeStart, rangeEnd, (segment, duration) => {
+      telemetrySeconds += duration;
+      if (segment.count >= threshold) highEnemySeconds += duration;
+    });
+    return { telemetrySeconds, highEnemySeconds };
   }
 
   function calculateRangeOccupancy(run, rangeStart, rangeEnd) {
-    const segments = liveSegments(run, rangeStart, rangeEnd);
-    const total = segments.reduce((sum, segment) => sum + segment.duration, 0);
-    if (!total) return null;
+    let total = 0;
+    let occupied = 0;
     const fallbackCap = Number(run.simCap) > 0 ? Number(run.simCap) : 32;
-    const occupied = segments.reduce((sum, segment) => {
+    forEachLiveSegment(run, rangeStart, rangeEnd, (segment, duration) => {
+      total += duration;
       const cap = Number(segment.cap) > 0 ? Number(segment.cap) : fallbackCap;
       const ratio = Math.max(0, Math.min(1, Number(segment.count) / cap));
-      return sum + ratio * segment.duration;
-    }, 0);
+      occupied += ratio * duration;
+    });
+    if (!total) return null;
     return occupied / total * 100;
   }
 
@@ -1188,11 +1272,11 @@
     let above = 0;
     const live = run.liveCounts;
     if (live.length > 1 && run.endTime > run.startTime) {
-      liveSegments(run).forEach((segment) => {
+      forEachLiveSegment(run, run.startTime, run.endTime, (segment, duration) => {
         const bucket = bucketIndex(segment.count);
-        buckets[bucket] += segment.duration;
-        total += segment.duration;
-        if (segment.count >= threshold) above += segment.duration;
+        buckets[bucket] += duration;
+        total += duration;
+        if (segment.count >= threshold) above += duration;
       });
     } else if (live.length) {
       live.forEach((entry) => {

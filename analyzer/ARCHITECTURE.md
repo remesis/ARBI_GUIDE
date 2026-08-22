@@ -18,6 +18,16 @@ browser. The Pages bundle never uploads an `EE.log` or arbitrary log lines.
    also carry coordinate-bearing spawn points; other modes send an empty point
    list while still contributing the reduced run record.
 
+Large-file cost is governed by retained Arbitration-event density, not raw log
+bytes. Files at least 512 MiB use ordered parallel text scanners, but dense
+multi-hour Defense runs can still contain hundreds of waves and tens of
+thousands of live-enemy samples. The parser therefore assigns spawn-point
+events to the current chronological wave and builds the pause-filtered live
+telemetry segment index once. Per-wave and per-rotation saturation queries use
+that shared index instead of rescanning the full timeline. These are
+performance-only indexes; optimized and legacy derivation must produce the
+same normalized run output.
+
 The local report derives its displayed squad and active timer from one
 finalized mission core. It correlates named join, squad-add, leave/unregister,
 and local in-progress-loading evidence by cleaned player identity within a

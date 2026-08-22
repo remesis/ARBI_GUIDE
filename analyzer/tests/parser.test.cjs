@@ -672,6 +672,44 @@ test("calculates time-weighted enemy occupancy for Defense waves", () => {
   assert.ok(Math.abs(Parser.helpers.calculateRangeOccupancy(run, 5, 10) - 57.3333333) < .0001);
 });
 
+test("preserves pause-filtered occupancy and saturation while reusing indexed telemetry", () => {
+  const run = {
+    startTime: 0,
+    endTime: 10,
+    simCap: 32,
+    liveCounts: [[0, 8, 32], [2, 16, 32], [4, 24, 32], [6, 4, 32], [8, 20, 32], [10, 20, 32]],
+    pauseIntervals: [[4.5, 5.5]],
+  };
+  assert.equal(Parser.helpers.calculateRangeSaturation(run, 0, 10), 50);
+  assert.equal(Parser.helpers.calculateRangeOccupancy(run, 0, 10), 37.5);
+  assert.deepEqual(Parser.helpers.calculateSaturationTotals(run, 15), {
+    telemetrySeconds: 8,
+    highEnemySeconds: 4,
+  });
+});
+
+test("derives hundreds of dense-run phases without rescanning the full telemetry timeline", () => {
+  const sampleCount = 60000;
+  const run = {
+    startTime: 0,
+    endTime: sampleCount / 2,
+    simCap: 32,
+    liveCounts: Array.from({ length: sampleCount + 1 }, (_, index) => [index / 2, index % 33, 32]),
+    pauseIntervals: Array.from({ length: 200 }, (_, index) => [100 + index * 145, 105 + index * 145]),
+  };
+  const started = process.hrtime.bigint();
+  let checksum = 0;
+  for (let phase = 0; phase < 600; phase += 1) {
+    const from = phase * 50;
+    const to = from + 50;
+    checksum += Parser.helpers.calculateRangeOccupancy(run, from, to) || 0;
+    checksum += Parser.helpers.calculateRangeSaturation(run, from, to) || 0;
+  }
+  const elapsedMs = Number(process.hrtime.bigint() - started) / 1e6;
+  assert.ok(checksum > 0);
+  assert.ok(elapsedMs < 4000, `dense phase derivation took ${elapsedMs.toFixed(0)}ms`);
+});
+
 test("matches each Defense wave to one end marker", () => {
   const phases = Parser.helpers.calculateWavePhases({
     waveStarts: { 1: 10, 2: 30, 3: 50 },
