@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260822-4\.js/);
-  assert.match(html, /analyzer-20260822-97\.js/);
+  assert.match(html, /analyzer-20260822-98\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -125,9 +125,13 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.dashboard-workspace-top\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(css, /\.dashboard-spawn-detail\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1\.2fr\) minmax\(0, \.8fr\)/);
   assert.match(css, /\.report-grid\.dashboard-layout\s*\{[^}]*align-items:\s*start/);
-  assert.match(css, /\.dashboard-layout:not\(\.dashboard-no-spawns\) \.left-column\s*\{[^}]*grid-template-rows:\s*repeat\(4, auto\)[^}]*align-content:\s*start/);
-  assert.match(css, /\.dashboard-no-spawns \.left-column\s*\{[^}]*grid-template-rows:\s*repeat\(3, auto\)[^}]*align-content:\s*start/);
-  assert.match(css, /\.dashboard-composition-card\s*\{[^}]*height:\s*auto[^}]*align-self:\s*start/);
+  assert.match(css, /\.dashboard-layout \.left-column\s*\{[^}]*align-self:\s*stretch/);
+  assert.match(css, /\.dashboard-layout:not\(\.dashboard-no-spawns\) \.left-column\s*\{[^}]*grid-template-rows:\s*auto auto auto 1fr[^}]*align-content:\s*stretch/);
+  assert.match(css, /\.dashboard-no-spawns \.left-column\s*\{[^}]*grid-template-rows:\s*auto auto 1fr[^}]*align-content:\s*stretch/);
+  assert.match(css, /\.dashboard-composition-card\s*\{[^}]*height:\s*100%[^}]*align-self:\s*stretch/);
+  assert.match(css, /\.dashboard-composition-card \.composition-list\s*\{[^}]*grid-auto-rows:\s*auto/);
+  assert.match(css, /\.dashboard-cadence-card \.metric-bars\s*\{[^}]*flex:\s*0 0 auto[^}]*align-content:\s*start/);
+  assert.match(css, /\.dashboard-cadence-card > \.split-row\s*\{[^}]*margin-top:\s*13px/);
   assert.match(css, /\.dashboard-layout \.center-column\s*\{[^}]*align-content:\s*start/);
   assert.match(css, /\.dashboard-layout\.dashboard-defense \.center-column\s*\{[^}]*grid-template-rows:\s*auto auto minmax\(0, 1fr\)[^}]*align-content:\s*stretch/);
   assert.match(css, /\.dashboard-workspace-top \.right-column\s*\{[^}]*grid-template-rows:\s*auto auto 1fr/);
@@ -157,7 +161,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /function prepareDashboardLayout/);
   assert.match(js, /function syncDashboardClearMapLayout/);
   assert.match(js, /syncDashboardClearMapLayout\(report\)/);
-  assert.match(js, /compositionBottom < clearMapTop - Math\.max\(\.5, scale\)/);
+  assert.match(js, /compositionContentBottom < clearMapTop - Math\.max\(\.5, scale\)/);
   assert.match(js, /grid\.insertBefore\(clearMap, activity\)/);
   assert.match(js, /else workspace\.append\(clearMap\)/);
   assert.match(js, /prepareDashboardLayout\(\$\("#reportRoot"\), run\)/);
@@ -243,7 +247,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-97.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-98.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
