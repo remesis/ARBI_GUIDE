@@ -154,10 +154,11 @@ aligned to the maintained tile catalog before percentage analysis.
 
 `analyzer_run_metrics.enemy_spawns` stores one filtered aggregate integer per
 run, not enemy events or log lines. `analyzer_tileset_expected_ve` exposes
-`Enemy Runs`, weighted `Enemies/min`, and weighted `Enemies/rotation` for each
-individual node. Both rates use only eligible rows whose enemy total is
-present, allowing the raw per-run facts to be trimmed or winsorized later
-without contaminating current averages with pre-field history.
+weighted `Enemies/min` and weighted `Enemies/rotation` for each individual
+node. Both rates use only eligible rows whose enemy total is present, allowing
+the raw per-run facts to be trimmed or winsorized later without contaminating
+current averages with pre-field history. The populated-run count remains
+queryable from the raw table but is not shown as an extra dashboard column.
 
 On 2026-08-18, a D1 audit found three older submissions—one Larzac and two
 Stöfler—that matched a later row in every canonical spawn field and every
