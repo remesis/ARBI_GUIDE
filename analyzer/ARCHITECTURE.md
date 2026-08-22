@@ -67,9 +67,10 @@ The exact submitted fields are:
   identical runs in one growing log;
 - total observed spawn events;
 - each observed spawn-point key, XYZ position, and aggregate count;
-- mission duration, drone kills, completed reward cycles, and Defense wave
-  count inside `run_metrics`, plus the reduced run-eligibility boolean required
-  by the current ingestion contract;
+- mission duration, drone kills, the non-ticking-filtered enemy total,
+  completed reward cycles, and Defense wave count inside `run_metrics`, plus
+  the reduced run-eligibility boolean required by the current ingestion
+  contract;
 - a canonical SHA-256 hash over the original spawn-identity fields.
 
 The v2 envelope deliberately keeps the original `arbi-solnode-spawns/v1`
@@ -93,6 +94,10 @@ the third hash.
 The cache namespace is versioned. A contract change may advance it once so
 already accepted hashes are reconciled without changing their canonical spawn
 identity.
+
+The current v4 namespace resubmits previously accepted runs once so D1 can add
+their filtered enemy total. Historical D1 rows stay `NULL` until that happens;
+missing totals are never treated as zero.
 
 The browser cache is an optimization. D1's primary key on `run_hash` is the
 authoritative cross-browser and cache-clear duplicate guard.
@@ -146,6 +151,13 @@ values seen across a tileset group's collected runs. It does not sum each
 run's point count. This is an inventory aid, not a canonical 3D-location count:
 procedural variants can reuse a key at different world coordinates and must be
 aligned to the maintained tile catalog before percentage analysis.
+
+`analyzer_run_metrics.enemy_spawns` stores one filtered aggregate integer per
+run, not enemy events or log lines. `analyzer_tileset_expected_ve` exposes
+`Enemy Runs`, weighted `Enemies/min`, and weighted `Enemies/rotation` for each
+individual node. Both rates use only eligible rows whose enemy total is
+present, allowing the raw per-run facts to be trimmed or winsorized later
+without contaminating current averages with pre-field history.
 
 On 2026-08-18, a D1 audit found three older submissions—one Larzac and two
 Stöfler—that matched a later row in every canonical spawn field and every

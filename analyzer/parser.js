@@ -1578,6 +1578,7 @@
     const runMetrics = {
       mission_seconds: round(run.totalDuration || 0, 3),
       drone_kills: Math.max(0, Math.trunc(run.droneKills || 0)),
+      enemy_spawns: Math.max(0, Math.trunc(run.enemySpawns || 0)),
       reward_cycles: Math.max(0, Math.trunc(run.rotations || 0)),
       defense_waves: run.missionType === "DEFENSE"
         ? Object.keys(run.waveStarts || {}).length

@@ -56,6 +56,7 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: runs[0].totalDuration,
     drone_kills: runs[0].droneKills,
+    enemy_spawns: runs[0].enemySpawns,
     reward_cycles: runs[0].rotations,
     defense_waves: Object.keys(runs[0].waveStarts).length,
     four_member_majority: false,
@@ -213,6 +214,7 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: 130,
     drone_kills: 7,
+    enemy_spawns: 48,
     reward_cycles: 2,
     defense_waves: 0,
     four_member_majority: false,

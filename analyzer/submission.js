@@ -2,9 +2,9 @@
   "use strict";
 
   const ENDPOINT = "/api/analyzer/spawns";
-  // v3 intentionally gets a fresh browser cache so records accepted under the
-  // earlier contract can be reconciled once under the same canonical hash.
-  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v3";
+  // v4 intentionally gets a fresh browser cache so records accepted before
+  // enemy totals were added can be reconciled under the same canonical hash.
+  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v4";
   const CACHE_LIMIT = 5000;
   const PRODUCTION_HOSTS = new Set(["arbi.guide"]);
 
@@ -49,6 +49,8 @@
       && metrics.mission_seconds > 0
       && Number.isInteger(metrics.drone_kills)
       && metrics.drone_kills >= 0
+      && Number.isInteger(metrics.enemy_spawns)
+      && metrics.enemy_spawns >= 0
       && Number.isInteger(metrics.reward_cycles)
       && metrics.reward_cycles >= 0
       && Number.isInteger(metrics.defense_waves)
