@@ -16,8 +16,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog-20260822-1\.js/);
-  assert.match(html, /analyzer-20260821-93\.js/);
+  assert.match(html, /minimaps\/catalog-20260822-2\.js/);
+  assert.match(html, /analyzer-20260822-94\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -28,6 +28,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /data-spawn-id/);
   assert.match(js, /verifyDisplayPositions\(coordinatePoints, config\)/);
   assert.match(js, /run\.levelComponents/);
+  assert.match(js, /const matchedCount = result\.matchedCount \?\? result\.matches\.length/);
   assert.match(js, /levelMatches \* 100000/);
   assert.match(js, /setupTopbarHeightObserver\(\)/);
   assert.match(html, /id="minimapLightbox"/);
@@ -176,10 +177,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.topbar \.search-wrap input, \.topbar \.search-wrap button\s*\{\s*font:\s*revert/);
   const catalog = fs.readFileSync(path.join(analyzerDir, "minimaps", "catalog.js"), "utf8");
   const immutableCatalog = fs.readFileSync(
-    path.join(analyzerDir, "minimaps", "catalog-20260822-1.js"),
+    path.join(analyzerDir, "minimaps", "catalog-20260822-2.js"),
     "utf8",
   );
-  assert.match(html, /minimaps\/catalog-20260822-1\.js/);
+  assert.match(html, /minimaps\/catalog-20260822-2\.js/);
   assert.equal(immutableCatalog, catalog);
   assert.match(catalog, /tile-geometry/);
   assert.match(catalog, /spawnPoints/);
@@ -216,7 +217,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260821-93.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-94.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
@@ -531,9 +532,16 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   const outpost1 = bundle.catalog["sechura+tessera+outer_terminus+cerberus"];
   const outpost2 = bundle.catalog["sechura+tessera+outer_terminus+cerberus~2"];
   const outpost3 = bundle.catalog["sechura+tessera+outer_terminus+cerberus~3"];
+  for (const outpost of [outpost1, outpost2, outpost3]) {
+    assert.equal(outpost.proceduralSpawnExtras.minMatchedPoints, 24);
+    assert.equal(outpost.proceduralSpawnExtras.minObservedCoverage, .9);
+  }
   assert.match(outpost1.src, /raised-platforms-catwalk-trimmed-20260821/);
   assert.match(outpost2.src, /clean-floor-20260821/);
   assert.match(outpost3.src, /right-spawn-floor-20260821/);
+  const asteroidDefense = bundle.catalog["rhea+lares+sangeru"];
+  assert.equal(asteroidDefense.proceduralSpawnExtras.minMatchedPoints, 24);
+  assert.equal(asteroidDefense.proceduralSpawnExtras.minObservedCoverage, .9);
   const corpusShip = bundle.catalog["cytherean+xini+gulliver+romula+proteus"];
   assert.match(corpusShip.src, /cytherean\+xini\+gulliver\+romula\+proteus-clockwise\.webp/);
   assert.match(corpusShip.src, /runtime-side-rooms-20260821/);

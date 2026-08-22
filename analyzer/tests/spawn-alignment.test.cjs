@@ -104,6 +104,36 @@ test("both Gas City layouts tolerate a small number of procedural extras", () =>
   }
 });
 
+test("guarded Defense layouts display a high-confidence run with one unknown point", () => {
+  const layoutIds = [
+    "sechura+tessera+outer_terminus+cerberus",
+    "sechura+tessera+outer_terminus+cerberus~2",
+    "sechura+tessera+outer_terminus+cerberus~3",
+    "rhea+lares+sangeru",
+  ];
+  for (const id of layoutIds) {
+    const layout = globalThis.ArbitrationMinimapCatalog.catalog[id];
+    const seen = new Set();
+    const references = Object.values(layout.spawnPoints).flat()
+      .filter((position) => {
+        const key = JSON.stringify(position);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 30);
+    assert.ok(references.length >= 24, `${id} needs enough references for the guard`);
+    const points = [
+      ...references.map(proceduralPoint),
+      proceduralPoint([999, 999, 999], 9999),
+    ];
+    const result = Alignment.verifyDisplayPositions(points, layout);
+    assert.equal(result.mode, "mapped-subset", id);
+    assert.equal(result.matchedCount, references.length, id);
+    assert.equal(result.matches.length, points.length, id);
+  }
+});
+
 test("Corpus Ship Defense includes the reviewed D1 runtime references", () => {
   const corpusShip = globalThis.ArbitrationMinimapCatalog.catalog[
     "cytherean+xini+gulliver+romula+proteus"
