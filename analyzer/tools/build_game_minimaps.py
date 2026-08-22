@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-9.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260821-11.js"
 
 
 GROUP_NODES = {
@@ -243,6 +243,60 @@ GAS_SPAWN_02_GROUP = "callisto+sinai+io~2"
 GAS_CITY_RENDER_BANDS = 3
 GAS_CITY_MAIN_ROOM_HEIGHTS = (-17.947, -6.0, 4.0)
 GAS_SPAWN_02_SIDE_ROOM_HEIGHTS = (-17.947, -3.947, 12.5)
+KADESH_DEFENSE_GROUP = "alator+kadesh+spear"
+CORPUS_OUTPOST_DEFENSE_GROUP = "sechura+tessera+outer_terminus+cerberus"
+CORPUS_OUTPOST_HEIGHT_BAND_INDICES = {
+    CORPUS_OUTPOST_DEFENSE_GROUP: (0, 1),
+    f"{CORPUS_OUTPOST_DEFENSE_GROUP}~2": (0, 1),
+    f"{CORPUS_OUTPOST_DEFENSE_GROUP}~3": (0, 1, 2),
+}
+CORPUS_OUTPOST_RETAIN_SPAWN_COMPONENTS = {
+    CORPUS_OUTPOST_DEFENSE_GROUP,
+    f"{CORPUS_OUTPOST_DEFENSE_GROUP}~3",
+}
+CORPUS_OUTPOST_SPAWN_ONLY_BAND_INDICES = {
+    f"{CORPUS_OUTPOST_DEFENSE_GROUP}~3": {1, 3},
+}
+# The small Defense layout has three real raised platforms and one short
+# catwalk inside the central courtyard. Their tops either disconnect from the
+# surrounding floor or merge into it in a flattened projection, and none has a
+# spawn marker of its own. Select each source-mesh component at its exact floor
+# height so its perimeter remains legible without drawing any outline by hand.
+CORPUS_OUTPOST_COMPONENT_BAND_ANCHORS = {
+    CORPUS_OUTPOST_DEFENSE_GROUP: {
+        7.0: (
+            (-8.5, 7.0, -7.0),
+            (-27.5, 7.0, -7.0),
+        ),
+        8.5: ((-22.4, 8.5, -26.6),),
+        9.5: ((-1.5, 9.5, -30.1),),
+    },
+}
+CORPUS_OUTPOST_COMPONENT_ANCHORS = {
+    group_id: tuple(
+        point
+        for band_anchors in anchors_by_height.values()
+        for point in band_anchors
+    )
+    for group_id, anchors_by_height in (
+        CORPUS_OUTPOST_COMPONENT_BAND_ANCHORS.items()
+    )
+}
+CORPUS_OUTPOST_COMPONENT_ONLY_HEIGHTS = {
+    group_id: tuple(anchors_by_height)
+    for group_id, anchors_by_height in (
+        CORPUS_OUTPOST_COMPONENT_BAND_ANCHORS.items()
+    )
+}
+CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE = 0.5
+# The authored 40 m and 44 m spawn rows are joined by intermediate objective
+# heights, so generic clustering collapses them into one 40.05 m band. Restore
+# the distinct 44 m right-side floor explicitly and keep only its spawn-touched
+# source-mesh components below.
+CORPUS_OUTPOST_ADDITIONAL_HEIGHTS = {
+    f"{CORPUS_OUTPOST_DEFENSE_GROUP}~3": (44.0,),
+}
+CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE = 0.9
 OROKIN_TOWER_DEFENSE_GROUP = "mithra+taranis+belenus"
 OROKIN_TOWER_CEILING_BAND_MIN_HEIGHT = 2.0
 CORPUS_SHIP_DEFENSE_GROUP = "cytherean+xini+gulliver+romula+proteus"
@@ -498,10 +552,11 @@ def render_map(
         # side of the displayed map, while world +Z runs upward.
         result[:, 0] = size - result[:, 0]
         result[:, 1] = size - result[:, 1]
-        if group_id == CORPUS_SHIP_DEFENSE_GROUP:
+        if group_id in (CORPUS_SHIP_DEFENSE_GROUP, KADESH_DEFENSE_GROUP):
             # This arena reads more naturally in the same clockwise orientation
             # players use for its in-game minimap. Rotate geometry, baked
-            # objective markers, and the exported spawn matrix together.
+            # objective markers, and the exported spawn matrix together;
+            # objective letters are drawn afterward and remain upright.
             base = result.copy()
             result[:, 0] = size - base[:, 1]
             result[:, 1] = base[:, 0]
@@ -513,6 +568,57 @@ def render_map(
             result[:, 0] = base[:, 1]
             result[:, 1] = size - base[:, 0]
         return np.rint(result).astype(np.int32)
+
+    def components_near_spawns(
+        labels: np.ndarray,
+        target_height: float | None = None,
+        radius: int = 12,
+    ) -> set[int]:
+        retained: set[int] = set()
+        for item in map_spawns:
+            if (
+                target_height is not None
+                and abs(float(item.get("y", 0.0)) - target_height) > 3.4
+            ):
+                continue
+            point = np.asarray(
+                [[item["x"], item.get("y", 0.0), item["z"]]],
+                dtype=np.float32,
+            )
+            x, y = project(point)[0]
+            x = int(np.clip(x, 0, size - 1))
+            y = int(np.clip(y, 0, size - 1))
+            nearby = labels[
+                max(0, y - radius) : min(size, y + radius + 1),
+                max(0, x - radius) : min(size, x + radius + 1),
+            ]
+            retained.update(
+                int(component)
+                for component in np.unique(nearby)
+                if component
+            )
+        return retained
+
+    def components_near_world_points(
+        labels: np.ndarray,
+        points: tuple[tuple[float, float, float], ...],
+        radius: int = 12,
+    ) -> set[int]:
+        retained: set[int] = set()
+        for point in points:
+            x, y = project(np.asarray([point], dtype=np.float32))[0]
+            x = int(np.clip(x, 0, size - 1))
+            y = int(np.clip(y, 0, size - 1))
+            nearby = labels[
+                max(0, y - radius) : min(size, y + radius + 1),
+                max(0, x - radius) : min(size, x + radius + 1),
+            ]
+            retained.update(
+                int(component)
+                for component in np.unique(nearby)
+                if component
+            )
+        return retained
 
     # Transparent RGBA output: the Analyzer card supplies the neutral backdrop.
     # Each height band is unioned into a silhouette before contouring so the
@@ -543,6 +649,23 @@ def render_map(
             ) * 0.5
     elif group_id == HYF_DEFENSE_GROUP:
         heights = list(HYF_PLAYABLE_FLOOR_HEIGHTS)
+    elif group_id in CORPUS_OUTPOST_HEIGHT_BAND_INDICES:
+        heights = [
+            heights[index]
+            for index in CORPUS_OUTPOST_HEIGHT_BAND_INDICES[group_id]
+            if index < len(heights)
+        ]
+        component_heights = CORPUS_OUTPOST_COMPONENT_ONLY_HEIGHTS.get(
+            group_id, ()
+        )
+        if component_heights:
+            heights = [heights[0], *component_heights, *heights[1:]]
+        heights = sorted(
+            [
+                *heights,
+                *CORPUS_OUTPOST_ADDITIONAL_HEIGHTS.get(group_id, ()),
+            ]
+        )
     chunk_size = 160_000
     geometry_sources = [(positions, faces, "all")]
     if group_id == GAS_SPAWN_02_GROUP and main_room_geometry is not None:
@@ -553,15 +676,36 @@ def render_map(
         ]
 
     for band_index, height in enumerate(heights):
+        conceal_underlay = None
+        component_only_band = any(
+            abs(height - target_height) < 0.01
+            for target_height in CORPUS_OUTPOST_COMPONENT_ONLY_HEIGHTS.get(
+                group_id, ()
+            )
+        )
+        additional_height_band = any(
+            abs(height - target_height) < 0.01
+            for target_height in CORPUS_OUTPOST_ADDITIONAL_HEIGHTS.get(
+                group_id, ()
+            )
+        )
         gas_spawn_02_side_height = (
             gas_spawn_02_side_heights[band_index]
             if gas_spawn_02_side_heights is not None
             else None
         )
         height_tolerance = (
-            HYF_ADDITIONAL_FLOOR_TOLERANCE
-            if group_id == HYF_DEFENSE_GROUP and band_index > 0
-            else 3.0
+            CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
+            if component_only_band
+            else (
+                CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
+                if additional_height_band
+                else (
+                    HYF_ADDITIONAL_FLOOR_TOLERANCE
+                    if group_id == HYF_DEFENSE_GROUP and band_index > 0
+                    else 3.0
+                )
+            )
         )
         mask = np.zeros((size, size), dtype=np.uint8)
         recover_gas_spawn_02_stairs = (
@@ -670,6 +814,73 @@ def render_map(
             for closet in GAS_SPAWN_02_SPAWN_CLOSETS:
                 floor = project(closet).reshape((-1, 1, 2))
                 cv2.fillPoly(mask, [floor], 255, lineType=cv2.LINE_AA)
+        if (
+            band_index
+            in CORPUS_OUTPOST_SPAWN_ONLY_BAND_INDICES.get(group_id, set())
+        ):
+            # This intermediate band contains two real detached spawn rooms plus
+            # broad overhead framework. Keep only mesh components touched by
+            # spawn points authored at this same height.
+            mask = cv2.morphologyEx(
+                mask,
+                cv2.MORPH_CLOSE,
+                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+            )
+            count, labels, _, _ = cv2.connectedComponentsWithStats(
+                (mask > 0).astype(np.uint8), 8
+            )
+            retained = components_near_spawns(labels, target_height=height)
+            if count > 1:
+                mask[~np.isin(labels, list(retained))] = 0
+        if component_only_band:
+            # Redraw each reviewed platform/catwalk top as its own height layer
+            # so its contour remains legible over the lower courtyard floor.
+            # Selection is by source-mesh component, never by a hand-drawn
+            # silhouette.
+            mask = cv2.morphologyEx(
+                mask,
+                cv2.MORPH_CLOSE,
+                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+            )
+            count, labels, _, _ = cv2.connectedComponentsWithStats(
+                (mask > 0).astype(np.uint8), 8
+            )
+            anchors_by_height = CORPUS_OUTPOST_COMPONENT_BAND_ANCHORS.get(
+                group_id, {}
+            )
+            band_anchors = next(
+                (
+                    anchors
+                    for target_height, anchors in anchors_by_height.items()
+                    if abs(height - target_height) < 0.01
+                ),
+                (),
+            )
+            retained = components_near_world_points(labels, band_anchors)
+            if count > 1:
+                mask[~np.isin(labels, list(retained))] = 0
+            if (
+                group_id == CORPUS_OUTPOST_DEFENSE_GROUP
+                and abs(height - 9.5) < 0.01
+                and band_anchors
+            ):
+                # Lower height slices show through this translucent platform
+                # as four stray radial lines on the tower's right side. Cover
+                # only that part of the real 9.5 m platform mask; its center,
+                # left opening, outer outline, and separate catwalk stay intact.
+                tower_x, tower_y = project(
+                    np.asarray([band_anchors[0]], dtype=np.float32)
+                )[0]
+                pixel_y, pixel_x = np.ogrid[:size, :size]
+                distance_squared = (
+                    (pixel_x - tower_x) ** 2 + (pixel_y - tower_y) ** 2
+                )
+                conceal_underlay = (
+                    (mask > 0)
+                    & (pixel_x > tower_x + 8)
+                    & (distance_squared > 42 ** 2)
+                    & (distance_squared < 92 ** 2)
+                )
         if group_id == CORPUS_SHIP_DEFENSE_GROUP and band_index == len(heights) - 1:
             for room in CORPUS_SHIP_RUNTIME_SPAWN_ROOMS:
                 floor = project(room).reshape((-1, 1, 2))
@@ -743,6 +954,9 @@ def render_map(
             ).astype(np.uint8)
             image[:, :, 3] = np.maximum(image[:, :, 3], shadow[:, :, 3])
 
+        if conceal_underlay is not None:
+            band_layer[conceal_underlay, 3] = 255
+
         source_alpha = band_layer[:, :, 3:4].astype(np.float32) / 255.0
         target_alpha = image[:, :, 3:4].astype(np.float32) / 255.0
         out_alpha = source_alpha + target_alpha * (1.0 - source_alpha)
@@ -771,6 +985,32 @@ def render_map(
         for component in range(1, count):
             if int(stats[component, cv2.CC_STAT_AREA]) < CORPUS_SHIP_MIN_CONNECTED_AREA:
                 image[labels == component] = 0
+
+    if group_id in CORPUS_OUTPOST_HEIGHT_BAND_INDICES:
+        # These source meshes contain detached ceiling, framework, and prop
+        # islands around the playable floor. After the reviewed band selection,
+        # retain the single connected arena and remove isolated projected debris
+        # before drawing objective letters.
+        # Use visible floor/contour pixels rather than alpha: black perimeter
+        # shadows can bridge two nearby pieces even when the floors are visibly
+        # detached from one another.
+        component_mask = (image[:, :, :3].max(axis=2) > 0).astype(np.uint8)
+        count, labels, stats, _ = cv2.connectedComponentsWithStats(
+            component_mask, 8
+        )
+        if count > 1:
+            largest = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+            retained_components = {largest}
+            if group_id in CORPUS_OUTPOST_RETAIN_SPAWN_COMPONENTS:
+                retained_components.update(components_near_spawns(labels))
+            retained_components.update(
+                components_near_world_points(
+                    labels,
+                    CORPUS_OUTPOST_COMPONENT_ANCHORS.get(group_id, ()),
+                )
+            )
+            retain = np.isin(labels, list(retained_components))
+            image[(labels != 0) & ~retain] = 0
 
     territory = [
         item for item in map_objective
@@ -827,6 +1067,10 @@ def render_map(
         "stofler": "bottom-floor-20260816",
         GAS_SPAWN_04_GROUP: "three-band-20260821",
         GAS_SPAWN_02_GROUP: "shared-main-mesh-stairs-20260821",
+        KADESH_DEFENSE_GROUP: "clockwise-20260821",
+        CORPUS_OUTPOST_DEFENSE_GROUP: "raised-platforms-catwalk-trimmed-20260821",
+        f"{CORPUS_OUTPOST_DEFENSE_GROUP}~2": "clean-floor-20260821",
+        f"{CORPUS_OUTPOST_DEFENSE_GROUP}~3": "right-spawn-floor-20260821",
         OROKIN_TOWER_DEFENSE_GROUP: "ceiling-trim-20260820",
         CORPUS_SHIP_DEFENSE_GROUP: "runtime-side-rooms-20260821",
         HYDRON_DEFENSE_GROUP: "counterclockwise-20260821",
@@ -843,7 +1087,7 @@ def render_map(
                 0.0, round(scale, 9), round(float(pad[1] - lo[1] * scale), 9),
                 round(-scale, 9), 0.0, round(float(size + lo[0] * scale - pad[0]), 9),
             ]
-            if group_id == CORPUS_SHIP_DEFENSE_GROUP
+            if group_id in (CORPUS_SHIP_DEFENSE_GROUP, KADESH_DEFENSE_GROUP)
             else (
                 [
                     0.0, round(-scale, 9),

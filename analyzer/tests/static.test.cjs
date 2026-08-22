@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog-20260821-9\.js/);
+  assert.match(html, /minimaps\/catalog-20260821-11\.js/);
   assert.match(html, /analyzer-20260821-93\.js/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -176,10 +176,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.topbar \.search-wrap input, \.topbar \.search-wrap button\s*\{\s*font:\s*revert/);
   const catalog = fs.readFileSync(path.join(analyzerDir, "minimaps", "catalog.js"), "utf8");
   const immutableCatalog = fs.readFileSync(
-    path.join(analyzerDir, "minimaps", "catalog-20260821-9.js"),
+    path.join(analyzerDir, "minimaps", "catalog-20260821-11.js"),
     "utf8",
   );
-  assert.match(html, /minimaps\/catalog-20260821-9\.js/);
+  assert.match(html, /minimaps\/catalog-20260821-11\.js/);
   assert.equal(immutableCatalog, catalog);
   assert.match(catalog, /tile-geometry/);
   assert.match(catalog, /spawnPoints/);
@@ -506,6 +506,18 @@ test("minimap catalog covers every supported Arbitration node and alternate layo
   assert.match(bundle.catalog.stofler.src, /bottom-floor-20260816/);
   const gasSpawn04 = bundle.catalog["callisto+sinai+io"];
   assert.match(gasSpawn04.src, /three-band-20260821/);
+  const kadesh = bundle.catalog["alator+kadesh+spear"];
+  assert.match(kadesh.src, /clockwise-20260821/);
+  assert.equal(kadesh.matrix[0], 0);
+  assert.ok(kadesh.matrix[1] > 0);
+  assert.ok(kadesh.matrix[3] < 0);
+  assert.equal(kadesh.matrix[4], 0);
+  const outpost1 = bundle.catalog["sechura+tessera+outer_terminus+cerberus"];
+  const outpost2 = bundle.catalog["sechura+tessera+outer_terminus+cerberus~2"];
+  const outpost3 = bundle.catalog["sechura+tessera+outer_terminus+cerberus~3"];
+  assert.match(outpost1.src, /raised-platforms-catwalk-trimmed-20260821/);
+  assert.match(outpost2.src, /clean-floor-20260821/);
+  assert.match(outpost3.src, /right-spawn-floor-20260821/);
   const corpusShip = bundle.catalog["cytherean+xini+gulliver+romula+proteus"];
   assert.match(corpusShip.src, /cytherean\+xini\+gulliver\+romula\+proteus-clockwise\.webp/);
   assert.match(corpusShip.src, /runtime-side-rooms-20260821/);
