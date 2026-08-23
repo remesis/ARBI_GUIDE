@@ -231,7 +231,7 @@ established the same procedural transform with 219-282 authored matches. All
 seven rows now match their complete 283-350 point sets against the resulting
 406-reference catalog. Live D1 never feeds the browser
 catalog directly. The page loads the byte-identical immutable
-`minimaps/catalog-20260823-5.js` asset while `catalog.js` remains the maintained
+`minimaps/catalog-20260823-6.js` asset while `catalog.js` remains the maintained
 generated source. At least 24 reference matches and 90% observed-point coverage
 are still required before the recovered transform maps any future points beyond
 that reviewed set. This prevents valid runtime extras from hiding the whole
@@ -273,6 +273,14 @@ room. Its Analyzer image composites the mesh component at +6.25 m, retaining
 only the reviewed component outside the existing floor silhouette. This
 restores the bent hallway without adding the upper arena's railings and props.
 The affine transform and submitted-log spawn coordinates are unchanged.
+
+The shared Alator / Kadesh / Spear minimap retains five additional raised-floor
+components at 7.2 m, 8.3 m, 10.8 m, 13.2 m, and 16.4 m. World-space anchors
+select the real north room and stairs, the platform upper-left of C, the raised
+cave left of B, and the two upper caves right of C while excluding unrelated
+roof and prop components. The clockwise affine transform and authored spawn
+catalog are unchanged; the 3D spawn markers used during local validation are
+not baked into the published WebP.
 
 ## Production report layout
 

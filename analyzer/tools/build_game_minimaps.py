@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260823-5.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260823-6.js"
 
 
 GROUP_NODES = {
@@ -252,6 +252,33 @@ GAS_CITY_RENDER_BANDS = 3
 GAS_CITY_MAIN_ROOM_HEIGHTS = (-17.947, -6.0, 4.0)
 GAS_SPAWN_02_SIDE_ROOM_HEIGHTS = (-17.947, -3.947, 12.5)
 KADESH_DEFENSE_GROUP = "alator+kadesh+spear"
+# Kadesh's generic spawn-height clustering collapses the lower arena into two
+# broad slices. Several real raised rooms, caves, and their connecting stairs
+# live above those slices, so retain only the mesh components touched by these
+# reviewed world-space anchors at their exact floor heights. This keeps the
+# useful upper floors without bringing every roof and overhead prop back into
+# the flattened minimap.
+KADESH_COMPONENT_BAND_ANCHORS = {
+    KADESH_DEFENSE_GROUP: {
+        7.2: (
+            (58.0, 7.2, 7.0),
+            (42.0, 7.2, 7.0),
+            (34.0, 7.2, 7.0),
+        ),
+        8.3: ((6.5, 8.3, 58.0),),
+        10.8: (
+            (-54.0, 10.8, -52.0),
+            (-51.0, 10.8, -41.0),
+        ),
+        13.2: ((34.5, 13.2, -10.9),),
+        16.4: ((21.0, 16.4, 39.0),),
+    },
+}
+KADESH_COMPONENT_ONLY_HEIGHTS = {
+    group_id: tuple(anchors_by_height)
+    for group_id, anchors_by_height in KADESH_COMPONENT_BAND_ANCHORS.items()
+}
+KADESH_COMPONENT_ONLY_TOLERANCE = 0.9
 CORPUS_OUTPOST_DEFENSE_GROUP = "sechura+tessera+outer_terminus+cerberus"
 CORPUS_OUTPOST_HEIGHT_BAND_INDICES = {
     CORPUS_OUTPOST_DEFENSE_GROUP: (0, 1),
@@ -709,6 +736,13 @@ def render_map(
         heights = sorted([*heights, LARZAC_Y_BUILDING_HEIGHT])
     elif group_id == INFESTED_SHIP_DEFENSE_GROUP:
         heights = sorted([*heights, INFESTED_SHIP_CONNECTOR_HEIGHT])
+    elif group_id == KADESH_DEFENSE_GROUP:
+        heights = sorted(
+            [
+                *heights,
+                *KADESH_COMPONENT_ONLY_HEIGHTS.get(group_id, ()),
+            ]
+        )
     elif group_id in CORPUS_OUTPOST_HEIGHT_BAND_INDICES:
         heights = [
             heights[index]
@@ -737,11 +771,14 @@ def render_map(
 
     for band_index, height in enumerate(heights):
         conceal_underlay = None
+        component_only_heights = (
+            KADESH_COMPONENT_ONLY_HEIGHTS.get(group_id, ())
+            if group_id == KADESH_DEFENSE_GROUP
+            else CORPUS_OUTPOST_COMPONENT_ONLY_HEIGHTS.get(group_id, ())
+        )
         component_only_band = any(
             abs(height - target_height) < 0.01
-            for target_height in CORPUS_OUTPOST_COMPONENT_ONLY_HEIGHTS.get(
-                group_id, ()
-            )
+            for target_height in component_only_heights
         )
         additional_height_band = any(
             abs(height - target_height) < 0.01
@@ -769,7 +806,11 @@ def render_map(
                 INFESTED_SHIP_CONNECTOR_TOLERANCE
                 if infested_ship_connector_band
                 else (
-                    CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
+                    (
+                        KADESH_COMPONENT_ONLY_TOLERANCE
+                        if group_id == KADESH_DEFENSE_GROUP
+                        else CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
+                    )
                     if component_only_band
                     else (
                         CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
@@ -931,8 +972,10 @@ def render_map(
             count, labels, _, _ = cv2.connectedComponentsWithStats(
                 (mask > 0).astype(np.uint8), 8
             )
-            anchors_by_height = CORPUS_OUTPOST_COMPONENT_BAND_ANCHORS.get(
-                group_id, {}
+            anchors_by_height = (
+                KADESH_COMPONENT_BAND_ANCHORS.get(group_id, {})
+                if group_id == KADESH_DEFENSE_GROUP
+                else CORPUS_OUTPOST_COMPONENT_BAND_ANCHORS.get(group_id, {})
             )
             band_anchors = next(
                 (
@@ -1190,7 +1233,7 @@ def render_map(
         "stofler": "bottom-floor-20260816",
         GAS_SPAWN_04_GROUP: "runtime-edge-rooms-20260822",
         GAS_SPAWN_02_GROUP: "shared-main-mesh-stairs-20260821",
-        KADESH_DEFENSE_GROUP: "clockwise-20260821",
+        KADESH_DEFENSE_GROUP: "upper-floors-20260823",
         CORPUS_OUTPOST_DEFENSE_GROUP: "north-spawn-room-20260822",
         f"{CORPUS_OUTPOST_DEFENSE_GROUP}~2": "clean-floor-20260821",
         f"{CORPUS_OUTPOST_DEFENSE_GROUP}~3": "right-spawn-floor-20260821",
