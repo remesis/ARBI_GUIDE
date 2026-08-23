@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260823-103\.js/);
+  assert.match(html, /analyzer-20260823-104\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260823-34/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -287,7 +287,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-103.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-104.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
@@ -702,8 +702,11 @@ test("production correlation layout keeps the compact metrics and fixed hover re
     assert.ok(index > previous, `${label} should follow the requested compact KPI order`);
     previous = index;
   }
-  assert.match(js, /<span>20s Drone despawns:<\/span><strong>\$\{fmt\(run\.dronesDespawned \|\| 0\)\}/);
+  assert.match(js, /function droneDespawnColor\(count\)/);
+  assert.match(js, /1 - clamp\(\(value - 1\) \/ 4, 0, 1\)/);
+  assert.match(js, /<span>20s Drone despawns:<\/span><strong style="--despawn-color:\$\{droneDespawnColor\(droneDespawns\)\}">\$\{fmt\(droneDespawns\)\}/);
   assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.composition-despawns\s*\{[^}]*display:\s*inline-flex[^}]*gap:\s*\.34em/);
+  assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.composition-despawns strong\s*\{[^}]*color:\s*var\(--despawn-color, var\(--text\)\)[^}]*font-size:\s*calc\(1em \+ 2px\)/);
   assert.match(css, /\.composition-despawns\s*\{[^}]*font-size:\s*calc\(var\(--report-subtext-size\) \+ 2px\)/);
   assert.match(js, /class="peak-value-row"/);
   assert.match(js, /class="correlation-tooltip-stage"/);

@@ -460,7 +460,7 @@ body.empty-page-drag::after {
 .composition-segment { min-width: 2px; display: grid; place-items: center; color: #121216; font-size: 9px; font-weight: 900; background: var(--segment); }
 .composition-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .composition-despawns { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: .34em; color: var(--muted); font-size: var(--report-subtext-size); white-space: nowrap; }
-.composition-despawns strong { color: var(--text); }
+.composition-despawns strong { color: var(--despawn-color, var(--text)); font-size: calc(1em + 2px); }
 .composition-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px 12px; margin-top: 12px; font-size: 11px; }
 .composition-item { min-width: 0; display: flex; align-items: center; gap: 7px; }
 .composition-item i { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 3px; background: var(--segment); }
