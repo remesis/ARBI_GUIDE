@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260823-102\.js/);
+  assert.match(html, /analyzer-20260823-103\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260823-34/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -26,6 +26,15 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /image\/png/);
   assert.match(js, /new ClipboardItem/);
   assert.match(js, /await inlineImagesForExport\(stage\)/);
+  assert.match(js, /stabilizeExportWhitespace\(stage\)/);
+  assert.match(js, /function stabilizeExportWhitespace\(root\)/);
+  assert.match(js, /document\.createTreeWalker\(root, 4\)/);
+  assert.match(js, /node\.nodeValue = exportSafeWhitespace\(value\)/);
+  const whitespaceSource = js.match(/function exportSafeWhitespace\(value\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(whitespaceSource);
+  const whitespaceContext = {};
+  vm.runInNewContext(`${whitespaceSource}; result = exportSafeWhitespace("20s Drone despawns: 0");`, whitespaceContext);
+  assert.equal(whitespaceContext.result, "20s\u00a0Drone\u00a0despawns:\u00a00");
   assert.match(js, /for \(let attempt = 0; attempt < 3; attempt \+= 1\)/);
   assert.match(js, /img\.src = await blobDataUrl\(blob\)/);
   assert.match(js, /The tile image could not be embedded/);
@@ -192,8 +201,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.squad-privacy-toggle\.is-hidden\s*\{[^}]*color:\s*var\(--red-hot\)/);
   assert.match(css, /\.squad-privacy-toggle\.is-hidden::after/);
   assert.doesNotMatch(js, /class="squad-label">Squad/);
-  assert.doesNotMatch(css, /\.squad-privacy-toggle \+ \.squad-player::before/);
-  assert.match(css, /\.squad-player \+ \.squad-player::before,[\s\S]*?\.squad-player \+ \.squad-phase::before\s*\{[^}]*content:\s*""[^}]*width:\s*5px[^}]*height:\s*5px[^}]*border-radius:\s*50%[^}]*background:\s*#d9dae2/);
+  assert.doesNotMatch(css, /\.squad-player \+ \.squad-player::before|\.squad-player \+ \.squad-phase::before/);
+  assert.match(js, /class="squad-member"><span class="squad-player">[\s\S]*?<i class="squad-separator" aria-hidden="true"><\/i>/);
+  assert.match(css, /\.squad-member\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center[^}]*flex:\s*0 0 auto/);
+  assert.match(css, /\.squad-separator\s*\{[^}]*width:\s*5px[^}]*height:\s*5px[^}]*margin:\s*0 8px[^}]*border-radius:\s*50%[^}]*background:\s*#d9dae2/);
   assert.match(css, /\.squad-player, \.squad-phase\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center/);
   assert.match(css, /\.squad-privacy-toggle\s*\{[^}]*margin:\s*0 6px 0 0/);
   assert.match(css, /\.export-stage \.squad-privacy-toggle\s*\{[^}]*display:\s*none\s*!important/);
@@ -276,7 +287,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-102.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-103.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
@@ -690,7 +701,8 @@ test("production correlation layout keeps the compact metrics and fixed hover re
     assert.ok(index > previous, `${label} should follow the requested compact KPI order`);
     previous = index;
   }
-  assert.match(js, /20s Drone despawns: <strong>\$\{fmt\(run\.dronesDespawned \|\| 0\)\}/);
+  assert.match(js, /<span>20s Drone despawns:<\/span><strong>\$\{fmt\(run\.dronesDespawned \|\| 0\)\}/);
+  assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.composition-despawns\s*\{[^}]*display:\s*inline-flex[^}]*gap:\s*\.34em/);
   assert.match(css, /\.composition-despawns\s*\{[^}]*font-size:\s*calc\(var\(--report-subtext-size\) \+ 2px\)/);
   assert.match(js, /class="peak-value-row"/);
   assert.match(js, /class="correlation-tooltip-stage"/);

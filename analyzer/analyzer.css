@@ -267,10 +267,9 @@ body.empty-page-drag::after {
 .badge { display: inline-flex; padding: 6px 10px; border-radius: 5px; background: #29292f; color: #c5c5cd; font-size: 11px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
 .badge.mission { background: var(--red); color: white; }
 .squad-line { display: flex; align-items: center; flex-wrap: wrap; margin-top: 8px; color: var(--muted); font-size: 14px; }
-.squad-player + .squad-player::before,
-.squad-player + .squad-phase::before {
-  content: "";
-  display: inline-block;
+.squad-member { display: inline-flex; align-items: center; flex: 0 0 auto; }
+.squad-separator {
+  display: block;
   width: 5px;
   height: 5px;
   margin: 0 8px;
@@ -459,7 +458,7 @@ body.empty-page-drag::after {
 .composition-bar { display: flex; height: 25px; margin-top: 12px; overflow: hidden; border-radius: 3px; }
 .composition-segment { min-width: 2px; display: grid; place-items: center; color: #121216; font-size: 9px; font-weight: 900; background: var(--segment); }
 .composition-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.composition-despawns { flex: 0 0 auto; color: var(--muted); font-size: var(--report-subtext-size); white-space: nowrap; }
+.composition-despawns { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: .34em; color: var(--muted); font-size: var(--report-subtext-size); white-space: nowrap; }
 .composition-despawns strong { color: var(--text); }
 .composition-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px 12px; margin-top: 12px; font-size: 11px; }
 .composition-item { min-width: 0; display: flex; align-items: center; gap: 7px; }
