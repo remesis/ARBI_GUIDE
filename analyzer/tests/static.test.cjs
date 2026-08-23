@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260823-104\.js/);
+  assert.match(html, /analyzer-20260823-105\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260823-34/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -287,7 +287,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-104.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-105.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
@@ -508,6 +508,7 @@ test("actual Vitus luck headline follows the red-to-green performance grade", ()
   assert.match(css, /\.vitus-entry-group\s*\{[^}]*column-gap:\s*12px/);
   assert.match(css, /\.vitus-rate\s*\{[^}]*font-size:\s*18px/);
   assert.match(css, /\.vitus-input\s*\{[^}]*width:\s*62px[^}]*height:\s*34px[^}]*font-size:\s*19px[^}]*line-height:\s*1/);
+  assert.match(js, /placeholder="####"/);
   assert.match(css, /\.vitus-table\s*\{[^}]*table-layout:\s*fixed/);
   assert.match(css, /\.vitus-table th,\s*\.vitus-table td\s*\{[^}]*width:\s*33\.333%[^}]*text-align:\s*left/);
 });
