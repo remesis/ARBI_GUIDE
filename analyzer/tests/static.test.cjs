@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260823-105\.js/);
+  assert.match(html, /analyzer-20260823-106\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260823-34/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -287,10 +287,10 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-105.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-106.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
-  assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
+  assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
   assert.match(js, /computeVitus\(run\.droneKills, run\.rotations, run\.missionType, run\.blessedDroneKills\)/);
   assert.match(parser, /ResourceDropChanceBlessingStoreItem/);
   assert.match(parser, /const BOOSTED_DROP_CHANCE = 0\.12/);
