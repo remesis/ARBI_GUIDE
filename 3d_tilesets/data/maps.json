@@ -6,7 +6,7 @@
       "overlay": "5b9fa1f431864a84.wfo",
       "tileset": "Corpus Gas City",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Callisto",
@@ -53,7 +53,7 @@
       "overlay": "80742164e1298830.wfo",
       "tileset": "Grineer Sealab",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Umbriel",
@@ -88,7 +88,7 @@
       "overlay": "77b10482bbeb10e8.wfo",
       "tileset": "Corpus Ship",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Cytherean",
@@ -144,7 +144,7 @@
       "overlay": "deb77ce1831dda2f.wfo",
       "tileset": "Grineer Settlement",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Alator",
@@ -185,7 +185,7 @@
       "overlay": "59509fcc439de0d8.wfo",
       "tileset": "Grineer Settlement",
       "mission": "Mirror Defense",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Tyana Pass",
@@ -214,7 +214,7 @@
       "overlay": "102e4c7ea6240cf4.wfo",
       "tileset": "Albrecht's Laboratories",
       "mission": "Mirror Defense",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Munio",
@@ -246,7 +246,7 @@
       "overlay": "a8661b962181000a.wfo",
       "tileset": "Orokin Tower",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Mithra",
@@ -287,7 +287,7 @@
       "overlay": "f1d079abca025eda.wfo",
       "tileset": "Grineer Shipyard",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Casta",
@@ -328,7 +328,7 @@
       "overlay": "0583b676a7b618ee.wfo",
       "tileset": "Grineer Galleon",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Hydron",
@@ -369,7 +369,7 @@
       "overlay": "0b2bf4cbd478e2b9.wfo",
       "tileset": "Corpus Outpost",
       "mission": "Defense",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Sechura",
@@ -410,7 +410,7 @@
       "overlay": "21122ea680f1b52e.wfo",
       "tileset": "Corpus Ice Planet",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Ose",
@@ -451,7 +451,7 @@
       "overlay": "c6d332080c5825e7.wfo",
       "tileset": "Grineer Asteroid",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Rhea",
@@ -492,7 +492,7 @@
       "overlay": "304ea9b731dcaf24.wfo",
       "tileset": "Infested Ship",
       "mission": "Defense",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Akkad",
@@ -527,7 +527,7 @@
       "overlay": "c8717e52185eccba.wfo",
       "tileset": "Grineer Forest",
       "mission": "Defense",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Coba",
@@ -562,7 +562,7 @@
       "overlay": "c436f4e351a30fd1.wfo",
       "tileset": "Infested Ship",
       "mission": "Infested Salvage",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Oestrus",
@@ -591,7 +591,7 @@
       "overlay": "80d0f7d5e2c370c8.wfo",
       "tileset": "Grineer Forest",
       "mission": "Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Gaia",
@@ -620,7 +620,7 @@
       "overlay": "df063cb14ff6ca6e.wfo",
       "tileset": "Orokin Derelict",
       "mission": "Defense",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Hyf",
@@ -649,7 +649,7 @@
       "overlay": "246918cf36c3747a.wfo",
       "tileset": "Orokin Moon",
       "mission": "Defense",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Stöfler",
@@ -681,7 +681,7 @@
       "overlay": "48d10e27254eb545.wfo",
       "tileset": "Grineer Shipyard",
       "mission": "Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Berehynia",
@@ -710,7 +710,7 @@
       "overlay": "cbc5cb839162442d.wfo",
       "tileset": "Corpus Gas City",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Callisto",
@@ -757,7 +757,7 @@
       "overlay": "a412671229966c1d.wfo",
       "tileset": "Grineer Sealab",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Umbriel",
@@ -792,7 +792,7 @@
       "overlay": "b30991a55ea1d86f.wfo",
       "tileset": "Corpus Outpost",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Sechura",
@@ -839,7 +839,7 @@
       "overlay": "788297bfa3ce414a.wfo",
       "tileset": "Corpus Outpost",
       "mission": "Defense / Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Sechura",
@@ -886,7 +886,7 @@
       "overlay": "d2ba15f5085bf665.wfo",
       "tileset": "Grineer Forest",
       "mission": "Interception",
-      "info": "Fixed arena geometry and authored enemy spawn locations extracted offline from the local Warframe asset cache. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are authored as 3D coordinates.",
+      "info": "Fixed arena geometry with enemy spawn locations. Spawn markers show possible locations, not observed frequency. Camp positions remain documented in the guide notes until they are added as 3D coordinates.",
       "nodes": [
         {
           "name": "Gaia",
@@ -912,7 +912,7 @@
     }
   },
   "generated": "2026-08-21",
-  "note": "Geometry and authored marker positions extracted offline from a local Warframe Cache.Windows install. No account or live server data used.",
+  "note": "Tileset depictions and marker positions are derived only from publicly available data.",
   "dataFormat": "WFG2+meshopt+brotli",
   "buildHash": "e80b3ae52138b01b"
 }

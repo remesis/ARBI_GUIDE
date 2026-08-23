@@ -49,7 +49,7 @@ GROUP_NODES = {
 
 # The public viewer's WFG2 files are optimized for streaming. The matching WFG1
 # build products retain the same world coordinates and are much cheaper to use
-# for this offline minimap build.
+# for this minimap build.
 SOURCE_GROUPS = {
     "callisto+sinai+io": ("preview", "callisto+sinai+io"),
     "umbriel+stephano": ("preview", "umbriel+stephano"),
@@ -244,7 +244,7 @@ ANALYZER_SPAWN_SUPPLEMENTS = {
 # GasSpawn02 side-room stairs rise through the otherwise unsampled gap between
 # bands two and three, so their real walkable mesh is recovered separately.
 # Its runtime connector is assembled procedurally and is therefore not part of
-# either static source mesh; draw the reviewed walkable link into the
+# either static geometry; draw the reviewed walkable link into the
 # Analyzer-only minimap without changing the 3D viewer geometry.
 GAS_SPAWN_04_GROUP = "callisto+sinai+io"
 GAS_SPAWN_02_GROUP = "callisto+sinai+io~2"
@@ -269,7 +269,7 @@ CORPUS_OUTPOST_SPAWN_ONLY_BAND_INDICES = {
 # catwalk inside the central courtyard. Their tops either disconnect from the
 # surrounding floor or merge into it in a flattened projection, and none has a
 # spawn marker of its own. Its elevated north spawn room is similarly isolated
-# from the retained lower bands. Select each source-mesh component at its exact
+# from the retained lower bands. Select each geometry component at its exact
 # floor height so its perimeter remains legible without drawing any outline by
 # hand.
 CORPUS_OUTPOST_COMPONENT_BAND_ANCHORS = {
@@ -303,7 +303,7 @@ CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE = 0.5
 # The authored 40 m and 44 m spawn rows are joined by intermediate objective
 # heights, so generic clustering collapses them into one 40.05 m band. Restore
 # the distinct 44 m right-side floor explicitly and keep only its spawn-touched
-# source-mesh components below.
+# geometry components below.
 CORPUS_OUTPOST_ADDITIONAL_HEIGHTS = {
     f"{CORPUS_OUTPOST_DEFENSE_GROUP}~3": (44.0,),
 }
@@ -327,7 +327,7 @@ ICE_PLANET_DEFENSE_GROUP = "ose+paimon+larzac"
 # Larzac's right-side spawn chain belongs to a real Y-shaped building whose
 # walkable top sits around 8.5 m even though its authored spawn markers sit at
 # 4.75 m. The generic +/-3 m middle band therefore misses the floor while
-# admitting the lower framework below it. Recover only the source-mesh
+# admitting the lower framework below it. Recover only the geometry
 # component around this reviewed anchor, and exclude the framework volume from
 # the broad middle-band projection instead of drawing replacement geometry.
 LARZAC_Y_BUILDING_HEIGHT = 8.5
@@ -577,7 +577,7 @@ def render_map(
     elif group_id == GAS_SPAWN_04_GROUP:
         # GasSpawn04's authored overlay uses percentile bounds which crop the
         # far procedural spawn rooms. D1 establishes their real extents; use
-        # those reviewed coordinates only to frame the source mesh, keeping
+        # those reviewed coordinates only to frame the geometry, keeping
         # the generated floor art and spawn transform on the same projection.
         runtime_points = np.asarray(
             [
@@ -603,7 +603,7 @@ def render_map(
         if group_id in (CORPUS_SHIP_DEFENSE_GROUP, KADESH_DEFENSE_GROUP):
             # This arena reads more naturally in the same clockwise orientation
             # players use for its in-game minimap. Rotate geometry, baked
-            # objective markers, and the exported spawn matrix together;
+            # objective markers, and the spawn matrix together;
             # objective letters are drawn afterward and remain upright.
             base = result.copy()
             result[:, 0] = size - base[:, 1]
@@ -670,7 +670,7 @@ def render_map(
 
     # Transparent RGBA output: the Analyzer card supplies the neutral backdrop.
     # Each height band is unioned into a silhouette before contouring so the
-    # source mesh's individual triangle edges never appear as a wire grid.
+    # geometry's individual triangle edges never appear as a wire grid.
     image = np.zeros((size, size, 4), dtype=np.uint8)
     map_spawns = overlay.get("_mapSpawns", overlay.get("spawns")) or []
     map_objective = overlay.get("_mapObjective", overlay.get("objective")) or []
@@ -832,7 +832,7 @@ def render_map(
                     cv2.fillPoly(mask, polygons, 255, lineType=cv2.LINE_AA)
 
                 if interband_mask is not None and room_scope != "main":
-                    # Rasterize the source mesh's actual walkable surfaces
+                    # Rasterize the geometry's walkable surfaces
                     # between bands two and three. Component filtering below
                     # retains the two substantial stair approaches and rejects
                     # tiny prop and ceiling fragments; no stair outline is
@@ -903,7 +903,7 @@ def render_map(
         if component_only_band:
             # Redraw each reviewed platform/catwalk top as its own height layer
             # so its contour remains legible over the lower courtyard floor.
-            # Selection is by source-mesh component, never by a hand-drawn
+            # Selection is by geometry component, never by a hand-drawn
             # silhouette.
             mask = cv2.morphologyEx(
                 mask,
@@ -1065,7 +1065,7 @@ def render_map(
         # ObjDefense01 contains eight tiny detached ceiling fragments (four
         # two-dot pairs) outside the connected arena. Remove only those isolated
         # components; the reviewed runtime side-room envelopes are large enough
-        # to survive independently if a source-mesh doorway has a small seam.
+        # to survive independently if a doorway has a small seam.
         component_mask = (image[:, :, 3] > 0).astype(np.uint8)
         count, labels, stats, _ = cv2.connectedComponentsWithStats(component_mask, 8)
         for component in range(1, count):
@@ -1073,7 +1073,7 @@ def render_map(
                 image[labels == component] = 0
 
     if group_id in CORPUS_OUTPOST_HEIGHT_BAND_INDICES:
-        # These source meshes contain detached ceiling, framework, and prop
+        # These geometry files contain detached ceiling, framework, and prop
         # islands around the playable floor. After the reviewed band selection,
         # retain the single connected arena and remove isolated projected debris
         # before drawing objective letters.

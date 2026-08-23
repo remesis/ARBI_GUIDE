@@ -2058,8 +2058,8 @@ function frame(t) {
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
   gl.disable(gl.BLEND);
-  // No back-face culling: arena interiors and extracted geometry are not
-  // reliably wound, and the shader derives its normal from the view direction.
+  // No back-face culling: arena interiors and thin surfaces may not be
+  // consistently wound, and the shader derives its normal from the view direction.
   gl.disable(gl.CULL_FACE);
 
   gl.useProgram(meshProg);
@@ -3947,10 +3947,7 @@ if (IS_LOCAL_MOTE_AUTHORING) {
     });
   }
 
-  // Actual Wisp Prime reservoir geometry exported from the local Warframe
-  // cache. The shell's lowest vertex is already 0.082 m above its asset
-  // origin, so placing that origin on the hit surface preserves the authored
-  // in-game hover without inventing a vertical offset.
+  // Keep the reservoir shell's built-in hover offset when placing it on a surface.
   var moteAuthorAssets = null;
   var moteAuthorAssetError = null;
   var moteAuthorProg = null;
@@ -4005,8 +4002,7 @@ if (IS_LOCAL_MOTE_AUTHORING) {
     return new Promise(function (resolve, reject) {
       var halfWidth = source.width * 0.5;
       var halfDepth = source.depth * 0.5;
-      // Local +Y is forward. UV +V is the top of BoostPad_d, so its arrow
-      // tips point in the same direction saved by the placement yaw.
+      // Local +Y and UV +V face forward so the arrow follows the saved placement yaw.
       var vertices = new Float32Array([
         -halfWidth, -halfDepth, 0, 0,
          halfWidth, -halfDepth, 1, 0,
@@ -4143,10 +4139,8 @@ if (IS_LOCAL_MOTE_AUTHORING) {
   function fetchAuthorAssetJson(url) {
     return fetch(url, { cache: "force-cache" }).then(function (response) {
       if (response.ok) return response.json();
-      // Local author assets can be installed while the preview server and
-      // browser remain open. A browser may retain the earlier 404 because the
-      // normal request is intentionally force-cached, so retry under a fresh
-      // cache key and explicitly reload it before reporting a real failure.
+      // Retry a cached miss once so newly available display data can load
+      // without restarting the page.
       return fetch(url + "&retry=asset-restored-v1", { cache: "reload" })
         .then(function (retryResponse) {
           if (!retryResponse.ok) {
@@ -4159,7 +4153,7 @@ if (IS_LOCAL_MOTE_AUTHORING) {
 
   function loadVectorPadAuthorAsset() {
     fetchAuthorAssetJson(
-      DATA_BASE + "author/vauban_vector_pad.json?v=4169e1-boostpad-v2"
+      DATA_BASE + "author/vauban_vector_pad.json?v=public-data-20260822"
     )
       .then(function (payload) {
         if (payload.format !== "arbi-vauban-vector-pad-author-v2") {
@@ -4184,7 +4178,7 @@ if (IS_LOCAL_MOTE_AUTHORING) {
   function loadMoteAuthorAssets() {
     if (!gl) return;
     prepareMoteAuthorPrograms();
-    fetchAuthorAssetJson(DATA_BASE + "author/wisp_motes.json?v=531ff6b97f90")
+    fetchAuthorAssetJson(DATA_BASE + "author/wisp_motes.json?v=public-data-20260822")
       .then(function (payload) {
         if (payload.format !== "arbi-wisp-mote-author-v1") {
           throw new Error("Unexpected mote asset format");
@@ -4196,13 +4190,6 @@ if (IS_LOCAL_MOTE_AUTHORING) {
           health: uploadMoteAsset(payload.assets.health),
           haste: uploadMoteAsset(payload.assets.haste)
         };
-        if (motePositionBtn) {
-          motePositionBtn.setAttribute(
-            "data-asset-scale",
-            "game-space meters; lowest vertex " +
-            payload.model_min_height.toFixed(6) + "m"
-          );
-        }
         refreshMoteButton();
       })
       .catch(function (err) {
