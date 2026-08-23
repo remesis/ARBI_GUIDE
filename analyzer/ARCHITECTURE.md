@@ -18,6 +18,15 @@ browser. The Pages bundle never uploads an `EE.log` or arbitrary log lines.
    also carry coordinate-bearing spawn points; other modes send an empty point
    list while still contributing the reduced run record.
 
+Mission discovery does not depend on the localized display name. The parser
+binds an Arbitration vote or load to its stable `SolNode`, `ClanNode`, or
+`SettlementNode` `_EliteAlert` selection identifier, then resolves the English
+node, planet, and mission-mode output through the maintained node catalog.
+This covers every currently supported game language while leaving the report
+language unchanged. The older English display-label check remains only as a
+compatibility fallback. A background Elite Alert advertisement by itself is
+not enough to relabel a normal mission.
+
 Large-file cost is governed by retained Arbitration-event density, not raw log
 bytes. Files at least 512 MiB use ordered parallel text scanners, but dense
 multi-hour Defense runs can still contain hundreds of waves and tens of

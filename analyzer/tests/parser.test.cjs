@@ -548,6 +548,80 @@ test("ShowMissionVote starts an Arbitration when Mission name is absent", () => 
   assert.equal(run.endTime, 50);
 });
 
+test("localized mission display text uses the stable Elite Alert selection token", () => {
+  const localizedLabels = {
+    de: "Hydron (Sedna) - Schiedsgericht",
+    es: "Hydron (Sedna) - Arbitramento",
+    fr: "Hydron (Sedna) - Arbitrage",
+    it: "Hydron (Sedna) - Arbitrato",
+    ja: "ハイドロン (セドナ) - 仲裁",
+    ko: "히드론 (세드나) - 중재",
+    pl: "Hydron (Sedna) - Arbitraż",
+    pt: "Hydron (Sedna) - Arbitragem",
+    ru: "Гидрон (Седна) - Арбитраж",
+    zh: "海德龙 (赛德娜) - 仲裁",
+    tc: "海德龍 (賽德娜) - 仲裁",
+    th: "ไฮดรอน (เซดนา) - อาร์บิเทรชัน",
+    tr: "Hydron (Sedna) - Arbitrasyon",
+    uk: "Гідрон (Седна) - Арбітраж",
+  };
+
+  Object.entries(localizedLabels).forEach(([language, label]) => {
+    const lines = [
+      "1.0 Script [Info]: Background.lua: EliteAlertMission at SolNode195 (Sedna - Hydron)",
+      `2.0 Script [Info]: ThemedSquadOverlay.lua: ShowMissionVote ${label} - Level (60-80) (SolNode195_EliteAlert) -1`,
+      `7.0 Script [Info]: ThemedSquadOverlay.lua: Mission name: ${label}`,
+      "7.1 Game [Info]: Level=/Lotus/Levels/GrineerGalleon/GrnDefense.level",
+      "8.0 WaveDefend.lua: Defense wave: 1",
+    ];
+    for (let index = 0; index < 40; index += 1) {
+      const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "LancerAgent";
+      lines.push(`${(9 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+    }
+
+    const [run] = Parser.parseText(lines.join("\n"));
+    assert.ok(run, `${language} display text should produce a run`);
+    assert.equal(run.nodeKey, "SolNode195", language);
+    assert.equal(run.node, "Hydron", language);
+    assert.equal(run.planet, "Sedna", language);
+    assert.equal(run.missionType, "DEFENSE", language);
+  });
+});
+
+test("stable Host loading metadata recovers a localized run when vote lines are absent", () => {
+  const lines = [
+    "1.0 Script [Info]: Background.lua: EliteAlertMission at ClanNode23 (Ceres - Gabii)",
+    "2.0 Script [Info]: ThemedSquadOverlay.lua: Mission name: Габий (Церера) - Арбитраж",
+    '2.1 Script [Info]: ThemedSquadOverlay.lua: Host loading {"name":"ClanNode23_EliteAlert"} with MissionInfo:',
+    "3.0 Script [Info]: SurvivalMission.lua: Survival: Starting survival",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const npc = index < 5 ? "CorpusEliteShieldDroneAgent" : "ChargerAgent";
+    lines.push(`${(4 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+  lines.push("50.0 Script [Info]: ExtractionTimer.lua: EOM: All players extracting");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.equal(run.nodeKey, "ClanNode23");
+  assert.equal(run.node, "Gabii");
+  assert.equal(run.missionType, "SURVIVAL");
+  assert.equal(run.startTime, 3);
+});
+
+test("a background Arbitration advertisement does not relabel a localized normal mission", () => {
+  const lines = [
+    "1.0 Script [Info]: Background.lua: EliteAlertMission at SolNode195 (Sedna - Hydron)",
+    "2.0 Script [Info]: ThemedSquadOverlay.lua: ShowMissionVote コペルニクス (ルア) - Level (25-30) (SolNode304) -1",
+    "7.0 Script [Info]: ThemedSquadOverlay.lua: Mission name: コペルニクス (ルア)",
+  ];
+  for (let index = 0; index < 80; index += 1) {
+    lines.push(`${(8 + index).toFixed(1)} AI [Info]: OnAgentCreated /Npc/LancerAgent${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+
+  assert.deepEqual(Parser.parseText(lines.join("\n")), []);
+});
+
 test("does not move the run clock for a late reconnect", () => {
   const lines = [
     "0.1 Game [Info]: Host loadout loader finished.",

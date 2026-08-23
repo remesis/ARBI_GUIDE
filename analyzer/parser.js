@@ -19,9 +19,10 @@
   const DEFENSE_VOTE_TRANSITION_SECONDS = 5;
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
   const JOIN_EVIDENCE_WINDOW_SECONDS = 60;
+  const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260822-7";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260823-8";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
@@ -140,7 +141,8 @@
 
   const P_TIMESTAMP = /^!?(\d+\.\d+)/;
   const P_MISSION = /ThemedSquadOverlay\.lua: Mission name: (.*)/;
-  const P_MISSION_VOTE = /ThemedSquadOverlay\.lua: ShowMissionVote (.+?\([^)]+\)) - Arbitration\b/;
+  const P_MISSION_VOTE = /ThemedSquadOverlay\.lua: ShowMissionVote (.*)/;
+  const P_ARBITRATION_SELECTION = /\b((?:Sol|Clan|Settlement)Node\d+)_EliteAlert\b/i;
   const P_AGENT_FULL = /OnAgentCreated.*?\/Npc\/(.+?)(\d+)\s+.*?MonitoredTicking\s+(\d+)/;
   const P_NPC = /\/Npc\/([A-Za-z0-9_]+)/;
   const P_WAVE_LINE = /^!?(\d+\.\d+).*WaveDefend\.lua: Starting wave (\d+)/;
@@ -159,7 +161,7 @@
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|_EliteAlert|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -365,6 +367,7 @@
       this.advertised = [];
       this.levels = [];
       this.stringPool = new Map();
+      this.pendingArbitration = null;
     }
 
     intern(value) {
@@ -384,6 +387,7 @@
       let hasDroneDespawn = false;
       let hasMission = false;
       let hasMissionVote = false;
+      let hasArbitrationSelection = false;
       let hasSpawnPoint = false;
       let hasAgentInitialize = false;
       let hasEliteAlert = false;
@@ -416,7 +420,8 @@
         hasAgent = line.includes("OnAgentCreated");
         hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
         hasMission = line.includes("Mission name:");
-        hasMissionVote = line.includes("ShowMissionVote") && line.includes(" - Arbitration");
+        hasMissionVote = line.includes("ShowMissionVote");
+        hasArbitrationSelection = P_ARBITRATION_SELECTION.test(line);
         hasSpawnPoint = line.includes("spawn point:");
         hasAgentInitialize = line.includes("AI Agent Initialize");
         hasEliteAlert = line.includes("EliteAlertMission at");
@@ -449,7 +454,11 @@
             hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
             break;
           case "Mission name:": hasMission = true; break;
-          case "ShowMissionVote": hasMissionVote = line.includes(" - Arbitration"); break;
+          case "ShowMissionVote":
+            hasMissionVote = true;
+            hasArbitrationSelection = P_ARBITRATION_SELECTION.test(line);
+            break;
+          case "_EliteAlert": hasArbitrationSelection = true; break;
           case "spawn point:": hasSpawnPoint = true; break;
           case "AI Agent Initialize": hasAgentInitialize = true; break;
           case "EliteAlertMission at": hasEliteAlert = true; break;
@@ -489,14 +498,33 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasArbitrationSelection || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
 
-      if (hasMission || hasMissionVote) {
-        const match = line.match(hasMission ? P_MISSION : P_MISSION_VOTE);
-        const timestamp = (line.match(P_TIMESTAMP) || [])[1];
-        if (match) {
-          const label = hasMission ? match[1].trim() : `${match[1].trim()} - Arbitration`;
-          this.startMission(label, Number(timestamp) || 0);
+      const lineTimestamp = Number((line.match(P_TIMESTAMP) || [])[1]) || 0;
+      const selectionMatch = hasArbitrationSelection ? line.match(P_ARBITRATION_SELECTION) : null;
+      const selectedNode = selectionMatch ? canonicalNode(selectionMatch[1]) : "";
+
+      if (hasMissionVote) {
+        if (!selectedNode) {
+          this.pendingArbitration = null;
+          return;
+        }
+        this.pendingArbitration = { nodeKey: selectedNode, timestamp: lineTimestamp };
+        const match = line.match(P_MISSION_VOTE);
+        this.startMission(match ? match[1].trim() : selectedNode, lineTimestamp, selectedNode);
+        return;
+      }
+      if (hasMission) {
+        const match = line.match(P_MISSION);
+        const nodeKey = this.pendingArbitrationNode(lineTimestamp);
+        this.pendingArbitration = null;
+        if (match) this.startMission(match[1].trim(), lineTimestamp, nodeKey);
+        return;
+      }
+      if (selectedNode) {
+        if (!this.cur.isArbitration) {
+          this.pendingArbitration = { nodeKey: selectedNode, timestamp: lineTimestamp };
+          if (line.includes("Host loading")) this.startMission(selectedNode, lineTimestamp, selectedNode);
         }
         return;
       }
@@ -530,9 +558,6 @@
         }
         return;
       }
-      const lineTimestamp = (hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress)
-        ? Number((line.match(P_TIMESTAMP) || [])[1]) || 0
-        : 0;
       if (hasNamedJoin) this.playerJoinEvidence(line, lineTimestamp, P_NAMED_JOIN);
       if (hasSquadAdd) this.playerJoinEvidence(line, lineTimestamp, P_SQUAD_ADD);
       if (hasLocalInProgress && this.cur.isArbitration) this.cur.localInProgressAt = lineTimestamp;
@@ -715,15 +740,28 @@
       if (hasCountdown && ts) cur.waveCountdowns.push(ts);
     }
 
-    startMission(raw, ts) {
-      raw = raw.replace(/Dark Sector/gi, "").trim();
-      const isArbitration = raw.toLocaleLowerCase().includes("arbitration");
+    pendingArbitrationNode(timestamp) {
+      const pending = this.pendingArbitration;
+      if (!pending) return "";
+      if (!timestamp || !pending.timestamp) return pending.nodeKey;
+      const age = timestamp - pending.timestamp;
+      return age >= 0 && age <= ARBITRATION_SELECTION_WINDOW_SECONDS ? pending.nodeKey : "";
+    }
+
+    startMission(raw, ts, forcedNode = "") {
+      raw = String(raw || "").replace(/Dark Sector/gi, "").trim();
+      const nodeKey = canonicalNode(forcedNode);
+      const nodeInfo = ARBI_NODES[nodeKey];
+      const isArbitration = Boolean(nodeKey) || raw.toLocaleLowerCase().includes("arbitration");
       this.pushCurrent();
       const next = createRun();
       next.isArbitration = isArbitration;
-      next.missionName = this.intern(isArbitration
-        ? raw.replace(/Arbitration:/gi, "").replace(/Arbitration/gi, "").replace(/^[\s\-–—]+|[\s\-–—]+$/g, "").trim() || raw
-        : raw);
+      next.nodeKey = isArbitration ? nodeKey : "";
+      next.missionName = this.intern(nodeInfo
+        ? `${nodeInfo[0]} (${nodeInfo[1]})`
+        : (isArbitration
+          ? raw.replace(/Arbitration:/gi, "").replace(/Arbitration/gi, "").replace(/^[\s\-–—]+|[\s\-–—]+$/g, "").trim() || raw
+          : raw));
       if (ts) {
         next.missionStart = ts;
         next.lastActivity = ts;
@@ -742,14 +780,17 @@
       next.inMission.forEach((name) => openPlayerPresence(next, name, ts));
       this.cur = next;
       if (!isArbitration) return;
-      const lower = next.missionName.toLocaleLowerCase();
+      const lower = (nodeInfo ? nodeInfo[2] : next.missionName).toLocaleLowerCase();
       if (lower.includes("defense")) next.isDefense = true;
       else if (lower.includes("interception")) next.isInterception = true;
+      else if (lower.includes("disruption")) next.isDisruption = true;
+      else if (lower.includes("survival")) next.isSurvival = true;
       if (lower.includes("munio") || lower.includes("tyana")) next.isDefense = true;
     }
 
     endMissionContext() {
       const host = this.cur.host;
+      this.pendingArbitration = null;
       this.pushCurrent();
       const next = createRun();
       next.host = host;
