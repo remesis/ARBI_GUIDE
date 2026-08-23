@@ -448,7 +448,7 @@ body.empty-page-drag::after {
 .vitus-rate { color: #f5f5f7; font-size: 18px; font-weight: 900; line-height: 1; white-space: nowrap; }
 .vitus-luck { flex: 0 0 auto; margin-left: auto; text-align: right; }
 .vitus-luck .mini { min-height: 1em; margin-top: 0; }
-.vitus-input { box-sizing: border-box; width: 72px; min-height: 34px; display: inline-flex; align-items: center; border: 1px solid #393a43; border-radius: 6px; padding: 5px 9px; background: #111216; color: var(--text); font-size: 16px; font-weight: 850; }
+.vitus-input { box-sizing: border-box; width: 72px; height: 34px; min-height: 34px; display: inline-flex; align-items: center; border: 1px solid #393a43; border-radius: 6px; padding: 4px 9px; background: #111216; color: var(--text); font-size: 19px; font-weight: 850; line-height: 1; }
 .vitus-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
 .vitus-table th,
 .vitus-table td { width: 33.333%; text-align: left; }
