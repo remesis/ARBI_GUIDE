@@ -1,0 +1,472 @@
+html[data-analyzer-layout="correlation-test"] .report-grid.correlation-test-layout {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+html[data-analyzer-layout="correlation-test"] .report-sheet {
+  --report-subtext-size: 14px;
+}
+
+html[data-analyzer-layout="correlation-test"] .report-sheet .badge {
+  font-size: 13px;
+}
+
+html[data-analyzer-layout="correlation-test"] .report-sheet .squad-line {
+  font-size: 16px;
+}
+
+html[data-analyzer-layout="correlation-test"] .report-sheet .goons-label {
+  font-size: 15px;
+}
+
+html[data-analyzer-layout="correlation-test"] .report-sheet .run-code {
+  font-size: 14px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .card-title {
+  font-size: 16px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .kpi-label {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .metric-row,
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .vitus-table,
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .composition-list,
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .rank-row {
+  font-size: 13px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .saturation-card .metric-row {
+  font-size: 15px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-cadence .metric-row {
+  font-size: 14px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout > .left-column {
+  grid-column: 1;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: stretch;
+  align-self: stretch;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout > .left-column > .kpi-grid {
+  align-content: start;
+  grid-auto-rows: max-content;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-workspace {
+  grid-column: 2 / 4;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--report-gap);
+  min-width: 0;
+  align-self: stretch;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-details {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--report-gap);
+  align-items: stretch;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-detail-column {
+  display: grid;
+  gap: var(--report-gap);
+  min-width: 0;
+  align-content: start;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-details > .correlation-test-detail-column:not(.correlation-test-detail-right) {
+  grid-template-rows: minmax(0, 1fr);
+  align-content: stretch;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-details > .correlation-test-detail-column:not(.correlation-test-detail-right) > .correlation-test-saturation {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-cadence {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-saturation {
+  padding-bottom: 16px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-saturation .metric-bars {
+  align-content: space-between;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-cadence .metric-bars {
+  align-content: space-between;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-saturation > .saturation-summary,
+html[data-analyzer-layout="correlation-test"] .correlation-test-cadence > .split-row {
+  align-self: end;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-defense .correlation-test-detail-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc((100% - var(--report-gap)) / 2);
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-defense > .correlation-test-clear-map {
+  display: flex;
+  flex-direction: column;
+  grid-column: 1 / 3;
+  width: 100%;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-defense > .correlation-test-clear-map > .heat-legend {
+  justify-content: flex-start;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-minimap {
+  display: flex;
+  min-height: 520px;
+  flex-direction: column;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-minimap .minimap-wrap {
+  flex: 1;
+  min-height: 420px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-minimap .minimap-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-composition,
+html[data-analyzer-layout="correlation-test"] .correlation-test-cadence {
+  align-self: stretch;
+}
+
+html[data-analyzer-layout="correlation-test"] .composition-despawns {
+  font-size: calc(var(--report-subtext-size) + 2px);
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-composition .composition-list {
+  align-content: start;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-composition .composition-list {
+  margin-top: 0;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-card {
+  --correlation-plot: #13151a;
+  position: relative;
+  padding: 18px 20px 17px;
+  overflow: visible;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-card .card-title {
+  font-size: 16px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-chart-wrap {
+  position: relative;
+  min-width: 0;
+  border: 1px solid #252830;
+  border-radius: 7px;
+  background: var(--correlation-plot);
+  overflow: visible;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1040 / 330;
+  overflow: visible;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-grid line {
+  stroke: #272a31;
+  stroke-width: 1;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-grid text,
+html[data-analyzer-layout="correlation-test"] .correlation-axis text {
+  fill: #858691;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-average {
+  stroke: #92949e;
+  stroke-width: 1.3;
+  stroke-dasharray: 7 6;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-series[hidden] {
+  display: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-series path {
+  fill: none;
+  stroke: var(--series);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-series circle {
+  fill: var(--correlation-plot);
+  stroke: var(--series);
+  stroke-width: 1.8;
+  transition: r .1s ease, fill .1s ease, stroke-width .1s ease;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-series circle.is-active {
+  r: 5px;
+  fill: var(--series);
+  stroke: #fff;
+  stroke-width: 2.2;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-hover-guide {
+  stroke: #d5d7de;
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: .55;
+  pointer-events: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-hit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: crosshair;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-tooltip-stage {
+  position: absolute;
+  z-index: 30;
+  top: -23px;
+  left: 50%;
+  width: min(760px, calc(100% - 440px));
+  min-height: 0;
+  margin: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-tooltip {
+  position: relative;
+  z-index: 20;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px 10px;
+  box-sizing: border-box;
+  border: 1px solid #5f626d;
+  border-radius: 7px;
+  padding: 6px 9px;
+  background: rgba(5, 6, 8, .96);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .6);
+  color: #f5f6f8;
+  pointer-events: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-tooltip[hidden] {
+  display: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-tooltip > strong {
+  display: block;
+  grid-column: 1 / -1;
+  margin-bottom: 1px;
+  font-size: 15px;
+  letter-spacing: .08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-tooltip > span {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-tooltip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--series);
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item i {
+  position: relative;
+  flex: 0 0 9px;
+  width: 9px;
+  height: 9px;
+  margin-right: 3px;
+  border-radius: 3px;
+  background: var(--series);
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-tooltip em {
+  color: #b6b8c1;
+  font-style: normal;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-tooltip b {
+  color: #fff;
+  text-align: right;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend {
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
+  gap: 8px 18px;
+  margin-top: 12px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 0;
+  border-radius: 4px;
+  padding: 3px 4px;
+  background: transparent;
+  color: #e7e8ec;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item:hover,
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item:focus-visible {
+  background: #24262d;
+  outline: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item em {
+  margin-left: 8px;
+  color: #858691;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item > span {
+  white-space: nowrap;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item[aria-pressed="false"] {
+  opacity: 1;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item[aria-pressed="false"] i {
+  background: var(--series);
+  box-shadow: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item[aria-pressed="false"] span {
+  position: relative;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-legend-item[aria-pressed="false"] span::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 58%;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: #ff2838;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-defense > .correlation-test-clear-map .clear-heat-map {
+  grid-template-columns: repeat(25, minmax(0, 1fr));
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-defense > .correlation-test-clear-map.correlation-test-clear-map-dense .clear-heat-map {
+  grid-template-columns: repeat(50, minmax(0, 1fr));
+  gap: 2px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-clear-map-dense .heat-cell {
+  border-radius: 2px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-defense > .correlation-test-clear-map-dense .clear-cell-content strong {
+  font-size: 10px;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-clear-map .clear-cell-content strong {
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-non-defense .correlation-test-clear-map .clear-heat-map {
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-non-defense .correlation-test-clear-map {
+  min-height: 0;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-non-defense .correlation-test-clear-map .heat-cell {
+  min-height: 48px;
+  aspect-ratio: auto;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .composition-bar,
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .phase-saturation,
+html[data-analyzer-layout="correlation-test"] .correlation-test-layout .round-saturation-legend {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  html[data-analyzer-layout="correlation-test"] .report-grid.correlation-test-layout,
+  html[data-analyzer-layout="correlation-test"] .correlation-test-details {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-analyzer-layout="correlation-test"] .correlation-test-layout > .left-column,
+  html[data-analyzer-layout="correlation-test"] .correlation-test-workspace,
+  html[data-analyzer-layout="correlation-test"] .correlation-test-defense > .correlation-test-clear-map {
+    grid-column: 1;
+  }
+
+  html[data-analyzer-layout="correlation-test"] .correlation-test-defense .correlation-test-detail-right {
+    position: static;
+    width: auto;
+  }
+
+  html[data-analyzer-layout="correlation-test"] .correlation-tooltip-stage {
+    top: -23px;
+    width: calc(100% - 180px);
+  }
+
+  html[data-analyzer-layout="correlation-test"] .correlation-tooltip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-analyzer-layout="correlation-test"] .correlation-legend {
+    grid-template-columns: repeat(2, max-content);
+  }
+}

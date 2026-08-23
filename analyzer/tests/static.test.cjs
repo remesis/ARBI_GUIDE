@@ -17,7 +17,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260822-4\.js/);
-  assert.match(html, /analyzer-20260822-99\.js/);
+  assert.match(html, /analyzer-20260823-100\.js/);
+  assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
+  assert.match(html, /correlation-test\.css\?v=20260823-33/);
+  assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
@@ -73,6 +76,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /names\.map\(\(_, index\) => `Player \$\{index \+ 1\}`\)/);
   assert.match(js, /id="squadPrivacyToggle"/);
   assert.match(js, /savePlayerNamePrivacy\(\)/);
+  assert.match(js, /function syncSquadPrivacy\(root, run\)/);
+  assert.match(js, /root\.querySelectorAll\("\.squad-player"\)\.forEach/);
+  assert.match(js, /savePlayerNamePrivacy\(\);\s*syncSquadPrivacy\(\$\("#reportRoot"\), run\)/);
+  assert.doesNotMatch(js, /savePlayerNamePrivacy\(\);\s*renderReport\(run\)/);
   assert.match(js, /renderReport\(null\)/);
   assert.match(js, /document\.addEventListener\("drop"/);
   assert.match(js, /if\(state\.runs\.length\|\|zone\.contains\(event\.target\)\) return/);
@@ -114,11 +121,11 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.elevation-scale\s*\{[^}]*grid-template-columns:\s*repeat\(5, 1fr\)/);
   assert.match(css, /\.report-logo\s*\{[^}]*display:\s*none/);
   assert.match(css, /\.export-stage \.report-logo\s*\{[^}]*display:\s*block/);
-  assert.match(css, /\.export-stage\s*\{[^}]*width:\s*2022px/);
-  assert.match(css, /\.export-stage\s*\{[^}]*--report-scale:\s*1[^}]*--report-gap:\s*16px/);
-  assert.match(css, /\.export-stage \.report-sheet\s*\{[^}]*width:\s*1970px[^}]*font-size:\s*15px/);
-  assert.match(css, /\.export-stage \.report-footer\s*\{[^}]*color:\s*#fff[^}]*font-size:\s*14px/);
-  assert.match(css, /\.export-stage \.goons-label\s*\{[^}]*font-size:\s*15px/);
+  assert.match(css, /\.report-sheet\s*\{[^}]*width:\s*1600px/);
+  assert.match(css, /\.export-stage\s*\{[^}]*width:\s*1652px/);
+  assert.doesNotMatch(css, /\.export-stage\s*\{[^}]*--report-scale|\.export-stage\s*\{[^}]*--report-gap/);
+  assert.doesNotMatch(css, /\.export-stage \.report-sheet\s*\{[^}]*width:|\.export-stage \.report-sheet\s*\{[^}]*font-size:/);
+  assert.doesNotMatch(css, /\.export-stage \.card\s*\{|\.export-stage \.clear-heat-map\s*\{/);
   assert.match(css, /\.report-grid\.dashboard-layout\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(css, /\.report-grid\.dashboard-no-spawns\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(css, /\.dashboard-workspace\s*\{[^}]*grid-column:\s*2 \/ 4/);
@@ -175,12 +182,23 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /kpi\("Drones despawned", fmt\(run\.dronesDespawned \|\| 0\), "Despawn after 20s"\)/);
   assert.match(js, /: kpi\(`Drones \/ \$\{phase\.noun\}`/);
   assert.doesNotMatch(js, /debug-export/);
-  assert.match(css, /\.export-stage \.clear-heat-map\s*\{[^}]*repeat\(25/);
-  assert.match(css, /\.export-stage \.dashboard-no-spawns \.clear-heat-map\s*\{[^}]*repeat\(10/);
+  assert.match(css, /\.dashboard-layout \.clear-heat-map\s*\{[^}]*repeat\(25/);
+  assert.match(css, /\.dashboard-no-spawns \.clear-heat-map\s*\{[^}]*repeat\(10/);
   assert.match(css, /\.export-stage \.activity-card\s*\{[^}]*display:\s*none\s*!important/);
   assert.match(css, /\.squad-privacy-toggle\.is-hidden\s*\{[^}]*color:\s*var\(--red-hot\)/);
   assert.match(css, /\.squad-privacy-toggle\.is-hidden::after/);
+  assert.doesNotMatch(js, /class="squad-label">Squad/);
+  assert.doesNotMatch(css, /\.squad-privacy-toggle \+ \.squad-player::before/);
+  assert.match(css, /\.squad-player \+ \.squad-player::before,[\s\S]*?\.squad-player \+ \.squad-phase::before\s*\{[^}]*content:\s*""[^}]*width:\s*5px[^}]*height:\s*5px[^}]*border-radius:\s*50%[^}]*background:\s*#d9dae2/);
+  assert.match(css, /\.squad-player, \.squad-phase\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center/);
+  assert.match(css, /\.squad-privacy-toggle\s*\{[^}]*margin:\s*0 6px 0 0/);
   assert.match(css, /\.export-stage \.squad-privacy-toggle\s*\{[^}]*display:\s*none\s*!important/);
+  assert.match(css, /\.report-header::after\s*\{[^}]*width:\s*var\(--header-accent-width,\s*175px\)/);
+  assert.match(js, /function syncReportHeaderAccent\(root = document\)/);
+  assert.match(js, /titleRect\.right - headerRect\.left/);
+  assert.match(js, /header\.style\.setProperty\("--header-accent-width"/);
+  assert.match(js, /setupAnalyzerTooltips\(\$\("#reportRoot"\)\);\s*syncReportHeaderAccent\(\$\("#reportRoot"\)\);\s*scheduleReportFit\(\)/);
+  assert.match(js, /syncReportHeaderAccent\(report\);\s*const canvas = await html2canvas\(stage/);
   assert.match(css, /\.saturation-card/);
   assert.match(js, /saturation\.rows\.map\(\(row,index\) => \{ const heat=heatColor\(1-index\/Math\.max\(1,saturation\.rows\.length-1\)\)/);
   assert.match(css, /\.clear-heat-map/);
@@ -247,7 +265,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260822-99.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-100.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
@@ -366,16 +384,17 @@ test("Defense wave colors use the same rounded seconds shown in each cell", () =
   assert.equal(score(26), 0);
 });
 
-test("Interception clear-map colors peak at 6m30s and reach red 10 seconds away", () => {
+test("Interception clear-map colors peak at 6m30s and normalize red to the run's furthest deviation", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /INTERCEPTION_ROTATION_TARGET = 6 \* 60 \+ 30/);
-  assert.match(js, /INTERCEPTION_ROTATION_FADE_SECONDS = 10/);
-  assert.match(js, /function interceptionRotationScore\(seconds\)/);
+  assert.doesNotMatch(js, /INTERCEPTION_ROTATION_FADE_SECONDS/);
+  assert.match(js, /function interceptionRotationScore\(seconds, maxDeviation\)/);
   assert.match(js, /Math\.abs\(value - INTERCEPTION_ROTATION_TARGET\)/);
-  assert.match(js, /interception\s*\?\s*interceptionRotationScore\(item\.seconds\)/);
-  assert.match(js, /Green at 6m 30s; red at 6m 20s \/ 6m 40s\./);
+  assert.match(js, /interceptionMaxDeviation[\s\S]*Math\.max\(0, \.\.\.values\.map/);
+  assert.match(js, /interception\s*\?\s*interceptionRotationScore\(item\.seconds, interceptionMaxDeviation\)/);
+  assert.match(js, /Green at 6m 30s; red at this run's furthest deviation\./);
   assert.match(js, /interception \? "target 6m 30s"/);
-  assert.match(js, /interception \? "red ±10s"/);
+  assert.match(js, /interception \? `furthest \$\{shortDuration\(interceptionFarthest\)\}`/);
 });
 
 test("saturation labels use each mission mode's configured threshold", () => {
@@ -392,6 +411,8 @@ test("saturation summary displays telemetry coverage as a smaller muted right-si
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
   assert.match(js, /class="saturation-summary-item telemetry-coverage"/);
+  assert.match(js, /style="color:\$\{saturationSummaryColor\(saturation\.abovePercent\)\}"/);
+  assert.match(js, /function saturationSummaryColor\(percent\) \{\s*const hue = 120 - clamp\(Number\(percent \|\| 0\), 0, 18\) \/ 18 \* 120;/);
   assert.match(js, /Telemetry coverage/);
   assert.match(js, /telemetryLabel/);
   assert.match(js, /=== 100 \? "100"/);
@@ -639,4 +660,85 @@ test("Stofler spawn analysis keeps wave 7+ points that align to the bottom-floor
   assert.match(js, /Number\(wave\) >= floorFilter\.minWave/);
   assert.match(js, /SpawnAlignment\.matchingSubset\(points, floorConfig\)/);
   assert.match(js, /function renderSpawnColumn\(run\) \{\s*const points = analyzerSpawnPoints\(run\);/);
+});
+
+test("production correlation layout keeps the compact metrics and fixed hover readout", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const css = fs.readFileSync(path.join(analyzerDir, "correlation-test.css"), "utf8");
+  const branchStart = js.indexOf('${CORRELATION_LAYOUT_ACTIVE ? `');
+  const branchEnd = js.indexOf('` : `', branchStart);
+  assert.ok(branchStart >= 0 && branchEnd > branchStart);
+  const compactKpis = js.slice(branchStart, branchEnd);
+  const labels = ["Total enemies", "Drones killed", "Enemies / min", "Total duration", "Enemies / drone", "Drone interval"];
+  let previous = -1;
+  for (const label of labels) {
+    const index = compactKpis.indexOf(`kpi("${label}"`);
+    assert.ok(index > previous, `${label} should follow the requested compact KPI order`);
+    previous = index;
+  }
+  assert.match(js, /20s Drone despawns: <strong>\$\{fmt\(run\.dronesDespawned \|\| 0\)\}/);
+  assert.match(css, /\.composition-despawns\s*\{[^}]*font-size:\s*calc\(var\(--report-subtext-size\) \+ 2px\)/);
+  assert.match(js, /class="peak-value-row"/);
+  assert.match(js, /class="correlation-tooltip-stage"/);
+  assert.doesNotMatch(js, /const xPercent = Number\(hit\.dataset\.correlationX\)/);
+  assert.match(css, /\.correlation-tooltip-stage\s*\{[^}]*position:\s*absolute/);
+  assert.match(css, /\.correlation-tooltip-stage\s*\{[^}]*left:\s*50%/);
+  assert.match(css, /\.correlation-tooltip\s*\{[^}]*grid-template-columns:\s*repeat\(4/);
+  assert.match(css, /\.correlation-legend\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*max-content\)/);
+  assert.match(css, /\.correlation-legend-item\s*\{[^}]*font-size:\s*14px/);
+  assert.match(css, /\.correlation-legend-item\s*\{[^}]*display:\s*inline-flex/);
+  assert.match(css, /\.correlation-legend-item i\s*\{[^}]*margin-right:\s*3px/);
+  assert.match(css, /\.correlation-legend-item em\s*\{[^}]*margin-left:\s*8px/);
+  assert.match(css, /\.correlation-legend-item\[aria-pressed="false"\] span::after\s*\{[^}]*top:\s*58%/);
+  assert.match(css, /\.correlation-legend-item\[aria-pressed="false"\] span::after\s*\{[^}]*height:\s*2px/);
+  assert.match(css, /\.correlation-legend-item\[aria-pressed="false"\] span::after\s*\{[^}]*background:\s*#ff2838/);
+  assert.doesNotMatch(js, /className = "correlation-test-defense-bottom"/);
+  assert.match(js, /className = "correlation-test-detail-column correlation-test-detail-right"/);
+  assert.match(css, /\.correlation-test-defense \.correlation-test-detail-right\s*\{[^}]*position:\s*absolute/);
+  assert.match(css, /\.correlation-test-defense > \.correlation-test-clear-map\s*\{[^}]*grid-column:\s*1 \/ 3/);
+  assert.match(css, /\.correlation-test-defense > \.correlation-test-clear-map\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column/);
+  assert.match(css, /\.correlation-test-defense > \.correlation-test-clear-map > \.heat-legend\s*\{[^}]*justify-content:\s*flex-start[^}]*margin-top:\s*auto[^}]*padding-top:\s*10px/);
+  assert.match(css, /\.correlation-test-defense > \.correlation-test-clear-map \.clear-heat-map\s*\{[^}]*repeat\(25,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(js, /visibleDuration = CORRELATION_LAYOUT_ACTIVE && phase\.defense[\s\S]*String\(Math\.round\(item\.seconds\)\)/);
+  assert.match(js, /defenseWaveCount > 125/);
+  assert.match(css, /\.correlation-test-clear-map\.correlation-test-clear-map-dense \.clear-heat-map\s*\{[^}]*repeat\(50,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(js, /canStretchMinimap = grid\.classList\.contains\("correlation-test-defense-102"\)/);
+  assert.match(js, /if \(canStretchMinimap && clearMapRect\.bottom > minimapRect\.bottom\)[\s\S]*minimap\.style\.height/);
+  assert.match(js, /else if \(minimapRect\.bottom > clearMapRect\.bottom\)[\s\S]*clearMap\.style\.height/);
+  assert.match(js, /if \(run\.missionType === "DEFENSE"\)[\s\S]*observeCorrelationDefenseLayout\(grid\)/);
+  assert.match(js, /correlationGrid = report\.querySelector\("\.correlation-test-layout\.correlation-test-defense"\)/);
+  assert.match(js, /if \(correlationGrid\) syncCorrelationDefenseTileHeight\(correlationGrid\)/);
+  assert.match(js, /await inlineImagesForExport\(stage\);[\s\S]*correlationGrid = report\.querySelector\("\.correlation-test-layout\.correlation-test-defense"\)[\s\S]*syncCorrelationDefenseTileHeight\(correlationGrid\)[\s\S]*html2canvas\(stage/);
+  assert.match(js, /minimap\.style\.height = "";\s*clearMap\.style\.height = "";/);
+  assert.match(js, /function observeCorrelationDefenseLayout\(grid\)[\s\S]*new ResizeObserver\(\(\) => scheduleCorrelationDefenseLayout\(grid\)\)/);
+  assert.match(js, /image\.addEventListener\("load", \(\) => scheduleCorrelationDefenseLayout\(grid\), \{ once: true \}\)/);
+  assert.match(css, /\.correlation-test-cadence \.metric-row\s*\{[^}]*font-size:\s*14px/);
+  assert.match(css, /\.correlation-test-workspace\s*\{[^}]*grid-template-rows:\s*auto minmax\(0,\s*1fr\)/);
+  assert.match(css, /\.correlation-test-workspace\s*\{[^}]*align-self:\s*stretch/);
+  assert.match(css, /\.correlation-test-layout > \.left-column\s*\{[^}]*grid-template-rows:\s*auto auto minmax\(0,\s*1fr\)/);
+  assert.match(css, /\.correlation-test-layout > \.left-column\s*\{[^}]*align-self:\s*stretch/);
+  assert.match(css, /\.correlation-test-detail-column:not\(\.correlation-test-detail-right\)\s*\{[^}]*grid-template-rows:\s*minmax\(0,\s*1fr\)/);
+  assert.match(css, /\.correlation-test-detail-column:not\(\.correlation-test-detail-right\) > \.correlation-test-saturation\s*\{[^}]*grid-template-rows:\s*auto auto minmax\(0,\s*1fr\) auto/);
+  assert.doesNotMatch(css, /\.correlation-test-detail-column:not\(\.correlation-test-detail-right\) > \.correlation-test-saturation\s*\{[^}]*margin-bottom/);
+  assert.match(css, /\.correlation-test-cadence\s*\{[^}]*grid-template-rows:\s*auto auto minmax\(0,\s*1fr\) auto/);
+  assert.match(css, /\.correlation-test-saturation\s*\{[^}]*padding-bottom:\s*16px/);
+  assert.match(css, /\.correlation-test-saturation \.metric-bars\s*\{[^}]*align-content:\s*space-between/);
+  assert.match(css, /\.correlation-test-cadence \.metric-bars\s*\{[^}]*align-content:\s*space-between/);
+  assert.match(css, /\.correlation-test-saturation > \.saturation-summary,[\s\S]*?\.correlation-test-cadence > \.split-row\s*\{[^}]*align-self:\s*end/);
+  assert.match(js, /fixedIntervals = run\.missionType === "DISRUPTION"/);
+  assert.match(js, /fixedIntervals\s*\? correlationFixedActivePhases\(run\)/);
+  assert.match(js, /calculateFixedDpmWindows\(run, windowSeconds\)/);
+  assert.match(js, /axisPrefix = fixedIntervals \? "I" : "R"/);
+  assert.match(js, /6-minute interval correlation/);
+  assert.match(js, /axisLabel: String\(Math\.round\(window\.to \/ 60\)\)/);
+  assert.match(js, /data\.fixedIntervals \? h\(phase\.axisLabel\)/);
+  assert.match(js, /data\.fixedIntervals[\s\S]*`\$\{data\.phases\[index\]\.axisLabel\} minutes`/);
+  assert.match(js, /CORRELATION_VISIBILITY_KEY = "arbi-analyzer-correlation-series-v2"/);
+  assert.match(js, /LEGACY_CORRELATION_VISIBILITY_KEY = "arbi-analyzer-correlation-series-v1"/);
+  assert.match(js, /function correlationModeKey\(missionType\)/);
+  assert.match(js, /const CORRELATION_LAYOUT_ACTIVE = true/);
+  assert.match(js, /if \(CORRELATION_LAYOUT_ACTIVE\) activateCorrelationVisibility\(run\.missionType\)/);
+  assert.match(js, /prepareCorrelationLayout\(\$\("#reportRoot"\), run\)/);
+  assert.match(js, /state\.correlationVisibilityByMode\[state\.activeCorrelationMode\] = normalizeCorrelationVisibility/);
+  assert.match(js, /localStorage\.setItem\(CORRELATION_VISIBILITY_KEY, JSON\.stringify\(state\.correlationVisibilityByMode\)\)/);
 });

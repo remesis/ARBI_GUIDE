@@ -267,6 +267,28 @@ counterclockwise using the same projection-level rotation. Its geometry,
 objective positions, and submitted-log spawn matrix rotate together; the
 A/B/C/D glyphs are drawn after projection so the letters remain upright.
 
+## Production report layout
+
+As of 2026-08-23, the approved correlation layout is the production Analyzer
+layout. `index.html` loads `correlation-test.css` unconditionally (the filename
+is historical) and the immutable `analyzer-20260823-100.js` bundle. The
+maintained source remains `analyzer.js`; whenever it changes, publish a new
+immutable filename and update the shell and static tests together.
+
+The report uses a compact 3x2 summary beside the large correlation chart.
+Chart visibility preferences are stored per game mode, and the privacy eye
+updates player labels in place so it does not rebuild the report. Defense uses
+the wave-clear map and reviewed tile layout, while other modes use their
+rotation-clear map in the corresponding report position. Clipboard images
+clone this same rendered report instead of maintaining a separate card layout,
+including the responsive card-height and long-run wave-grid rules.
+
+This promotion is presentation-only. It does not change `parser.js`,
+`submission.js`, the reduced submission payload, the Worker route, the D1
+schema, or the aggregate views. Keep layout work on that side of the boundary;
+any future ingestion change needs its own contract, Worker, migration, and
+remote verification pass.
+
 ## Verification
 
 Run from `ARBI_GUIDE`:
