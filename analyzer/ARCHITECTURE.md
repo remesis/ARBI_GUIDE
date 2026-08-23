@@ -278,7 +278,7 @@ The affine transform and submitted-log spawn coordinates are unchanged.
 
 As of 2026-08-23, the approved correlation layout is the production Analyzer
 layout. `index.html` loads `correlation-test.css` unconditionally (the filename
-is historical) and the immutable `analyzer-20260823-100.js` bundle. The
+is historical) and the immutable `analyzer-20260823-101.js` bundle. The
 maintained source remains `analyzer.js`; whenever it changes, publish a new
 immutable filename and update the shell and static tests together.
 
@@ -295,6 +295,11 @@ This promotion is presentation-only. It does not change `parser.js`,
 schema, or the aggregate views. Keep layout work on that side of the boundary;
 any future ingestion change needs its own contract, Worker, migration, and
 remote verification pass.
+
+File-picker imports and run-list selection retain their immediate Actual Vitus
+focus behavior. Only drag/drop imports perform one deferred re-focus after the
+report layout settles, preventing the completed drop interaction from reclaiming
+the cursor.
 
 ## Verification
 

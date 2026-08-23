@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-5\.js/);
-  assert.match(html, /analyzer-20260823-100\.js/);
+  assert.match(html, /analyzer-20260823-101\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260823-33/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -60,14 +60,18 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /actual \* 60 \/ seconds/);
   assert.match(js, /return "⎵ VE\/min"/);
   assert.match(js, /\$\("#vitusRate"\)\.textContent = formatVitusRate\(run\)/);
-  assert.match(js, /function focusActualVitusEntry\(\)/);
+  assert.match(js, /function focusActualVitusEntry\(settle = false\)/);
   assert.match(js, /input\.focus\(\{ preventScroll: true \}\)/);
   assert.match(js, /const end = input\.value\.length;\s*input\.setSelectionRange\(end, end\)/);
+  assert.match(js, /if \(settle\) setTimeout\(\(\) => requestAnimationFrame\(applyFocus\), 0\)/);
   assert.match(js, /type="text" inputmode="numeric" pattern="\[0-9\]\*" maxlength="4" autocomplete="off"/);
   assert.match(js, /const digits = cleanVitusDigits\(vitusInput\.value\)/);
   assert.match(js, /function cleanVitusDigits\(value\)\s*\{\s*return String\(value \?\? ""\)\.replace\(\/\\D\/g, ""\)\.slice\(0, 4\)/);
   assert.match(js, /run\.actualVitus = ""/);
   assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\);\s*focusActualVitusEntry\(\)/);
+  assert.match(js, /if \(settleFocus\) focusActualVitusEntry\(true\)/);
+  assert.match(js, /zone\.addEventListener\("drop",\(event\)=>importFile\(event\.dataTransfer\.files\[0\], true\)\)/);
+  assert.match(js, /importFile\(event\.dataTransfer\.files\[0\], true\)/);
   assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\); focusActualVitusEntry\(\)/);
   assert.match(js, /renderReport\(next\.run\);\s*focusActualVitusEntry\(\)/);
   assert.match(js, /PLAYER_PRIVACY_TTL_MS = 365 \* 24 \* 60 \* 60 \* 1000/);
@@ -268,7 +272,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-100.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-101.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Both Boosters, Drop Blessing and Resourceful Retriever\./);
