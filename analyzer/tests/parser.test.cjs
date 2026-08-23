@@ -752,7 +752,7 @@ test("retains a relay blessing timestamp and locates its mid-mission expiry", ()
   assert.equal(run.droneKills - run.blessedDroneKills, 5);
 });
 
-test("classifies actual Vitus totals by scenario upper bounds", () => {
+test("advances actual Vitus luck at the 1st, 10th, 25th, 75th, 90th, and 99th percentiles", () => {
   const scenarios = [
     { total: 1025, label: "Worst Case" },
     { total: 1078, label: "Unlucky" },
@@ -767,7 +767,31 @@ test("classifies actual Vitus totals by scenario upper bounds", () => {
   assert.equal(Parser.classifyVitusScenario(scenarios, 1050).label, "Unlucky");
   assert.equal(Parser.classifyVitusScenario(scenarios, 1078).label, "Unlucky");
   assert.equal(Parser.classifyVitusScenario(scenarios, 1079).label, "Below Avg");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1109).label, "Below Avg");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1110).label, "Average");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1176).label, "Average");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1177).label, "Above Avg");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1207).label, "Above Avg");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1208).label, "High Roll");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1260).label, "High Roll");
+  assert.equal(Parser.classifyVitusScenario(scenarios, 1261).label, "God Roll");
   assert.equal(Parser.classifyVitusScenario(scenarios, 1262).label, "God Roll");
+});
+
+test("uses inclusive upper-percentile and exclusive lower-percentile luck cutoffs", () => {
+  const result = Parser.computeVitus(800, 20, "DEFENSE");
+  const byLabel = new Map(result.scenarios.map((scenario) => [scenario.label, scenario]));
+  const epsilon = 1e-7;
+
+  assert.equal(Parser.classifyVitusScenario(result.scenarios, byLabel.get("Worst Case").cutoff).label, "Worst Case");
+  assert.equal(Parser.classifyVitusScenario(result.scenarios, byLabel.get("Worst Case").cutoff + epsilon).label, "Unlucky");
+  assert.equal(Parser.classifyVitusScenario(result.scenarios, byLabel.get("Unlucky").cutoff).label, "Unlucky");
+  assert.equal(Parser.classifyVitusScenario(result.scenarios, byLabel.get("Unlucky").cutoff + epsilon).label, "Below Avg");
+  assert.equal(Parser.classifyVitusScenario(result.scenarios, byLabel.get("Below Avg").cutoff).label, "Below Avg");
+  assert.equal(Parser.classifyVitusScenario(result.scenarios, byLabel.get("Below Avg").cutoff + epsilon).label, "Average");
+  assert.equal(Parser.classifyVitusScenario(result.scenarios, byLabel.get("Above Avg").cutoff).label, "Above Avg");
+  assert.equal(Parser.classifyVitusScenario(result.scenarios, byLabel.get("High Roll").cutoff).label, "High Roll");
+  assert.equal(Parser.classifyVitusScenario(result.scenarios, byLabel.get("God Roll").cutoff).label, "God Roll");
 });
 
 test("calculates time-weighted enemy occupancy for Defense waves", () => {

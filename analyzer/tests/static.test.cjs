@@ -278,11 +278,11 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260823-73"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260823-74"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
   assert.match(parser, /scanner-worker\.js\?v=20260823-9/);
-  assert.match(html, /parser\.js\?v=20260823-73/);
+  assert.match(html, /parser\.js\?v=20260823-74/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
@@ -446,6 +446,7 @@ test("saturation summary displays telemetry coverage as a smaller muted right-si
   assert.match(css, /\.saturation-summary \.big\s*\{[^}]*line-height:\s*1/);
   assert.match(css, /\.telemetry-coverage\s*\{[^}]*width:\s*100%[^}]*justify-self:\s*stretch[^}]*justify-items:\s*end[^}]*text-align:\s*right/);
   assert.match(css, /\.saturation-card \.telemetry-coverage \.big\s*\{[^}]*color:\s*var\(--muted\)[^}]*font-size:\s*30px/);
+  assert.match(css, /\.cadence-highlights > \.highlight-panel:last-child \.big\s*\{[^}]*color:\s*var\(--muted\)/);
 });
 
 test("small report annotations use brighter colors and larger type", () => {
@@ -480,7 +481,7 @@ test("report timestamps use readable mission-relative elapsed time", () => {
   assert.doesNotMatch(js, /at \$\{shortDuration\(peak\.time\)\}/);
 });
 
-test("actual Vitus luck uses upper-bound bands instead of nearest totals", () => {
+test("actual Vitus luck uses the shared percentile bands instead of nearest totals", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /Parser\.classifyVitusScenario\(result\.scenarios, actual\)/);
   assert.doesNotMatch(js, /Math\.abs\(a\.total-actual\)/);

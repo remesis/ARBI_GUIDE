@@ -1447,21 +1447,42 @@
     const mean = rotationMean + droneMean;
     const standardDeviation = Math.sqrt(Math.max(0, rotationVariance + droneVariance));
     const scenarios = [
-      [-2.326, "99%", "Worst Case"],
-      [-1.282, "90%", "Unlucky"],
-      [-0.674, "75%", "Below Avg"],
-      [0, "50%", "Average"],
-      [0.674, "25%", "Above Avg"],
-      [1.282, "10%", "High Roll"],
-      [2.326, "1%", "God Roll"],
-    ].map(([z, chance, label]) => ({ chance, label, total: Math.max(0, Math.round(mean + z * standardDeviation)) }));
+      [-2.326, -2.3263478740408408, "99%", "Worst Case"],
+      [-1.282, -1.2815515655446004, "90%", "Unlucky"],
+      [-0.674, -0.6744897501960817, "75%", "Below Avg"],
+      [0, 0, "50%", "Average"],
+      [0.674, 0.6744897501960817, "25%", "Above Avg"],
+      [1.282, 1.2815515655446004, "10%", "High Roll"],
+      [2.326, 2.3263478740408408, "1%", "God Roll"],
+    ].map(([displayZ, cutoffZ, chance, label]) => ({
+      chance,
+      label,
+      total: Math.max(0, Math.round(mean + displayZ * standardDeviation)),
+      cutoff: mean + cutoffZ * standardDeviation,
+    }));
     return { mean, standardDeviation, scenarios, blessedDroneKills: blessedDrones, unblessedDroneKills: unblessedDrones };
   }
 
   function classifyVitusScenario(scenarios, actual) {
     const value = Number(actual);
     if (!Array.isArray(scenarios) || !scenarios.length || !Number.isFinite(value)) return null;
-    return scenarios.find((scenario) => value <= scenario.total) || scenarios[scenarios.length - 1];
+    const byLabel = new Map(scenarios.map((scenario) => [scenario.label, scenario]));
+    const worst = byLabel.get("Worst Case");
+    const unlucky = byLabel.get("Unlucky");
+    const below = byLabel.get("Below Avg");
+    const average = byLabel.get("Average");
+    const above = byLabel.get("Above Avg");
+    const high = byLabel.get("High Roll");
+    const god = byLabel.get("God Roll");
+    if (![worst, unlucky, below, average, above, high, god].every(Boolean)) return null;
+    const cutoff = (scenario) => Number.isFinite(scenario.cutoff) ? scenario.cutoff : scenario.total;
+    if (value >= cutoff(god)) return god;
+    if (value >= cutoff(high)) return high;
+    if (value >= cutoff(above)) return above;
+    if (value > cutoff(below)) return average;
+    if (value > cutoff(unlucky)) return below;
+    if (value > cutoff(worst)) return unlucky;
+    return worst;
   }
 
   function forEachRelevantLine(text, callback) {

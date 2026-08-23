@@ -424,6 +424,7 @@ body.empty-page-drag::after {
 .highlight-panel .mini { color: var(--muted); font-size: var(--report-subtext-size); }
 .peak-value-row { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
 .peak-value-row .mini { white-space: nowrap; }
+.cadence-highlights > .highlight-panel:last-child .big { color: var(--muted); }
 .saturation-card { padding: 21px; }
 .saturation-card .card-title { font-size: 16px; }
 .saturation-card .card-subtitle { margin-bottom: 16px; }
