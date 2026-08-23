@@ -1,6 +1,6 @@
 "use strict";
 
-importScripts("./parser.js?v=20260823-72");
+importScripts("./parser.js?v=20260823-73");
 
 const Parser = self.ArbitrationLogParser;
 const tokenPool = new Map();

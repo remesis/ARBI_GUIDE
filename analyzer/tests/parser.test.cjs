@@ -715,6 +715,43 @@ test("models early and later rotation rewards, including Mirror Defense's two-Vi
   assert.ok(Math.abs(withDrones.mean - 37.82) < 1e-9);
 });
 
+test("splits drone-drop odds when a logged Resource Drop Chance Blessing expires", () => {
+  const fullBlessing = Parser.computeVitus(100, 2, "DEFENSE");
+  const partialBlessing = Parser.computeVitus(100, 2, "DEFENSE", 40);
+  const expiredBlessing = Parser.computeVitus(100, 2, "DEFENSE", 0);
+  const rotationMean = 2 + 2 * 3 * .07;
+  const expectedPartialMean = rotationMean + (40 * .15 + 60 * .12) * 2.36;
+
+  assert.ok(Math.abs(partialBlessing.mean - expectedPartialMean) < 1e-9);
+  assert.ok(fullBlessing.mean > partialBlessing.mean);
+  assert.ok(partialBlessing.mean > expiredBlessing.mean);
+  assert.equal(partialBlessing.blessedDroneKills, 40);
+  assert.equal(partialBlessing.unblessedDroneKills, 60);
+});
+
+test("retains a relay blessing timestamp and locates its mid-mission expiry", () => {
+  const lines = [
+    "100.0 Sys [Info]: LotusProfileData::AddPendingHubBlessing /Lotus/Types/StoreItems/Boosters/ResourceDropChanceBlessingStoreItem",
+    "200.0 Game [Info]: EliteAlertMission at SolNode130",
+    "201.0 ThemedSquadOverlay.lua: Mission name: Lares (Mercury) - Arbitration",
+    "300.0 WaveDefend.lua: Starting wave 1, spawning a total of 40 tier-0 enemies (29 simultaneous, 0% chance of eximus)",
+  ];
+  for (let index = 0; index < 40; index += 1) {
+    const timestamp = index < 20 ? 1000 + index : 11000 + index;
+    const isDrone = index < 5 || (index >= 20 && index < 25);
+    const npc = isDrone ? "CorpusEliteShieldDroneAgent" : "LancerAgent";
+    lines.push(`${timestamp.toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20}`);
+  }
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.ok(run);
+  assert.equal(run.resourceBlessingAt, 100);
+  assert.equal(run.resourceBlessingExpiresAt, 10900);
+  assert.equal(run.resourceBlessingExpiryElapsed, 10699);
+  assert.equal(run.blessedDroneKills, 5);
+  assert.equal(run.droneKills - run.blessedDroneKills, 5);
+});
+
 test("classifies actual Vitus totals by scenario upper bounds", () => {
   const scenarios = [
     { total: 1025, label: "Worst Case" },

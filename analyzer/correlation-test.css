@@ -180,6 +180,17 @@ html[data-analyzer-layout="correlation-test"] .correlation-card .card-title {
   font-size: 16px;
 }
 
+html[data-analyzer-layout="correlation-test"] .correlation-blessing-expiry-label {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  color: #ff4b58;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 html[data-analyzer-layout="correlation-test"] .correlation-chart-wrap {
   position: relative;
   min-width: 0;
@@ -246,6 +257,13 @@ html[data-analyzer-layout="correlation-test"] .correlation-hover-guide {
   stroke-width: 1;
   stroke-dasharray: 3 4;
   opacity: .55;
+  pointer-events: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-blessing-expiry {
+  stroke: #ff2838;
+  stroke-width: 2;
+  opacity: .9;
   pointer-events: none;
 }
 

@@ -69,11 +69,16 @@ mission types retain the original three-enemy buckets and the 15+ threshold.
 Expected Vitus luck totals are inclusive upper bounds for their displayed
 bands: an actual total above one row advances to the next row instead of being
 assigned to the numerically nearest scenario.
-Expected Vitus models a 15% drone drop chance and an 18% Resourceful Retriever
-duplication chance. Each completed reward cycle adds one guaranteed Vitus plus
-a bonus roll: 7% for cycles 1-4 and 10% afterward. The bonus is three Vitus in
-normal modes and two in Mirror Defense. Mission type is therefore an explicit
-input to the mean and variance calculation.
+Expected Vitus models a 15% drone drop chance while Resource Drop Chance
+Blessing and the drop-chance booster overlap, a 12% chance after that Blessing
+expires, and an 18% Resourceful Retriever duplication chance. When the local
+log contains the relay Blessing marker, its three-hour lifetime is measured
+against the mission clock and drone kills are split at the exact expiry. Logs
+without the pre-mission marker retain the existing full-run assumption. Each
+completed reward cycle adds one guaranteed Vitus plus a bonus roll: 7% for
+cycles 1-4 and 10% afterward. The bonus is three Vitus in normal modes and two
+in Mirror Defense. Mission type is therefore an explicit input to the mean and
+variance calculation.
 The headline luck label uses the report's red-to-green performance ramp from
 Worst Case through God Roll and recolors immediately when Actual Vitus changes.
 
@@ -295,7 +300,7 @@ not baked into the published WebP.
 
 As of 2026-08-23, the approved correlation layout is the production Analyzer
 layout. `index.html` loads `correlation-test.css` unconditionally (the filename
-is historical) and the immutable `analyzer-20260823-101.js` bundle. The
+is historical) and the immutable `analyzer-20260823-102.js` bundle. The
 maintained source remains `analyzer.js`; whenever it changes, publish a new
 immutable filename and update the shell and static tests together.
 
@@ -307,11 +312,17 @@ rotation-clear map in the corresponding report position. Clipboard images
 clone this same rendered report instead of maintaining a separate card layout,
 including the responsive card-height and long-run wave-grid rules.
 
-This promotion is presentation-only. It does not change `parser.js`,
+The layout promotion itself was presentation-only. The later Blessing-expiry
+work changes local parsing and report math, but it still does not change
 `submission.js`, the reduced submission payload, the Worker route, the D1
-schema, or the aggregate views. Keep layout work on that side of the boundary;
-any future ingestion change needs its own contract, Worker, migration, and
-remote verification pass.
+schema, or the aggregate views. Keep future ingestion changes behind their own
+contract, Worker, migration, and remote verification pass.
+
+For a run whose logged Resource Drop Chance Blessing expires mid-mission, the
+correlation chart shows a solid red full-height divider at the exact elapsed
+time and prints that time in the card's upper-right corner. The Expected Vitus
+model uses the same timestamp, so the chart and reward estimate cannot disagree
+about which drone kills were still blessed.
 
 File-picker imports and run-list selection retain their immediate Actual Vitus
 focus behavior. Only drag/drop imports perform one deferred re-focus after the

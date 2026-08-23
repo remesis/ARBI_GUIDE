@@ -7,8 +7,10 @@
 
   const MIN_RUN_DRONES = 5;
   const MIN_RUN_ENEMIES = 40;
-  const DROP_CHANCE = 0.15;
+  const BLESSED_DROP_CHANCE = 0.15;
+  const BOOSTED_DROP_CHANCE = 0.12;
   const RETRIEVER_CHANCE = 0.18;
+  const RESOURCE_BLESSING_SECONDS = 3 * 60 * 60;
   const EARLY_ROTATION_BONUS_CHANCE = 0.07;
   const LATE_ROTATION_BONUS_CHANCE = 0.10;
   const EARLY_ROTATION_COUNT = 4;
@@ -22,7 +24,7 @@
   const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260823-8";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260823-9";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
@@ -143,6 +145,7 @@
   const P_MISSION = /ThemedSquadOverlay\.lua: Mission name: (.*)/;
   const P_MISSION_VOTE = /ThemedSquadOverlay\.lua: ShowMissionVote (.*)/;
   const P_ARBITRATION_SELECTION = /\b((?:Sol|Clan|Settlement)Node\d+)_EliteAlert\b/i;
+  const P_RESOURCE_BLESSING = /^!?(\d+\.\d+).*LotusProfileData::AddPendingHubBlessing \/Lotus\/Types\/StoreItems\/Boosters\/ResourceDropChanceBlessingStoreItem\b/;
   const P_AGENT_FULL = /OnAgentCreated.*?\/Npc\/(.+?)(\d+)\s+.*?MonitoredTicking\s+(\d+)/;
   const P_NPC = /\/Npc\/([A-Za-z0-9_]+)/;
   const P_WAVE_LINE = /^!?(\d+\.\d+).*WaveDefend\.lua: Starting wave (\d+)/;
@@ -161,7 +164,7 @@
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|Mission name:|ShowMissionVote|_EliteAlert|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -366,6 +369,7 @@
       this.cur = createRun();
       this.advertised = [];
       this.levels = [];
+      this.resourceBlessings = [];
       this.stringPool = new Map();
       this.pendingArbitration = null;
     }
@@ -385,6 +389,7 @@
       if (!line || line === "\r" || line.includes("Game [Warning]:") || line.includes("DamagePct")) return;
       let hasAgent = false;
       let hasDroneDespawn = false;
+      let hasResourceBlessing = false;
       let hasMission = false;
       let hasMissionVote = false;
       let hasArbitrationSelection = false;
@@ -419,6 +424,7 @@
         // callers that do not use the streaming token scanner.
         hasAgent = line.includes("OnAgentCreated");
         hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
+        hasResourceBlessing = line.includes("ResourceDropChanceBlessingStoreItem");
         hasMission = line.includes("Mission name:");
         hasMissionVote = line.includes("ShowMissionVote");
         hasArbitrationSelection = P_ARBITRATION_SELECTION.test(line);
@@ -453,6 +459,7 @@
           case "Destroying CorpusEliteShieldDroneAvatar":
             hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
             break;
+          case "ResourceDropChanceBlessingStoreItem": hasResourceBlessing = true; break;
           case "Mission name:": hasMission = true; break;
           case "ShowMissionVote":
             hasMissionVote = true;
@@ -498,9 +505,14 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasMission || hasMissionVote || hasArbitrationSelection || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasResourceBlessing || hasMission || hasMissionVote || hasArbitrationSelection || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
 
       const lineTimestamp = Number((line.match(P_TIMESTAMP) || [])[1]) || 0;
+      if (hasResourceBlessing) {
+        const match = line.match(P_RESOURCE_BLESSING);
+        if (match) this.resourceBlessings.push(Number(match[1]));
+        return;
+      }
       const selectionMatch = hasArbitrationSelection ? line.match(P_ARBITRATION_SELECTION) : null;
       const selectedNode = selectionMatch ? canonicalNode(selectionMatch[1]) : "";
 
@@ -940,6 +952,7 @@
         finalizeRun(run);
         bindContext(run, this.advertised, this.levels);
         deriveRun(run);
+        attachResourceBlessing(run, this.resourceBlessings);
       });
       return this.runs.filter(hasData);
     }
@@ -1062,6 +1075,25 @@
     run.longestSpawnGaps = longestGaps(run.enemyTimestamps, run.pauseIntervals, 5, run.startTime, run.endTime);
     run.shortId = "pending";
     return run;
+  }
+
+  function attachResourceBlessing(run, timestamps) {
+    const acquired = (timestamps || [])
+      .filter((timestamp) => Number.isFinite(timestamp) && timestamp <= run.startTime)
+      .at(-1);
+    if (!Number.isFinite(acquired)) return;
+    const expiresAt = acquired + RESOURCE_BLESSING_SECONDS;
+    const blessedDroneKills = expiresAt <= run.startTime
+      ? 0
+      : (expiresAt >= run.endTime
+        ? run.droneKills
+        : run.droneTimestamps.filter((timestamp) => timestamp <= expiresAt).length);
+    run.resourceBlessingAt = acquired;
+    run.resourceBlessingExpiresAt = expiresAt;
+    run.blessedDroneKills = Math.max(0, Math.min(run.droneKills, blessedDroneKills));
+    if (expiresAt > run.startTime && expiresAt < run.endTime) {
+      run.resourceBlessingExpiryElapsed = expiresAt - run.startTime;
+    }
   }
 
   function tileFromPath(path) {
@@ -1385,7 +1417,7 @@
     return gaps.sort((a, b) => b[0] - a[0]).slice(0, limit);
   }
 
-  function computeVitus(droneKills, rotations, missionType = "") {
+  function computeVitus(droneKills, rotations, missionType = "", blessedDroneKills = null) {
     const rot = Math.max(0, rotations || 0);
     const drones = Math.max(0, droneKills || 0);
     const mode = String(missionType).trim().toUpperCase().replace(/[_-]+/g, " ");
@@ -1400,8 +1432,13 @@
       earlyRotations * EARLY_ROTATION_BONUS_CHANCE * (1 - EARLY_ROTATION_BONUS_CHANCE)
       + lateRotations * LATE_ROTATION_BONUS_CHANCE * (1 - LATE_ROTATION_BONUS_CHANCE)
     );
-    const meanDrops = drones * DROP_CHANCE;
-    const varianceDrops = drones * DROP_CHANCE * (1 - DROP_CHANCE);
+    const blessedDrones = Number.isFinite(blessedDroneKills)
+      ? Math.max(0, Math.min(drones, blessedDroneKills))
+      : drones;
+    const unblessedDrones = drones - blessedDrones;
+    const meanDrops = blessedDrones * BLESSED_DROP_CHANCE + unblessedDrones * BOOSTED_DROP_CHANCE;
+    const varianceDrops = blessedDrones * BLESSED_DROP_CHANCE * (1 - BLESSED_DROP_CHANCE)
+      + unblessedDrones * BOOSTED_DROP_CHANCE * (1 - BOOSTED_DROP_CHANCE);
     const meanValue = 4 * RETRIEVER_CHANCE + 2 * (1 - RETRIEVER_CHANCE);
     const expectedValueSquared = 16 * RETRIEVER_CHANCE + 4 * (1 - RETRIEVER_CHANCE);
     const varianceValue = expectedValueSquared - meanValue ** 2;
@@ -1418,7 +1455,7 @@
       [1.282, "10%", "High Roll"],
       [2.326, "1%", "God Roll"],
     ].map(([z, chance, label]) => ({ chance, label, total: Math.max(0, Math.round(mean + z * standardDeviation)) }));
-    return { mean, standardDeviation, scenarios };
+    return { mean, standardDeviation, scenarios, blessedDroneKills: blessedDrones, unblessedDroneKills: unblessedDrones };
   }
 
   function classifyVitusScenario(scenarios, actual) {
