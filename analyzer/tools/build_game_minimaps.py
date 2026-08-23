@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260822-4.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260823-5.js"
 
 
 GROUP_NODES = {
@@ -324,6 +324,14 @@ CORPUS_SHIP_MIN_CONNECTED_AREA = 1000
 HYDRON_DEFENSE_GROUP = "hydron+helene+odin"
 HYF_DEFENSE_GROUP = "hyf"
 ICE_PLANET_DEFENSE_GROUP = "ose+paimon+larzac"
+INFESTED_SHIP_DEFENSE_GROUP = "akkad+kala-azar"
+# Kala-Azar's authored spawn heights form one nearly continuous cluster, so
+# the generic median slice lands around +1.9 m and misses the real +6.25 m bent
+# hallway that joins the lower-left spawn room. Composite that exact upper
+# floor band from the mesh; do not replace its shape with authored artwork.
+INFESTED_SHIP_CONNECTOR_HEIGHT = 6.25
+INFESTED_SHIP_CONNECTOR_TOLERANCE = 0.65
+INFESTED_SHIP_CONNECTOR_ANCHORS = ((35.0, 6.25, -28.0),)
 # Larzac's right-side spawn chain belongs to a real Y-shaped building whose
 # walkable top sits around 8.5 m even though its authored spawn markers sit at
 # 4.75 m. The generic +/-3 m middle band therefore misses the floor while
@@ -699,6 +707,8 @@ def render_map(
         heights = list(HYF_PLAYABLE_FLOOR_HEIGHTS)
     elif group_id == ICE_PLANET_DEFENSE_GROUP:
         heights = sorted([*heights, LARZAC_Y_BUILDING_HEIGHT])
+    elif group_id == INFESTED_SHIP_DEFENSE_GROUP:
+        heights = sorted([*heights, INFESTED_SHIP_CONNECTOR_HEIGHT])
     elif group_id in CORPUS_OUTPOST_HEIGHT_BAND_INDICES:
         heights = [
             heights[index]
@@ -743,6 +753,10 @@ def render_map(
             group_id == ICE_PLANET_DEFENSE_GROUP
             and abs(height - LARZAC_Y_BUILDING_HEIGHT) < 0.01
         )
+        infested_ship_connector_band = (
+            group_id == INFESTED_SHIP_DEFENSE_GROUP
+            and abs(height - INFESTED_SHIP_CONNECTOR_HEIGHT) < 0.01
+        )
         gas_spawn_02_side_height = (
             gas_spawn_02_side_heights[band_index]
             if gas_spawn_02_side_heights is not None
@@ -752,15 +766,19 @@ def render_map(
             LARZAC_Y_BUILDING_HEIGHT_TOLERANCE
             if larzac_y_building_band
             else (
-                CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
-                if component_only_band
+                INFESTED_SHIP_CONNECTOR_TOLERANCE
+                if infested_ship_connector_band
                 else (
-                    CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
-                    if additional_height_band
+                    CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
+                    if component_only_band
                     else (
-                        HYF_ADDITIONAL_FLOOR_TOLERANCE
-                        if group_id == HYF_DEFENSE_GROUP and band_index > 0
-                        else 3.0
+                        CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
+                        if additional_height_band
+                        else (
+                            HYF_ADDITIONAL_FLOOR_TOLERANCE
+                            if group_id == HYF_DEFENSE_GROUP and band_index > 0
+                            else 3.0
+                        )
                     )
                 )
             )
@@ -976,6 +994,25 @@ def render_map(
             # space. This restores the upper and lower-middle playable decks
             # without repainting the interior with ceiling/furniture clutter.
             mask[image[:, :, 3] > 0] = 0
+        if infested_ship_connector_band:
+            # This upper slice crosses much of the arena. Only its silhouette
+            # outside the already-rendered base floor is useful: that restores
+            # the real bent hallway and spawn room without drawing upper-level
+            # railings and props over the readable central map.
+            mask[image[:, :, 3] > 0] = 0
+            mask = cv2.morphologyEx(
+                mask,
+                cv2.MORPH_CLOSE,
+                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+            )
+            count, labels, _, _ = cv2.connectedComponentsWithStats(
+                (mask > 0).astype(np.uint8), 8
+            )
+            retained = components_near_world_points(
+                labels, INFESTED_SHIP_CONNECTOR_ANCHORS
+            )
+            if count > 1:
+                mask[~np.isin(labels, list(retained))] = 0
 
         if interband_mask is not None:
             interband_mask = cv2.morphologyEx(
@@ -1162,6 +1199,7 @@ def render_map(
         HYDRON_DEFENSE_GROUP: "counterclockwise-20260821",
         HYF_DEFENSE_GROUP: "multi-floor-20260821",
         ICE_PLANET_DEFENSE_GROUP: "y-building-20260822",
+        INFESTED_SHIP_DEFENSE_GROUP: "lower-hallway-20260823",
     }
     asset_version = asset_versions.get(group_id)
     return {
