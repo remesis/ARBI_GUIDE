@@ -17,9 +17,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260823-109\.js/);
+  assert.match(html, /analyzer-20260824-110\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
-  assert.match(html, /correlation-test\.css\?v=20260823-36/);
+  assert.match(html, /correlation-test\.css\?v=20260824-37/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -116,6 +116,15 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /viewport\.style\.height/);
   assert.match(js, /setupReportFitObserver\(\)/);
   assert.match(css, /\.minimap-lightbox/);
+  assert.match(js, /class="minimap-stage" data-minimap-width="\$\{mapWidth\}" data-minimap-height="\$\{mapHeight\}"/);
+  assert.match(js, /preserveAspectRatio="none"/);
+  assert.match(js, /function syncMinimapStages\(root = document\)/);
+  assert.match(js, /const scale = Math\.min\(availableWidth \/ mapWidth, availableHeight \/ mapHeight\)/);
+  assert.match(js, /syncMinimapStages\(minimap\)/);
+  assert.match(js, /syncMinimapStages\(report\)/);
+  assert.match(css, /\.minimap-wrap\s*\{[^}]*display:\s*flex[^}]*align-items:\s*center[^}]*justify-content:\s*center/);
+  assert.match(css, /\.minimap-stage\s*\{[^}]*position:\s*relative[^}]*flex:\s*0 0 auto/);
+  assert.match(css, /\.minimap-stage > img\s*\{[^}]*position:\s*absolute[^}]*width:\s*100%[^}]*height:\s*100%[^}]*object-fit:\s*fill/);
   assert.match(css, /\.spawn-bubble\.is-rank-highlighted/);
   assert.match(css, /\.spawn-label\s*\{[^}]*visibility:\s*hidden[^}]*opacity:\s*0/);
   assert.match(css, /\.spawn-label\.is-rank-highlighted\s*\{[^}]*visibility:\s*visible[^}]*opacity:\s*1/);
@@ -212,7 +221,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /function syncReportHeaderAccent\(root = document\)/);
   assert.match(js, /titleRect\.right - headerRect\.left/);
   assert.match(js, /header\.style\.setProperty\("--header-accent-width"/);
-  assert.match(js, /setupAnalyzerTooltips\(\$\("#reportRoot"\)\);\s*syncReportHeaderAccent\(\$\("#reportRoot"\)\);\s*scheduleReportFit\(\)/);
+  assert.match(js, /setupAnalyzerTooltips\(\$\("#reportRoot"\)\);\s*syncMinimapStages\(\$\("#reportRoot"\)\);\s*syncReportHeaderAccent\(\$\("#reportRoot"\)\);\s*scheduleReportFit\(\)/);
   assert.match(js, /syncReportHeaderAccent\(report\);\s*const canvas = await html2canvas\(stage/);
   assert.match(css, /\.saturation-card/);
   assert.match(js, /saturation\.rows\.map\(\(row,index\) => \{ const heat=heatColor\(1-index\/Math\.max\(1,saturation\.rows\.length-1\)\)/);
@@ -270,6 +279,25 @@ test("production Analyzer starts cleared instead of loading bundled demo runs", 
   assert.doesNotMatch(js, />Busiest spawn points</i);
 });
 
+test("minimap image and spawn overlay share one fitted stage after card stretching", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const functionSource = js.match(/function syncMinimapStages\(root = document\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(functionSource);
+  const wideStage = { dataset: { minimapWidth: "1000", minimapHeight: "1000" }, style: {} };
+  const shortStage = { dataset: { minimapWidth: "1000", minimapHeight: "1000" }, style: {} };
+  const root = {
+    querySelectorAll() {
+      return [
+        { clientWidth: 500, clientHeight: 900, querySelector: () => wideStage },
+        { clientWidth: 500, clientHeight: 420, querySelector: () => shortStage },
+      ];
+    },
+  };
+  vm.runInNewContext(`${functionSource}; syncMinimapStages(root);`, { root });
+  assert.deepEqual(wideStage.style, { width: "500px", height: "500px" });
+  assert.deepEqual(shortStage.style, { width: "420px", height: "420px" });
+});
+
 test("large logs use the same parser through a same-origin parallel scanner", () => {
   const html = fs.readFileSync(path.join(analyzerDir, "index.html"), "utf8");
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
@@ -287,7 +315,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-109.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260824-110.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
