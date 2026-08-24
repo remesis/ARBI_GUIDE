@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260823-108\.js/);
+  assert.match(html, /analyzer-20260823-109\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260823-36/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -287,7 +287,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-108.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-109.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -739,6 +739,8 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(js, /drones:\s*drones\[index\]/);
   assert.match(js, /showRotationDrones = !phase\.defense && \["INTERCEPTION", "SURVIVAL"\]\.includes\(run\.missionType\)/);
   assert.match(js, /showRotationDrones[\s\S]*Number\.isFinite\(item\.drones\)[\s\S]*fmt\(item\.drones\)/);
+  assert.doesNotMatch(js, /droneTooltip/);
+  assert.match(js, /shortDuration\(item\.seconds\)\} · Saturation \$\{saturation\}/);
   assert.match(js, /Color is time per rotation, number is Drones per rotation\./);
   assert.match(css, /\.correlation-test-non-defense \.correlation-test-clear-map \.clear-heat-map\s*\{[^}]*repeat\(10,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(css, /\.correlation-test-non-defense \.correlation-test-clear-map \.heat-cell\s*\{[^}]*min-height:\s*0[^}]*aspect-ratio:\s*1/);
