@@ -17,9 +17,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260823-106\.js/);
+  assert.match(html, /analyzer-20260823-107\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
-  assert.match(html, /correlation-test\.css\?v=20260823-34/);
+  assert.match(html, /correlation-test\.css\?v=20260823-35/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -287,7 +287,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-106.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260823-107.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -736,6 +736,9 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(css, /\.correlation-test-defense > \.correlation-test-clear-map > \.heat-legend\s*\{[^}]*justify-content:\s*flex-start[^}]*margin-top:\s*auto[^}]*padding-top:\s*10px/);
   assert.match(css, /\.correlation-test-defense > \.correlation-test-clear-map \.clear-heat-map\s*\{[^}]*repeat\(25,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(js, /visibleDuration = CORRELATION_LAYOUT_ACTIVE && phase\.defense[\s\S]*String\(Math\.round\(item\.seconds\)\)/);
+  assert.match(js, /visibleDuration\.split\(\/\\s\+\/\)[\s\S]*class="clear-duration-stack"/);
+  assert.match(css, /\.clear-duration-stack\s*\{[^}]*display:\s*grid[^}]*white-space:\s*nowrap/);
+  assert.match(css, /\.clear-duration-stack > span\s*\{[^}]*display:\s*block/);
   assert.match(js, /defenseWaveCount > 125/);
   assert.match(css, /\.correlation-test-clear-map\.correlation-test-clear-map-dense \.clear-heat-map\s*\{[^}]*repeat\(50,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(js, /canStretchMinimap = grid\.classList\.contains\("correlation-test-defense-102"\)/);

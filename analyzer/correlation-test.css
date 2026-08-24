@@ -439,6 +439,16 @@ html[data-analyzer-layout="correlation-test"] .correlation-test-clear-map .clear
   line-height: 1;
 }
 
+html[data-analyzer-layout="correlation-test"] .correlation-test-clear-map .clear-duration-stack {
+  display: grid;
+  place-items: center;
+  white-space: nowrap;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-test-clear-map .clear-duration-stack > span {
+  display: block;
+}
+
 html[data-analyzer-layout="correlation-test"] .correlation-test-non-defense .correlation-test-clear-map .clear-heat-map {
   grid-template-columns: repeat(10, minmax(0, 1fr));
 }
