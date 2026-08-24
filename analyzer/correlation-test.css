@@ -458,8 +458,8 @@ html[data-analyzer-layout="correlation-test"] .correlation-test-non-defense .cor
 }
 
 html[data-analyzer-layout="correlation-test"] .correlation-test-non-defense .correlation-test-clear-map .heat-cell {
-  min-height: 48px;
-  aspect-ratio: auto;
+  min-height: 0;
+  aspect-ratio: 1;
 }
 
 html[data-analyzer-layout="correlation-test"] .correlation-test-layout .composition-bar,
