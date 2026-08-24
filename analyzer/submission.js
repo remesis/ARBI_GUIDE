@@ -2,10 +2,10 @@
   "use strict";
 
   const ENDPOINT = "/api/analyzer/spawns";
-  // v7 intentionally gets a fresh browser cache so previously accepted runs
-  // can reconcile the reduced 0-50 enemy-count duration histogram under the
-  // same canonical hash when their original logs are analyzed again.
-  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v7";
+  // v8 intentionally gets a fresh browser cache so previously accepted runs
+  // can reconcile exact active-time and drone-interval totals under the same
+  // canonical hash when their original logs are analyzed again.
+  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v8";
   const CACHE_LIMIT = 5000;
   const PRODUCTION_HOSTS = new Set(["arbi.guide"]);
 
@@ -48,6 +48,9 @@
       && metrics
       && Number.isFinite(metrics.mission_seconds)
       && metrics.mission_seconds > 0
+      && Number.isFinite(metrics.active_seconds)
+      && metrics.active_seconds >= 0
+      && metrics.active_seconds <= metrics.mission_seconds + 0.01
       && Number.isInteger(metrics.drone_kills)
       && metrics.drone_kills >= 0
       && Number.isInteger(metrics.enemy_spawns)
@@ -66,6 +69,12 @@
       && metrics.drone_dry_seconds >= 0
       && Number.isFinite(metrics.drone_cadence_seconds)
       && metrics.drone_cadence_seconds >= metrics.drone_dry_seconds
+      && Number.isFinite(metrics.drone_interval_span_seconds)
+      && metrics.drone_interval_span_seconds >= 0
+      && metrics.drone_interval_span_seconds <= metrics.mission_seconds + 0.01
+      && Number.isInteger(metrics.drone_interval_count)
+      && metrics.drone_interval_count === Math.max(0, metrics.drone_kills - 1)
+      && (metrics.drone_interval_count > 0 || metrics.drone_interval_span_seconds === 0)
       && Number.isInteger(metrics.reward_cycles)
       && metrics.reward_cycles >= 0
       && Number.isInteger(metrics.defense_waves)

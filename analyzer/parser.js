@@ -1783,8 +1783,13 @@
     const saturationTotals = calculateSaturationTotals(run, highEnemyThreshold);
     const enemyCountHistogram = calculateEnemyCountHistogram(run, 50);
     const cadence = run.cadence || calculateCadence(run);
+    const droneIntervalCount = Math.max(0, (run.droneTimestamps || []).length - 1);
+    const droneIntervalSpanSeconds = droneIntervalCount
+      ? run.droneTimestamps[run.droneTimestamps.length - 1] - run.droneTimestamps[0]
+      : 0;
     const runMetrics = {
       mission_seconds: round(run.totalDuration || 0, 3),
+      active_seconds: round(run.activeDuration || 0, 3),
       drone_kills: Math.max(0, Math.trunc(run.droneKills || 0)),
       enemy_spawns: Math.max(0, Math.trunc(run.enemySpawns || 0)),
       high_enemy_seconds: round(saturationTotals.highEnemySeconds, 3),
@@ -1792,6 +1797,8 @@
       enemy_count_seconds: enemyCountHistogram.seconds.map((seconds) => round(seconds, 3)),
       drone_dry_seconds: round(cadence.droughtSeconds || 0, 3),
       drone_cadence_seconds: round(cadence.totalSeconds || 0, 3),
+      drone_interval_span_seconds: round(droneIntervalSpanSeconds, 3),
+      drone_interval_count: droneIntervalCount,
       reward_cycles: Math.max(0, Math.trunc(run.rotations || 0)),
       defense_waves: run.missionType === "DEFENSE"
         ? Object.keys(run.waveStarts || {}).length

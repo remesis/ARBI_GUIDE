@@ -57,6 +57,7 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   const enemyCountHistogram = Parser.helpers.calculateEnemyCountHistogram(runs[0], 50);
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: runs[0].totalDuration,
+    active_seconds: runs[0].activeDuration,
     drone_kills: runs[0].droneKills,
     enemy_spawns: runs[0].enemySpawns,
     high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
@@ -64,6 +65,8 @@ test("parses multiple local Arbitration runs and retains structured spawn points
     enemy_count_seconds: enemyCountHistogram.seconds.map((seconds) => Math.round(seconds * 1000) / 1000),
     drone_dry_seconds: Math.round(runs[0].cadence.droughtSeconds * 1000) / 1000,
     drone_cadence_seconds: Math.round(runs[0].cadence.totalSeconds * 1000) / 1000,
+    drone_interval_span_seconds: Math.round((runs[0].droneTimestamps.at(-1) - runs[0].droneTimestamps[0]) * 1000) / 1000,
+    drone_interval_count: runs[0].droneTimestamps.length - 1,
     reward_cycles: runs[0].rotations,
     defense_waves: Object.keys(runs[0].waveStarts).length,
     four_member_majority: false,
@@ -222,6 +225,7 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   const enemyCountHistogram = Parser.helpers.calculateEnemyCountHistogram(run, 50);
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: 130,
+    active_seconds: run.activeDuration,
     drone_kills: 7,
     enemy_spawns: 48,
     high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
@@ -229,6 +233,8 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
     enemy_count_seconds: enemyCountHistogram.seconds.map((seconds) => Math.round(seconds * 1000) / 1000),
     drone_dry_seconds: Math.round(run.cadence.droughtSeconds * 1000) / 1000,
     drone_cadence_seconds: Math.round(run.cadence.totalSeconds * 1000) / 1000,
+    drone_interval_span_seconds: Math.round((run.droneTimestamps.at(-1) - run.droneTimestamps[0]) * 1000) / 1000,
+    drone_interval_count: run.droneTimestamps.length - 1,
     reward_cycles: 2,
     defense_waves: 0,
     four_member_majority: false,

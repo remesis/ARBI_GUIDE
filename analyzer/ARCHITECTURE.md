@@ -94,7 +94,9 @@ The exact submitted fields are:
 - mission duration, drone kills, the non-ticking-filtered enemy total, the
   high-enemy and trustworthy-telemetry seconds behind the displayed saturation
   percentage, a 52-value duration histogram whose indexes `0` through `50` are
-  exact enemy counts and whose final index is `51+`, the reduced dry-drone and total cadence seconds behind the
+  exact enemy counts and whose final index is `51+`, pause-filtered active
+  mission seconds, the reduced first-to-last drone span and interval count,
+  the reduced dry-drone and total cadence seconds behind the
   displayed `Dry ≥12s` percentage, completed reward cycles, and Defense wave
   count inside
   `run_metrics`, plus the reduced run-eligibility boolean required by the
@@ -123,10 +125,10 @@ The cache namespace is versioned. A contract change may advance it once so
 already accepted hashes are reconciled without changing their canonical spawn
 identity.
 
-The current v7 namespace resubmits previously accepted runs once so D1 can add
-their reduced exact enemy-count duration histogram. Historical D1 rows stay
-absent until their original logs are analyzed again; missing buckets are never
-estimated from spawn totals or treated as zero.
+The current v8 namespace resubmits previously accepted runs once so D1 can add
+their reduced active-time and drone-interval totals. Historical D1 values stay
+`NULL` until their original logs are analyzed again; missing values are never
+estimated or treated as zero.
 
 The browser cache is an optimization. D1's primary key on `run_hash` is the
 authoritative cross-browser and cache-clear duplicate guard.
@@ -214,6 +216,17 @@ each percentage from summed bucket seconds divided by summed trustworthy
 telemetry seconds across eligible four-player runs. This makes the combined
 result time-weighted. `analyzer_enemy_saturation_over_50` reports the separately
 retained overflow share.
+
+`active_seconds` matches the pause-filtered time basis used by the Analyzer's
+per-minute metrics and six-minute Disruption graph windows. Disruption totals
+are therefore normalized by `active_seconds / 360`, including a final partial
+window; other modes use the submitted reward-cycle count and exclude runs with
+zero completed cycles from per-cycle averages. The D1 summary view exposes the
+row's comparison basis so Disruption's six-minute values are not mistaken for
+reward rounds. `drone_interval_span_seconds` and
+`drone_interval_count` reproduce the displayed first-to-last average interval
+without submitting individual drone timestamps, and allow a pooled tileset
+average as `SUM(span) / SUM(count)`.
 
 On 2026-08-18, a D1 audit found three older submissions—one Larzac and two
 Stöfler—that matched a later row in every canonical spawn field and every

@@ -21,6 +21,7 @@ function payload(hash = "a".repeat(64)) {
     spawn_points: [{ point_key: "/Layer/NpcSpawnPoint1", position: [1, 2, 3], count: 7 }],
     run_metrics: {
       mission_seconds: 600,
+      active_seconds: 570,
       drone_kills: 100,
       enemy_spawns: 1000,
       high_enemy_seconds: 5,
@@ -28,6 +29,8 @@ function payload(hash = "a".repeat(64)) {
       enemy_count_seconds: Array.from({ length: 52 }, (_, count) => count === 0 ? 495 : count === 15 ? 5 : 0),
       drone_dry_seconds: 29,
       drone_cadence_seconds: 500,
+      drone_interval_span_seconds: 540,
+      drone_interval_count: 99,
       reward_cycles: 2,
       defense_waves: 6,
       four_member_majority: true,
@@ -92,4 +95,17 @@ test("requires a complete duration-balanced 0-50 plus overflow histogram", () =>
   const unbalanced = structuredClone(valid);
   unbalanced.run_metrics.enemy_count_seconds[0] -= 1;
   assert.equal(Submission.isValidPayload(unbalanced), false);
+});
+
+test("requires exact active-time and drone-interval normalization totals", () => {
+  const valid = payload();
+  assert.equal(Submission.isValidPayload(valid), true);
+
+  const inactive = structuredClone(valid);
+  inactive.run_metrics.active_seconds = inactive.run_metrics.mission_seconds + 1;
+  assert.equal(Submission.isValidPayload(inactive), false);
+
+  const wrongIntervals = structuredClone(valid);
+  wrongIntervals.run_metrics.drone_interval_count -= 1;
+  assert.equal(Submission.isValidPayload(wrongIntervals), false);
 });
