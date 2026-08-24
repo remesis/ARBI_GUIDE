@@ -1313,6 +1313,20 @@
     return { telemetrySeconds, highEnemySeconds };
   }
 
+  function calculateEnemyCountHistogram(run, maxExactCount = 50, rangeStart = run.startTime, rangeEnd = run.endTime) {
+    const exactMax = Math.max(0, Math.trunc(maxExactCount));
+    // The final bucket is overflow. For the submitted 0-50 histogram, index
+    // 51 therefore represents every trustworthy segment at 51+ enemies.
+    const seconds = Array(exactMax + 2).fill(0);
+    let telemetrySeconds = 0;
+    forEachLiveSegment(run, rangeStart, rangeEnd, (segment, duration) => {
+      const count = Math.max(0, Math.trunc(Number(segment.count) || 0));
+      seconds[count <= exactMax ? count : exactMax + 1] += duration;
+      telemetrySeconds += duration;
+    });
+    return { seconds, telemetrySeconds };
+  }
+
   function calculateRangeOccupancy(run, rangeStart, rangeEnd) {
     let total = 0;
     let occupied = 0;
@@ -1767,6 +1781,7 @@
     };
     const highEnemyThreshold = HIGH_DENSITY_SATURATION_TYPES.has(run.missionType) ? 30 : 15;
     const saturationTotals = calculateSaturationTotals(run, highEnemyThreshold);
+    const enemyCountHistogram = calculateEnemyCountHistogram(run, 50);
     const cadence = run.cadence || calculateCadence(run);
     const runMetrics = {
       mission_seconds: round(run.totalDuration || 0, 3),
@@ -1774,6 +1789,7 @@
       enemy_spawns: Math.max(0, Math.trunc(run.enemySpawns || 0)),
       high_enemy_seconds: round(saturationTotals.highEnemySeconds, 3),
       enemy_telemetry_seconds: round(saturationTotals.telemetrySeconds, 3),
+      enemy_count_seconds: enemyCountHistogram.seconds.map((seconds) => round(seconds, 3)),
       drone_dry_seconds: round(cadence.droughtSeconds || 0, 3),
       drone_cadence_seconds: round(cadence.totalSeconds || 0, 3),
       reward_cycles: Math.max(0, Math.trunc(run.rotations || 0)),
@@ -1814,6 +1830,7 @@
       calculateSaturation,
       calculateRangeSaturation,
       calculateSaturationTotals,
+      calculateEnemyCountHistogram,
       calculateRangeOccupancy,
       calculateTelemetryCoverage,
       calculateWavePhases,

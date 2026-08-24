@@ -54,12 +54,14 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.equal(payload.spawn_points.length, 2);
   assert.equal(payload.run_offset_seconds, runs[0].startTime);
   const saturationTotals = Parser.helpers.calculateSaturationTotals(runs[0], 15);
+  const enemyCountHistogram = Parser.helpers.calculateEnemyCountHistogram(runs[0], 50);
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: runs[0].totalDuration,
     drone_kills: runs[0].droneKills,
     enemy_spawns: runs[0].enemySpawns,
     high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
     enemy_telemetry_seconds: Math.round(saturationTotals.telemetrySeconds * 1000) / 1000,
+    enemy_count_seconds: enemyCountHistogram.seconds.map((seconds) => Math.round(seconds * 1000) / 1000),
     drone_dry_seconds: Math.round(runs[0].cadence.droughtSeconds * 1000) / 1000,
     drone_cadence_seconds: Math.round(runs[0].cadence.totalSeconds * 1000) / 1000,
     reward_cycles: runs[0].rotations,
@@ -217,12 +219,14 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   assert.deepEqual(payload.spawn_points, []);
   assert.equal(payload.observed_spawn_events, 0);
   const saturationTotals = Parser.helpers.calculateSaturationTotals(run, 30);
+  const enemyCountHistogram = Parser.helpers.calculateEnemyCountHistogram(run, 50);
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: 130,
     drone_kills: 7,
     enemy_spawns: 48,
     high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
     enemy_telemetry_seconds: Math.round(saturationTotals.telemetrySeconds * 1000) / 1000,
+    enemy_count_seconds: enemyCountHistogram.seconds.map((seconds) => Math.round(seconds * 1000) / 1000),
     drone_dry_seconds: Math.round(run.cadence.droughtSeconds * 1000) / 1000,
     drone_cadence_seconds: Math.round(run.cadence.totalSeconds * 1000) / 1000,
     reward_cycles: 2,
@@ -821,6 +825,28 @@ test("preserves pause-filtered occupancy and saturation while reusing indexed te
     telemetrySeconds: 8,
     highEnemySeconds: 4,
   });
+  const histogram = Parser.helpers.calculateEnemyCountHistogram(run, 50);
+  assert.equal(histogram.telemetrySeconds, 8);
+  assert.equal(histogram.seconds.length, 52);
+  assert.equal(histogram.seconds[8], 2);
+  assert.equal(histogram.seconds[16], 2);
+  assert.equal(histogram.seconds[20], 2);
+  assert.equal(histogram.seconds[4], 2);
+  assert.equal(histogram.seconds.reduce((sum, seconds) => sum + seconds, 0), 8);
+});
+
+test("keeps exact enemy counts through 50 and places higher counts in one overflow bucket", () => {
+  const run = {
+    startTime: 0,
+    endTime: 8,
+    liveCounts: [[0, 0], [2, 50], [5, 51], [7, 80], [8, 80]],
+    pauseIntervals: [],
+  };
+  const histogram = Parser.helpers.calculateEnemyCountHistogram(run, 50);
+  assert.equal(histogram.telemetrySeconds, 8);
+  assert.equal(histogram.seconds[0], 2);
+  assert.equal(histogram.seconds[50], 3);
+  assert.equal(histogram.seconds[51], 3);
 });
 
 test("derives hundreds of dense-run phases without rescanning the full telemetry timeline", () => {

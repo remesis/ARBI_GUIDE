@@ -93,7 +93,8 @@ The exact submitted fields are:
 - each observed spawn-point key, XYZ position, and aggregate count;
 - mission duration, drone kills, the non-ticking-filtered enemy total, the
   high-enemy and trustworthy-telemetry seconds behind the displayed saturation
-  percentage, the reduced dry-drone and total cadence seconds behind the
+  percentage, a 52-value duration histogram whose indexes `0` through `50` are
+  exact enemy counts and whose final index is `51+`, the reduced dry-drone and total cadence seconds behind the
   displayed `Dry ≥12s` percentage, completed reward cycles, and Defense wave
   count inside
   `run_metrics`, plus the reduced run-eligibility boolean required by the
@@ -122,10 +123,10 @@ The cache namespace is versioned. A contract change may advance it once so
 already accepted hashes are reconciled without changing their canonical spawn
 identity.
 
-The current v6 namespace resubmits previously accepted runs once so D1 can add
-their filtered enemy total, reduced saturation timing, and reduced drone-cadence
-timing. Historical D1 rows stay `NULL` until that happens; missing totals are
-never treated as zero.
+The current v7 namespace resubmits previously accepted runs once so D1 can add
+their reduced exact enemy-count duration histogram. Historical D1 rows stay
+absent until their original logs are analyzed again; missing buckets are never
+estimated from spawn totals or treated as zero.
 
 The browser cache is an optimization. D1's primary key on `run_hash` is the
 authoritative cross-browser and cache-clear duplicate guard.
@@ -203,6 +204,16 @@ both reduced durations before dividing, so longer observed cadence histories
 contribute proportionally. `Dry ≥12s` appears immediately after
 `High-enemy time`; no individual drone timestamps or gap history leave the
 client.
+
+`analyzer_enemy_saturation_runs` stores only the time spent at each exact live
+enemy count, not the live-count timeline or its timestamps. The first 51 JSON
+values represent counts `0` through `50`; `over_50_seconds` preserves all higher
+counts without folding them into 50. The administrative
+`analyzer_enemy_saturation_0_50` view always exposes exactly 51 rows and computes
+each percentage from summed bucket seconds divided by summed trustworthy
+telemetry seconds across eligible four-player runs. This makes the combined
+result time-weighted. `analyzer_enemy_saturation_over_50` reports the separately
+retained overflow share.
 
 On 2026-08-18, a D1 audit found three older submissions—one Larzac and two
 Stöfler—that matched a later row in every canonical spawn field and every

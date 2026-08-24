@@ -25,6 +25,7 @@ function payload(hash = "a".repeat(64)) {
       enemy_spawns: 1000,
       high_enemy_seconds: 5,
       enemy_telemetry_seconds: 500,
+      enemy_count_seconds: Array.from({ length: 52 }, (_, count) => count === 0 ? 495 : count === 15 ? 5 : 0),
       drone_dry_seconds: 29,
       drone_cadence_seconds: 500,
       reward_cycles: 2,
@@ -78,4 +79,17 @@ test("non-production hosts never contact the ingestion endpoint", async () => {
   });
   assert.equal(result.disabled, true);
   assert.equal(called, false);
+});
+
+test("requires a complete duration-balanced 0-50 plus overflow histogram", () => {
+  const valid = payload();
+  assert.equal(Submission.isValidPayload(valid), true);
+
+  const short = structuredClone(valid);
+  short.run_metrics.enemy_count_seconds.pop();
+  assert.equal(Submission.isValidPayload(short), false);
+
+  const unbalanced = structuredClone(valid);
+  unbalanced.run_metrics.enemy_count_seconds[0] -= 1;
+  assert.equal(Submission.isValidPayload(unbalanced), false);
 });
