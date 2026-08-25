@@ -324,7 +324,7 @@ not baked into the published WebP.
 
 As of 2026-08-23, the approved correlation layout is the production Analyzer
 layout. `index.html` loads `correlation-test.css` unconditionally (the filename
-is historical) and the immutable `analyzer-20260823-103.js` bundle. The
+is historical) and the immutable `analyzer-20260825-111.js` bundle. The
 maintained source remains `analyzer.js`; whenever it changes, publish a new
 immutable filename and update the shell and static tests together.
 
@@ -335,6 +335,11 @@ the wave-clear map and reviewed tile layout, while other modes use their
 rotation-clear map in the corresponding report position. Clipboard images
 clone this same rendered report instead of maintaining a separate card layout,
 including the responsive card-height and long-run wave-grid rules.
+
+Survival, Interception, and Mirror Defense rotation-clear cells share one
+presentation: cell color represents rotation duration, the centered number is
+drones produced during that rotation, the grid is ten square cells wide, and
+the hover text retains duration and saturation without repeating drone count.
 
 Before the clipboard renderer reads that clone, visible ASCII word gaps are
 converted to non-collapsible spaces. This is confined to the detached export
