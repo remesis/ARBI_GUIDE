@@ -24,7 +24,7 @@
   const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260823-9";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260825-10";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
@@ -142,6 +142,7 @@
   );
 
   const P_TIMESTAMP = /^!?(\d+\.\d+)/;
+  const P_CURRENT_TIME_UTC = /\[UTC:\s*(?:\S+\s+)?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})\s+(\d{4})\]/;
   const P_MISSION = /ThemedSquadOverlay\.lua: Mission name: (.*)/;
   const P_MISSION_VOTE = /ThemedSquadOverlay\.lua: ShowMissionVote (.*)/;
   const P_ARBITRATION_SELECTION = /\b((?:Sol|Clan|Settlement)Node\d+)_EliteAlert\b/i;
@@ -164,7 +165,27 @@
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
+
+  const UTC_MONTH_INDEX = Object.freeze({
+    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+  });
+
+  function processUtcEpochFromLine(line) {
+    const text = String(line || "");
+    const elapsed = Number((text.match(P_TIMESTAMP) || [])[1]);
+    const utc = text.match(P_CURRENT_TIME_UTC);
+    if (!Number.isFinite(elapsed) || !utc) return null;
+    const month = UTC_MONTH_INDEX[utc[1]];
+    const day = Number(utc[2]);
+    const hour = Number(utc[3]);
+    const minute = Number(utc[4]);
+    const second = Number(utc[5]);
+    const year = Number(utc[6]);
+    if (![month, day, hour, minute, second, year].every(Number.isFinite)) return null;
+    return Date.UTC(year, month, day, hour, minute, second) - elapsed * 1000;
+  }
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
@@ -372,6 +393,7 @@
       this.resourceBlessings = [];
       this.stringPool = new Map();
       this.pendingArbitration = null;
+      this.processUtcEpochMs = null;
     }
 
     intern(value) {
@@ -387,6 +409,16 @@
 
     feedLine(line, relevantToken) {
       if (!line || line === "\r" || line.includes("Game [Warning]:") || line.includes("DamagePct")) return;
+      const hasCurrentTime = relevantToken === "Current time:"
+        || (relevantToken === undefined && line.includes("Current time:"));
+      if (hasCurrentTime) {
+        const processUtcEpochMs = processUtcEpochFromLine(line);
+        if (Number.isFinite(processUtcEpochMs)) {
+          this.processUtcEpochMs = processUtcEpochMs;
+          this.cur.processUtcEpochMs = processUtcEpochMs;
+        }
+        return;
+      }
       let hasAgent = false;
       let hasDroneDespawn = false;
       let hasResourceBlessing = false;
@@ -767,6 +799,7 @@
       const isArbitration = Boolean(nodeKey) || raw.toLocaleLowerCase().includes("arbitration");
       this.pushCurrent();
       const next = createRun();
+      next.processUtcEpochMs = this.processUtcEpochMs;
       next.isArbitration = isArbitration;
       next.nodeKey = isArbitration ? nodeKey : "";
       next.missionName = this.intern(nodeInfo
@@ -952,6 +985,10 @@
         finalizeRun(run);
         bindContext(run, this.advertised, this.levels);
         deriveRun(run);
+        if (Number.isFinite(run.processUtcEpochMs) && Number.isFinite(run.startTime)) {
+          run.sourceDate = new Date(run.processUtcEpochMs + run.startTime * 1000);
+        }
+        delete run.processUtcEpochMs;
         attachResourceBlessing(run, this.resourceBlessings);
       });
       return this.runs.filter(hasData);

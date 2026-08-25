@@ -27,6 +27,13 @@ language unchanged. The older English display-label check remains only as a
 compatibility fallback. A background Elite Alert advertisement by itself is
 not enough to relabel a normal mission.
 
+The report header date is reconstructed from EE.log's process-relative clock
+and its `Current time: ... [UTC: ...]` session anchor. Each run's finalized
+mission-start offset is added to that UTC process epoch, so copying or moving a
+log cannot change the displayed run time. The file's last-modified date remains
+only a compatibility fallback for clipped or legacy logs that omit the session
+anchor. This local `Date` is not included in the contribution payload.
+
 Large-file cost is governed by retained Arbitration-event density, not raw log
 bytes. Files at least 512 MiB use ordered parallel text scanners, but dense
 multi-hour Defense runs can still contain hundreds of waves and tens of

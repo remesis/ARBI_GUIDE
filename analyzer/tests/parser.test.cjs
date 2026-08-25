@@ -77,6 +77,27 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.doesNotMatch(serialized, /npc_types|wave_counts/i);
 });
 
+test("derives each report's wall-clock start from the EE.log UTC process anchor", () => {
+  const lines = [
+    "0.027 Sys [Diag]: Current time: Mon Aug 17 18:07:29 2026 [UTC: Mon Aug 17 17:07:29 2026]",
+  ];
+  addRun(lines, {
+    offset: 100,
+    node: "SolNode130",
+    name: "Arbitration: Lares (Mercury) - Defense",
+    level: "/Lotus/Levels/GrineerAsteroidRelight/GrnDefenseOne.level",
+  });
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  const processUtcEpochMs = Date.UTC(2026, 7, 17, 17, 7, 29) - 27;
+  assert.ok(run.sourceDate instanceof Date);
+  assert.equal(run.sourceDate.valueOf(), processUtcEpochMs + run.startTime * 1000);
+
+  const relevant = [];
+  Parser.forEachRelevantLine(`${lines.join("\n")}\n`, (line, token) => relevant.push([token, line]));
+  assert.equal(relevant[0][0], "Current time:");
+});
+
 test("retains spaced squad names and procedural layout component markers", () => {
   const lines = [
     "0.1 Game [Info]: 123period loadout loader finished.",
