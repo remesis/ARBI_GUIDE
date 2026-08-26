@@ -331,7 +331,7 @@ not baked into the published WebP.
 
 As of 2026-08-23, the approved correlation layout is the production Analyzer
 layout. `index.html` loads `correlation-test.css` unconditionally (the filename
-is historical) and the immutable `analyzer-20260825-112.js` bundle. The
+is historical) and the immutable `analyzer-20260825-113.js` bundle. The
 maintained source remains `analyzer.js`; whenever it changes, publish a new
 immutable filename and update the shell and static tests together.
 
@@ -367,8 +367,8 @@ time and prints that time in the card's upper-right corner. The Expected Vitus
 model uses the same timestamp, so the chart and reward estimate cannot disagree
 about which drone kills were still blessed.
 
-Those mid-run-expiry reports also expose a site-only cyan **Client had fresher
-blessing** override. It handles the case where the host's logged Blessing timer
+Those mid-run-expiry reports also expose a site-only cyan **Click this button if
+Client had Fresher Blessing** override. It handles the case where the host's logged Blessing timer
 expired but the analyzed client still had a newer one. The override gives the
 client a fresh three-hour Blessing from mission start, recalculates Expected
 Vitus, removes the warning/divider for runs shorter than three hours, and moves

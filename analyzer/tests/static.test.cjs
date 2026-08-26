@@ -17,9 +17,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260825-112\.js/);
+  assert.match(html, /analyzer-20260825-113\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
-  assert.match(html, /correlation-test\.css\?v=20260825-38/);
+  assert.match(html, /correlation-test\.css\?v=20260825-39/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -315,7 +315,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260825-112.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260825-113.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -774,12 +774,12 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(js, /class="correlation-tooltip-stage"/);
   assert.match(js, /class="correlation-blessing-expiry"/);
   assert.match(js, /Blessing ran out at:/);
-  assert.match(js, /Client had fresher blessing/);
+  assert.match(js, /Click this button if Client had Fresher Blessing/);
   assert.match(js, /const RESOURCE_BLESSING_SECONDS = 3 \* 60 \* 60/);
   assert.match(js, /Parser\.computeVitus\(run\.droneKills, run\.rotations, run\.missionType, effectiveBlessedDroneKills\(run\)\)/);
   assert.match(js, /Number\(run\.totalDuration\) <= RESOURCE_BLESSING_SECONDS/);
   assert.match(js, /run\.clientFreshBlessing = !run\.clientFreshBlessing/);
-  assert.match(js, /data-html2canvas-ignore="true">Client had fresher blessing/);
+  assert.match(js, /data-html2canvas-ignore="true">Click this button if Client had Fresher Blessing/);
   assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.export-stage \.client-fresh-blessing-button\s*\{\s*display:\s*none !important/);
   assert.match(css, /\.client-fresh-blessing-button\s*\{[^}]*color:\s*#67e8f9/);
   assert.match(css, /\.correlation-blessing-status\s*\{[^}]*position:\s*absolute/);
