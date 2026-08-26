@@ -19,7 +19,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
   assert.match(html, /analyzer-20260825-113\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
-  assert.match(html, /correlation-test\.css\?v=20260825-39/);
+  assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
