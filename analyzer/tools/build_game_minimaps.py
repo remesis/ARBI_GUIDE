@@ -280,16 +280,17 @@ KADESH_COMPONENT_ONLY_HEIGHTS = {
 }
 KADESH_COMPONENT_ONLY_TOLERANCE = 0.9
 GRINEER_ASTEROID_DEFENSE_GROUP = "rhea+lares+sangeru"
-# Lares' authored spawn/objective heights form one continuous cluster, so the
-# generic median slice lands below most of the arena and flattens its broad
-# ground plane into an indistinct blob. Layer the real low and raised walkable
-# surfaces instead, then retain only the mesh component containing the large
-# central structure at the highest slice. This keeps the center platform and
-# its supports legible without importing the surrounding rock ceiling.
-GRINEER_ASTEROID_PLAYABLE_FLOOR_HEIGHTS = (1.0, 4.0, 7.0)
-GRINEER_ASTEROID_CENTER_STRUCTURE_HEIGHT = 7.0
-GRINEER_ASTEROID_CENTER_STRUCTURE_TOLERANCE = 3.0
-GRINEER_ASTEROID_CENTER_STRUCTURE_ANCHORS = ((10.0, 7.0, -9.0),)
+# Lares' authored spawn/objective heights form one continuous cluster, while
+# the room walls and rock ceiling overlap heavily in a top-down projection.
+# Cut the real mesh at the lower walkable level, keep the floor components
+# reached by authored gameplay points, then recover the actual raised
+# stair/landing component that joins the southern spawn room to the arena.
+GRINEER_ASTEROID_WALL_SAMPLE_HEIGHT = 0.75
+GRINEER_ASTEROID_FLOOR_HEIGHT = 1.0
+GRINEER_ASTEROID_FLOOR_TOLERANCE = 3.0
+GRINEER_ASTEROID_RAISED_FLOOR_MIN_HEIGHT = 3.35
+GRINEER_ASTEROID_RAISED_FLOOR_MAX_HEIGHT = 5.25
+GRINEER_ASTEROID_LOWER_ROOM_ANCHOR = ((10.757, 4.069, -62.904),)
 CORPUS_OUTPOST_DEFENSE_GROUP = "sechura+tessera+outer_terminus+cerberus"
 CORPUS_OUTPOST_HEIGHT_BAND_INDICES = {
     CORPUS_OUTPOST_DEFENSE_GROUP: (0, 1),
@@ -602,6 +603,198 @@ def merge_spawn_supplements(
     return result
 
 
+def render_grineer_asteroid_walkable_floor(
+    positions: np.ndarray,
+    faces: np.ndarray,
+    project,
+    lo: np.ndarray,
+    hi: np.ndarray,
+    map_spawns: list[dict],
+    map_objective: list[dict],
+    size: int,
+) -> np.ndarray:
+    """Render Lares from its actual walkable floor boundary and connections."""
+    floor = np.zeros((size, size), dtype=np.uint8)
+    raised_floor = np.zeros((size, size), dtype=np.uint8)
+    chunk_size = 160_000
+
+    for start in range(0, len(faces), chunk_size):
+        tri = positions[faces[start : start + chunk_size]]
+        ab = tri[:, 1] - tri[:, 0]
+        ac = tri[:, 2] - tri[:, 0]
+        normals = np.cross(ab, ac)
+        normal_length = np.linalg.norm(normals, axis=1)
+        centroids = tri.mean(axis=1)
+        area = normal_length * 0.5
+        upward = (
+            (normal_length > 1e-5)
+            & (
+                np.abs(normals[:, 1])
+                / np.maximum(normal_length, 1e-9)
+                > 0.58
+            )
+            & (area > 0.01)
+            & (area < 520.0)
+            & (centroids[:, 0] >= lo[0])
+            & (centroids[:, 0] <= hi[0])
+            & (centroids[:, 2] >= lo[1])
+            & (centroids[:, 2] <= hi[1])
+        )
+        lower = tri[
+            upward
+            & (
+                np.abs(centroids[:, 1] - GRINEER_ASTEROID_FLOOR_HEIGHT)
+                <= GRINEER_ASTEROID_FLOOR_TOLERANCE
+            )
+        ]
+        if len(lower):
+            polygons = project(lower.reshape((-1, 3))).reshape((-1, 3, 2))
+            cv2.fillPoly(floor, polygons, 255, lineType=cv2.LINE_AA)
+
+        raised = tri[
+            upward
+            & (centroids[:, 1] >= GRINEER_ASTEROID_RAISED_FLOOR_MIN_HEIGHT)
+            & (centroids[:, 1] <= GRINEER_ASTEROID_RAISED_FLOOR_MAX_HEIGHT)
+        ]
+        if len(raised):
+            polygons = project(raised.reshape((-1, 3))).reshape((-1, 3, 2))
+            cv2.fillPoly(raised_floor, polygons, 255, lineType=cv2.LINE_AA)
+
+    close_three = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    floor = cv2.morphologyEx(floor, cv2.MORPH_CLOSE, close_three)
+    raised_floor = cv2.morphologyEx(
+        raised_floor,
+        cv2.MORPH_CLOSE,
+        close_three,
+    )
+
+    seeds = [
+        [float(item["x"]), float(item.get("y", 0.0)), float(item["z"])]
+        for items in (map_spawns, map_objective)
+        for item in items
+    ]
+    seed_pixels = (
+        project(np.asarray(seeds, dtype=np.float32))
+        if seeds
+        else np.empty((0, 2), dtype=np.int32)
+    )
+
+    # Slice the actual walls at ankle height. Subtracting that wall mask from
+    # the projected floor leaves the same contiguous walkable regions players
+    # see on the in-game minimap, without ceiling and rock-cap clutter.
+    walls = np.zeros((size, size), dtype=np.uint8)
+    sample_height = GRINEER_ASTEROID_WALL_SAMPLE_HEIGHT
+    for start in range(0, len(faces), chunk_size):
+        tri = positions[faces[start : start + chunk_size]]
+        tri_min = tri[:, :, 1].min(axis=1)
+        tri_max = tri[:, :, 1].max(axis=1)
+        ab = tri[:, 1] - tri[:, 0]
+        ac = tri[:, 2] - tri[:, 0]
+        normals = np.cross(ab, ac)
+        normal_length = np.linalg.norm(normals, axis=1)
+        verticality = (
+            1.0
+            - np.abs(normals[:, 1]) / np.maximum(normal_length, 1e-9)
+        )
+        selected = tri[
+            (tri_min <= sample_height)
+            & (tri_max >= sample_height)
+            & (normal_length > 1e-5)
+            & (verticality > 0.18)
+        ]
+        for triangle in selected:
+            intersections: list[np.ndarray] = []
+            for edge_a, edge_b in ((0, 1), (1, 2), (2, 0)):
+                a = triangle[edge_a]
+                b = triangle[edge_b]
+                delta = b[1] - a[1]
+                if (
+                    min(a[1], b[1]) <= sample_height <= max(a[1], b[1])
+                    and abs(delta) > 1e-6
+                ):
+                    t = (sample_height - a[1]) / delta
+                    intersections.append(a + (b - a) * t)
+            if len(intersections) < 2:
+                continue
+            line = project(np.asarray(intersections[:2], dtype=np.float32))
+            cv2.line(
+                walls,
+                tuple(line[0]),
+                tuple(line[1]),
+                255,
+                2,
+                cv2.LINE_AA,
+            )
+
+    walls[floor == 0] = 0
+    walls = cv2.morphologyEx(
+        walls,
+        cv2.MORPH_CLOSE,
+        cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)),
+    )
+    blocked = cv2.dilate(walls, np.ones((3, 3), dtype=np.uint8))
+    free = ((floor > 0) & (blocked == 0)).astype(np.uint8)
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(free, 8)
+    retained: set[int] = set()
+    if count > 1:
+        retained.add(1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA])))
+    for x, y in seed_pixels:
+        for radius in (3, 8, 16, 28):
+            nearby = labels[
+                max(0, y - radius) : min(size, y + radius + 1),
+                max(0, x - radius) : min(size, x + radius + 1),
+            ]
+            found = [int(label) for label in np.unique(nearby) if label]
+            if found:
+                retained.update(found)
+                break
+    walkable = np.isin(labels, list(retained)).astype(np.uint8) * 255
+
+    # The southern spawn room sits on a raised floor, so the low wall slice can
+    # sever its entrance. Recover only the real raised mesh component touched
+    # by that room; it contains the stairs and landing that join it to the main
+    # arena, not a hand-authored connector.
+    _, raised_labels, _, _ = cv2.connectedComponentsWithStats(
+        (raised_floor > 0).astype(np.uint8),
+        8,
+    )
+    anchor_x, anchor_y = project(
+        np.asarray(GRINEER_ASTEROID_LOWER_ROOM_ANCHOR, dtype=np.float32)
+    )[0]
+    nearby = raised_labels[
+        max(0, anchor_y - 20) : min(size, anchor_y + 21),
+        max(0, anchor_x - 20) : min(size, anchor_x + 21),
+    ]
+    raised_components = [int(label) for label in np.unique(nearby) if label]
+    if raised_components:
+        raised_connection = (
+            np.isin(raised_labels, raised_components).astype(np.uint8) * 255
+        )
+        walkable = cv2.bitwise_or(walkable, raised_connection)
+
+    walkable = cv2.morphologyEx(
+        walkable,
+        cv2.MORPH_CLOSE,
+        cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)),
+    )
+    image = np.zeros((size, size, 4), dtype=np.uint8)
+    image[walkable > 0] = (100, 102, 107, 215)
+    contours, _ = cv2.findContours(
+        walkable,
+        cv2.RETR_CCOMP,
+        cv2.CHAIN_APPROX_SIMPLE,
+    )
+    cv2.drawContours(
+        image,
+        contours,
+        -1,
+        (184, 184, 187, 240),
+        3,
+        cv2.LINE_AA,
+    )
+    return image
+
+
 def render_map(
     group_id: str,
     positions: np.ndarray,
@@ -720,6 +913,17 @@ def render_map(
     image = np.zeros((size, size, 4), dtype=np.uint8)
     map_spawns = overlay.get("_mapSpawns", overlay.get("spawns")) or []
     map_objective = overlay.get("_mapObjective", overlay.get("objective")) or []
+    if group_id == GRINEER_ASTEROID_DEFENSE_GROUP:
+        image = render_grineer_asteroid_walkable_floor(
+            positions,
+            faces,
+            project,
+            lo,
+            hi,
+            map_spawns,
+            map_objective,
+            size,
+        )
     spawn_heights = [float(item.get("y", 0.0)) for item in map_spawns]
     objective_heights = [float(item.get("y", 0.0)) for item in map_objective]
     source_heights = cluster_heights(spawn_heights + objective_heights)
@@ -748,7 +952,9 @@ def render_map(
     elif group_id == INFESTED_SHIP_DEFENSE_GROUP:
         heights = sorted([*heights, INFESTED_SHIP_CONNECTOR_HEIGHT])
     elif group_id == GRINEER_ASTEROID_DEFENSE_GROUP:
-        heights = list(GRINEER_ASTEROID_PLAYABLE_FLOOR_HEIGHTS)
+        # The reviewed walkable-floor renderer above has already built this
+        # arena. Skip the generic translucent height-band renderer.
+        heights = []
     elif group_id == KADESH_DEFENSE_GROUP:
         heights = sorted(
             [
@@ -807,39 +1013,31 @@ def render_map(
             group_id == INFESTED_SHIP_DEFENSE_GROUP
             and abs(height - INFESTED_SHIP_CONNECTOR_HEIGHT) < 0.01
         )
-        grineer_asteroid_center_structure_band = (
-            group_id == GRINEER_ASTEROID_DEFENSE_GROUP
-            and abs(height - GRINEER_ASTEROID_CENTER_STRUCTURE_HEIGHT) < 0.01
-        )
         gas_spawn_02_side_height = (
             gas_spawn_02_side_heights[band_index]
             if gas_spawn_02_side_heights is not None
             else None
         )
         height_tolerance = (
-            GRINEER_ASTEROID_CENTER_STRUCTURE_TOLERANCE
-            if grineer_asteroid_center_structure_band
+            LARZAC_Y_BUILDING_HEIGHT_TOLERANCE
+            if larzac_y_building_band
             else (
-                LARZAC_Y_BUILDING_HEIGHT_TOLERANCE
-                if larzac_y_building_band
+                INFESTED_SHIP_CONNECTOR_TOLERANCE
+                if infested_ship_connector_band
                 else (
-                    INFESTED_SHIP_CONNECTOR_TOLERANCE
-                    if infested_ship_connector_band
+                    (
+                        KADESH_COMPONENT_ONLY_TOLERANCE
+                        if group_id == KADESH_DEFENSE_GROUP
+                        else CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
+                    )
+                    if component_only_band
                     else (
-                        (
-                            KADESH_COMPONENT_ONLY_TOLERANCE
-                            if group_id == KADESH_DEFENSE_GROUP
-                            else CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
-                        )
-                        if component_only_band
+                        CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
+                        if additional_height_band
                         else (
-                            CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
-                            if additional_height_band
-                            else (
-                                HYF_ADDITIONAL_FLOOR_TOLERANCE
-                                if group_id == HYF_DEFENSE_GROUP and band_index > 0
-                                else 3.0
-                            )
+                            HYF_ADDITIONAL_FLOOR_TOLERANCE
+                            if group_id == HYF_DEFENSE_GROUP and band_index > 0
+                            else 3.0
                         )
                     )
                 )
@@ -1049,23 +1247,6 @@ def render_map(
             )
             if count > 1:
                 mask[~np.isin(labels, list(retained))] = 0
-        if grineer_asteroid_center_structure_band:
-            # The highest reviewed slice also crosses detached cave ledges and
-            # rock caps. Preserve only the actual center structure component so
-            # its platform and supports read over the lower walkable floor.
-            mask = cv2.morphologyEx(
-                mask,
-                cv2.MORPH_CLOSE,
-                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
-            )
-            count, labels, _, _ = cv2.connectedComponentsWithStats(
-                (mask > 0).astype(np.uint8), 8
-            )
-            retained = components_near_world_points(
-                labels, GRINEER_ASTEROID_CENTER_STRUCTURE_ANCHORS
-            )
-            if count > 1:
-                mask[~np.isin(labels, list(retained))] = 0
         if group_id == CORPUS_SHIP_DEFENSE_GROUP and band_index == len(heights) - 1:
             for room in CORPUS_SHIP_RUNTIME_SPAWN_ROOMS:
                 floor = project(room).reshape((-1, 1, 2))
@@ -1253,7 +1434,11 @@ def render_map(
         )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    webp_quality = 100 if group_id == GAS_SPAWN_02_GROUP else 90
+    webp_quality = (
+        100
+        if group_id in (GAS_SPAWN_02_GROUP, GRINEER_ASTEROID_DEFENSE_GROUP)
+        else 90
+    )
     if not cv2.imwrite(str(output_path), image, [cv2.IMWRITE_WEBP_QUALITY, webp_quality]):
         raise RuntimeError(f"could not write {output_path}")
     mapped_spawns: dict[str, list[list[float]]] = {}
@@ -1281,7 +1466,7 @@ def render_map(
         HYF_DEFENSE_GROUP: "multi-floor-20260821",
         ICE_PLANET_DEFENSE_GROUP: "y-building-20260822",
         INFESTED_SHIP_DEFENSE_GROUP: "lower-hallway-20260823",
-        GRINEER_ASTEROID_DEFENSE_GROUP: "walkable-center-20260825",
+        GRINEER_ASTEROID_DEFENSE_GROUP: "walkable-stairs-20260825",
     }
     asset_version = asset_versions.get(group_id)
     return {
