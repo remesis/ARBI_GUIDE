@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260825-114\.js/);
+  assert.match(html, /analyzer-20260826-115\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -25,6 +25,11 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   assert.match(js, /image\/png/);
   assert.match(js, /new ClipboardItem/);
+  assert.match(js, /const DISPLAY_PREFERENCES_KEY = "arbi-analyzer-display-v1"/);
+  assert.match(js, /localStorage\.getItem\(DISPLAY_PREFERENCES_KEY\)/);
+  assert.match(js, /localStorage\.setItem\(DISPLAY_PREFERENCES_KEY, JSON\.stringify/);
+  assert.match(js, /widthStep: initialDisplayPreferences\.widthStep/);
+  assert.match(js, /saveDisplayPreferences\(\);\s*applyDisplayControls\(\)/);
   assert.match(js, /await inlineImagesForExport\(stage\)/);
   assert.match(js, /stabilizeExportWhitespace\(stage\)/);
   assert.match(js, /function stabilizeExportWhitespace\(root\)/);
@@ -315,7 +320,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260825-114.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-115.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
