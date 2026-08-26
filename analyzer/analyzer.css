@@ -606,6 +606,7 @@ body.minimap-lightbox-open { overflow: hidden; }
 .export-stage .activity-card { display: none !important; }
 .export-stage .report-actions { display: none !important; }
 .export-stage .squad-privacy-toggle { display: none !important; }
+.export-stage .client-fresh-blessing-button { display: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }

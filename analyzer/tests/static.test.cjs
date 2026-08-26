@@ -17,9 +17,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260825-111\.js/);
+  assert.match(html, /analyzer-20260825-112\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
-  assert.match(html, /correlation-test\.css\?v=20260824-37/);
+  assert.match(html, /correlation-test\.css\?v=20260825-38/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -315,15 +315,47 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260825-111.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260825-112.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
-  assert.match(js, /computeVitus\(run\.droneKills, run\.rotations, run\.missionType, run\.blessedDroneKills\)/);
+  assert.match(js, /computeVitus\(run\.droneKills, run\.rotations, run\.missionType, effectiveBlessedDroneKills\(run\)\)/);
   assert.match(parser, /ResourceDropChanceBlessingStoreItem/);
   assert.match(parser, /const BOOSTED_DROP_CHANCE = 0\.12/);
   assert.doesNotMatch(js, /MISSING RESOURCEFUL RETRIEVER MOD/);
   assert.doesNotMatch(parser, /BeastResourceDoublingMod|resourcefulRetrieverDetected/);
+});
+
+test("fresh client Blessing override lasts three hours from mission start", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const blessedSource = js.match(/function effectiveBlessedDroneKills\(run\) \{[\s\S]*?\n  \}/)?.[0];
+  const expirySource = js.match(/function effectiveBlessingExpiry\(run\) \{[\s\S]*?\n  \}/)?.[0];
+  const durationSource = js.match(/function blessingDuration\(seconds\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(blessedSource);
+  assert.ok(expirySource);
+  assert.ok(durationSource);
+  const context = {};
+  vm.runInNewContext(`
+    const RESOURCE_BLESSING_SECONDS = 3 * 60 * 60;
+    ${blessedSource}
+    ${expirySource}
+    ${durationSource}
+    const shortRun = { clientFreshBlessing: true, startTime: 100, totalDuration: 8100, droneKills: 3, droneTimestamps: [200, 1000, 8000] };
+    const longRun = { clientFreshBlessing: true, startTime: 100, totalDuration: 14400, droneKills: 3, droneTimestamps: [200, 10900, 10901] };
+    result = {
+      shortKills: effectiveBlessedDroneKills(shortRun),
+      shortExpiry: effectiveBlessingExpiry(shortRun),
+      longKills: effectiveBlessedDroneKills(longRun),
+      longExpiry: effectiveBlessingExpiry(longRun),
+      threeHourLabel: blessingDuration(RESOURCE_BLESSING_SECONDS),
+    };
+  `, context);
+  assert.equal(context.result.shortKills, 3);
+  assert.equal(context.result.shortExpiry, null);
+  assert.equal(context.result.longKills, 2);
+  assert.equal(context.result.longExpiry.elapsed, 10800);
+  assert.equal(context.result.longExpiry.timestamp, 10900);
+  assert.equal(context.result.threeHourLabel, "3h 0m 0s");
 });
 
 test("Actual Vitus input accepts only the first four numeric digits", () => {
@@ -742,6 +774,15 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(js, /class="correlation-tooltip-stage"/);
   assert.match(js, /class="correlation-blessing-expiry"/);
   assert.match(js, /Blessing ran out at:/);
+  assert.match(js, /Client had fresher blessing/);
+  assert.match(js, /const RESOURCE_BLESSING_SECONDS = 3 \* 60 \* 60/);
+  assert.match(js, /Parser\.computeVitus\(run\.droneKills, run\.rotations, run\.missionType, effectiveBlessedDroneKills\(run\)\)/);
+  assert.match(js, /Number\(run\.totalDuration\) <= RESOURCE_BLESSING_SECONDS/);
+  assert.match(js, /run\.clientFreshBlessing = !run\.clientFreshBlessing/);
+  assert.match(js, /data-html2canvas-ignore="true">Client had fresher blessing/);
+  assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.export-stage \.client-fresh-blessing-button\s*\{\s*display:\s*none !important/);
+  assert.match(css, /\.client-fresh-blessing-button\s*\{[^}]*color:\s*#67e8f9/);
+  assert.match(css, /\.correlation-blessing-status\s*\{[^}]*position:\s*absolute/);
   assert.match(js, /y1="\$\{pad\.top\}"[^>]*y2="\$\{height - pad\.bottom\}"/);
   assert.match(css, /\.correlation-blessing-expiry\s*\{[^}]*stroke:\s*#ff2838[^}]*stroke-width:\s*2/);
   assert.doesNotMatch(js, /const xPercent = Number\(hit\.dataset\.correlationX\)/);

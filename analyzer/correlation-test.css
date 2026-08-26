@@ -174,15 +174,51 @@ html[data-analyzer-layout="correlation-test"] .correlation-card .card-title {
   font-size: 16px;
 }
 
-html[data-analyzer-layout="correlation-test"] .correlation-blessing-expiry-label {
+html[data-analyzer-layout="correlation-test"] .correlation-blessing-status {
   position: absolute;
-  top: 18px;
+  z-index: 2;
+  top: 10px;
   right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  pointer-events: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .correlation-blessing-expiry-label {
   color: #ff4b58;
   font-size: 13px;
   font-weight: 750;
   line-height: 1;
   white-space: nowrap;
+}
+
+html[data-analyzer-layout="correlation-test"] .client-fresh-blessing-button {
+  border: 1px solid rgba(34, 211, 238, .72);
+  border-radius: 5px;
+  background: rgba(8, 145, 178, .12);
+  color: #67e8f9;
+  padding: 2px 7px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.1;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+html[data-analyzer-layout="correlation-test"] .client-fresh-blessing-button:hover,
+html[data-analyzer-layout="correlation-test"] .client-fresh-blessing-button:focus-visible {
+  border-color: #67e8f9;
+  background: rgba(34, 211, 238, .22);
+  outline: none;
+}
+
+html[data-analyzer-layout="correlation-test"] .client-fresh-blessing-button.is-active {
+  background: #22d3ee;
+  color: #071317;
 }
 
 html[data-analyzer-layout="correlation-test"] .correlation-chart-wrap {
