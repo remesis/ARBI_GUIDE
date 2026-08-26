@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260823-6.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260825-7.js"
 
 
 GROUP_NODES = {
@@ -1466,7 +1466,7 @@ def render_map(
         HYF_DEFENSE_GROUP: "multi-floor-20260821",
         ICE_PLANET_DEFENSE_GROUP: "y-building-20260822",
         INFESTED_SHIP_DEFENSE_GROUP: "lower-hallway-20260823",
-        GRINEER_ASTEROID_DEFENSE_GROUP: "walkable-stairs-20260825",
+        GRINEER_ASTEROID_DEFENSE_GROUP: "walkable-stairs-20260825-2",
     }
     asset_version = asset_versions.get(group_id)
     return {

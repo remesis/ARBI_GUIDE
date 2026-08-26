@@ -16,7 +16,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /%localappdata%\\Warframe\\/);
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
-  assert.match(html, /minimaps\/catalog-20260823-6\.js/);
+  assert.match(html, /minimaps\/catalog-20260825-7\.js/);
   assert.match(html, /analyzer-20260825-114\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -246,10 +246,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.topbar \.search-wrap input, \.topbar \.search-wrap button\s*\{\s*font:\s*revert/);
   const catalog = fs.readFileSync(path.join(analyzerDir, "minimaps", "catalog.js"), "utf8");
   const immutableCatalog = fs.readFileSync(
-    path.join(analyzerDir, "minimaps", "catalog-20260823-6.js"),
+    path.join(analyzerDir, "minimaps", "catalog-20260825-7.js"),
     "utf8",
   );
-  assert.match(html, /minimaps\/catalog-20260823-6\.js/);
+  assert.match(html, /minimaps\/catalog-20260825-7\.js/);
   assert.equal(immutableCatalog, catalog);
   assert.match(catalog, /tile-geometry/);
   assert.match(catalog, /spawnPoints/);
