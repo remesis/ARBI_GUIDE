@@ -2,10 +2,10 @@
   "use strict";
 
   const ENDPOINT = "/api/analyzer/spawns";
-  // v8 intentionally gets a fresh browser cache so previously accepted runs
-  // can reconcile exact active-time and drone-interval totals under the same
-  // canonical hash when their original logs are analyzed again.
-  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v8";
+  // v9 intentionally gets a fresh browser cache so previously accepted runs
+  // can reconcile their Blessing-eligible drone count under the same canonical
+  // hash when their original logs are analyzed again.
+  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v9";
   const CACHE_LIMIT = 5000;
   const PRODUCTION_HOSTS = new Set(["arbi.guide"]);
 
@@ -53,6 +53,9 @@
       && metrics.active_seconds <= metrics.mission_seconds + 0.01
       && Number.isInteger(metrics.drone_kills)
       && metrics.drone_kills >= 0
+      && Number.isInteger(metrics.blessed_drone_kills)
+      && metrics.blessed_drone_kills >= 0
+      && metrics.blessed_drone_kills <= metrics.drone_kills
       && Number.isInteger(metrics.enemy_spawns)
       && metrics.enemy_spawns >= 0
       && Number.isFinite(metrics.high_enemy_seconds)
@@ -87,7 +90,7 @@
     const storage = options.storage === undefined ? globalThis.localStorage : options.storage;
     const fetchImpl = options.fetchImpl || globalThis.fetch;
     const cached = new Set(acceptedHashes(storage));
-    if (cached.has(payload.run_hash)) return { status: "cached", run_hash: payload.run_hash };
+    if (!options.force && cached.has(payload.run_hash)) return { status: "cached", run_hash: payload.run_hash };
 
     const controller = typeof AbortController === "undefined" ? null : new AbortController();
     const timer = controller ? setTimeout(() => controller.abort(), options.timeoutMs || 10000) : null;

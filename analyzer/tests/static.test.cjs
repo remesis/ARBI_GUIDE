@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260823-6\.js/);
-  assert.match(html, /analyzer-20260825-113\.js/);
+  assert.match(html, /analyzer-20260825-114\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -56,7 +56,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /id="mobileSearchPrevBtn"/);
   assert.match(html, /id="clearRunsBtn"[^>]*>Clear</);
   assert.match(js, /function clearRuns\(\)/);
-  assert.match(js, /SpawnSubmission\.submitRuns\(runs, Parser\.buildContribution\)/);
+  assert.match(js, /SpawnSubmission\.submitRuns\(runs, buildContribution, options\)/);
   assert.doesNotMatch(js, /Spawn metrics:|Spawn metrics updated:|without usable spawn coordinates/);
   assert.match(js, /function setupDpmTooltips\(root\)/);
   assert.match(js, /function chooseLogFile\(input\)\s*\{\s*input\.click\(\);\s*\}/);
@@ -306,16 +306,16 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260825-77"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260825-78"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(parser, /scanner-worker\.js\?v=20260825-10/);
-  assert.match(html, /parser\.js\?v=20260825-77/);
+  assert.match(parser, /scanner-worker\.js\?v=20260825-11/);
+  assert.match(html, /parser\.js\?v=20260825-78/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260825-113.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260825-114.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -779,6 +779,11 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(js, /Parser\.computeVitus\(run\.droneKills, run\.rotations, run\.missionType, effectiveBlessedDroneKills\(run\)\)/);
   assert.match(js, /Number\(run\.totalDuration\) <= RESOURCE_BLESSING_SECONDS/);
   assert.match(js, /run\.clientFreshBlessing = !run\.clientFreshBlessing/);
+  assert.match(js, /scheduleBlessingMetricSync\(run\)/);
+  assert.match(js, /BLESSING_METRIC_SYNC_DELAY_MS = 2000/);
+  assert.match(js, /force: true/);
+  assert.match(js, /Parser\.buildContribution\(target, \{ blessedDroneKills \}\)/);
+  assert.match(js, /sync\.pending \|\| currentBlessedDroneKills !== blessedDroneKills/);
   assert.match(js, /data-html2canvas-ignore="true">Click this button if Client had Fresher Blessing/);
   assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.export-stage \.client-fresh-blessing-button\s*\{\s*display:\s*none !important/);
   assert.match(css, /\.client-fresh-blessing-button\s*\{[^}]*color:\s*#67e8f9/);

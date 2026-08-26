@@ -24,7 +24,7 @@
   const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260825-10";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260825-11";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
@@ -1792,7 +1792,7 @@
     }));
   }
 
-  async function buildContribution(run) {
+  async function buildContribution(run, options = {}) {
     const spawnEligible = ["DEFENSE", "INTERCEPTION"].includes(run.missionType);
     const spawnPoints = (spawnEligible ? Object.values(run.spawnPoints || {}) : [])
       .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y) && Number.isFinite(point.z))
@@ -1824,10 +1824,19 @@
     const droneIntervalSpanSeconds = droneIntervalCount
       ? run.droneTimestamps[run.droneTimestamps.length - 1] - run.droneTimestamps[0]
       : 0;
+    const droneKills = Math.max(0, Math.trunc(run.droneKills || 0));
+    const requestedBlessedDroneKills = Object.hasOwn(options, "blessedDroneKills")
+      ? Number(options.blessedDroneKills)
+      : NaN;
+    const loggedBlessedDroneKills = Number(run.blessedDroneKills);
+    const blessedDroneKills = Number.isFinite(requestedBlessedDroneKills)
+      ? requestedBlessedDroneKills
+      : (Number.isFinite(loggedBlessedDroneKills) ? loggedBlessedDroneKills : droneKills);
     const runMetrics = {
       mission_seconds: round(run.totalDuration || 0, 3),
       active_seconds: round(run.activeDuration || 0, 3),
-      drone_kills: Math.max(0, Math.trunc(run.droneKills || 0)),
+      drone_kills: droneKills,
+      blessed_drone_kills: Math.max(0, Math.min(droneKills, Math.trunc(blessedDroneKills))),
       enemy_spawns: Math.max(0, Math.trunc(run.enemySpawns || 0)),
       high_enemy_seconds: round(saturationTotals.highEnemySeconds, 3),
       enemy_telemetry_seconds: round(saturationTotals.telemetrySeconds, 3),

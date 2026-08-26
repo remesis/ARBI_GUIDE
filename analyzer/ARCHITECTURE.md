@@ -98,7 +98,9 @@ The exact submitted fields are:
   identical runs in one growing log;
 - total observed spawn events;
 - each observed spawn-point key, XYZ position, and aggregate count;
-- mission duration, drone kills, the non-ticking-filtered enemy total, the
+- mission duration, drone kills, the number of those drone kills that occurred
+  while the effective Resource Drop Chance Blessing was active, the
+  non-ticking-filtered enemy total, the
   high-enemy and trustworthy-telemetry seconds behind the displayed saturation
   percentage, a 52-value duration histogram whose indexes `0` through `50` are
   exact enemy counts and whose final index is `51+`, pause-filtered active
@@ -132,10 +134,18 @@ The cache namespace is versioned. A contract change may advance it once so
 already accepted hashes are reconciled without changing their canonical spawn
 identity.
 
-The current v8 namespace resubmits previously accepted runs once so D1 can add
-their reduced active-time and drone-interval totals. Historical D1 values stay
-`NULL` until their original logs are analyzed again; missing values are never
-estimated or treated as zero.
+The current v9 namespace resubmits previously accepted runs once so D1 can
+reconcile the Blessing-eligible drone count and its server-derived Expected
+Vitus values. Historical reduced fields stay `NULL` until their original logs
+are analyzed again; missing values are never estimated or treated as zero.
+
+The site-only **Client had Fresher Blessing** toggle updates the report
+immediately and debounces its D1 correction for two seconds. Rapid toggles
+reset that timer; a state change during an in-flight request schedules exactly
+one follow-up for the final state. This correction bypasses only the local
+accepted-hash cache. It retains the original canonical `run_hash`, so D1
+updates that run's existing reduced metric row and the insert-only coordinate
+row cannot be duplicated.
 
 The browser cache is an optimization. D1's primary key on `run_hash` is the
 authoritative cross-browser and cache-clear duplicate guard.
@@ -172,7 +182,10 @@ It:
 - keeps coordinate rows insert-only under the D1 `run_hash` primary key and may
   reconcile the reduced current-contract record for that same hash; rollout-era
   payloads remain insert-only and cannot overwrite a current record;
-- stores the validated reduced record under its canonical run hash;
+- recalculates Expected Vitus and Expected VE/min from drone kills, the
+  Blessing-eligible drone count, reward cycles, mission type, and duration;
+- stores or reconciles the validated reduced record under its canonical run
+  hash;
 - applies a Rate Limiting binding to public browser submissions when configured
   (the authenticated bot has its own Discord command cooldown and durable
   retry queue);
@@ -331,7 +344,7 @@ not baked into the published WebP.
 
 As of 2026-08-23, the approved correlation layout is the production Analyzer
 layout. `index.html` loads `correlation-test.css` unconditionally (the filename
-is historical) and the immutable `analyzer-20260825-113.js` bundle. The
+is historical) and the immutable `analyzer-20260825-114.js` bundle. The
 maintained source remains `analyzer.js`; whenever it changes, publish a new
 immutable filename and update the shell and static tests together.
 
@@ -373,7 +386,10 @@ expired but the analyzed client still had a newer one. The override gives the
 client a fresh three-hour Blessing from mission start, recalculates Expected
 Vitus, removes the warning/divider for runs shorter than three hours, and moves
 both to exactly `3h 0m 0s` for longer runs. The control is excluded from copied
-PNG reports and adds nothing to the Cloudflare submission payload.
+PNG reports. Its final state is reduced to the effective Blessing-eligible
+drone count and automatically reconciled to the same D1 run row after the
+two-second debounce; the actual Vitus entry and raw Blessing line never leave
+the browser.
 
 File-picker imports and run-list selection retain their immediate Actual Vitus
 focus behavior. Only drag/drop imports perform one deferred re-focus after the

@@ -59,6 +59,7 @@ test("parses multiple local Arbitration runs and retains structured spawn points
     mission_seconds: runs[0].totalDuration,
     active_seconds: runs[0].activeDuration,
     drone_kills: runs[0].droneKills,
+    blessed_drone_kills: runs[0].droneKills,
     enemy_spawns: runs[0].enemySpawns,
     high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
     enemy_telemetry_seconds: Math.round(saturationTotals.telemetrySeconds * 1000) / 1000,
@@ -72,6 +73,9 @@ test("parses multiple local Arbitration runs and retains structured spawn points
     four_member_majority: false,
   });
   assert.match(payload.run_hash, /^(?:[a-f0-9]{64}|test-[a-f0-9]{8})$/);
+  const corrected = await Parser.buildContribution(runs[0], { blessedDroneKills: 3 });
+  assert.equal(corrected.run_hash, payload.run_hash, "a Blessing correction must retain the original run identity");
+  assert.equal(corrected.run_metrics.blessed_drone_kills, 3);
   const serialized = JSON.stringify(payload);
   assert.doesNotMatch(serialized, /Squad|player|Mission name|OnAgentCreated/i);
   assert.doesNotMatch(serialized, /npc_types|wave_counts/i);
@@ -248,6 +252,7 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
     mission_seconds: 130,
     active_seconds: run.activeDuration,
     drone_kills: 7,
+    blessed_drone_kills: 7,
     enemy_spawns: 48,
     high_enemy_seconds: Math.round(saturationTotals.highEnemySeconds * 1000) / 1000,
     enemy_telemetry_seconds: Math.round(saturationTotals.telemetrySeconds * 1000) / 1000,

@@ -23,6 +23,7 @@ function payload(hash = "a".repeat(64)) {
       mission_seconds: 600,
       active_seconds: 570,
       drone_kills: 100,
+      blessed_drone_kills: 100,
       enemy_spawns: 1000,
       high_enemy_seconds: 5,
       enemy_telemetry_seconds: 500,
@@ -72,6 +73,23 @@ test("repeat analysis submits only a newly appended run", async () => {
   await Submission.submitRuns(runs, build, { hostname: "arbi.guide", storage: cache, fetchImpl });
   await Submission.submitRuns([...runs, payload("3".repeat(64))], build, { hostname: "arbi.guide", storage: cache, fetchImpl });
   assert.deepEqual(sent.sort(), ["1".repeat(64), "2".repeat(64), "3".repeat(64)]);
+});
+
+test("a forced correction bypasses the browser cache but keeps the same run hash", async () => {
+  const cache = storage();
+  const sent = [];
+  const fetchImpl = async (_url, options) => {
+    sent.push(JSON.parse(options.body));
+    return { ok: true, status: 201, json: async () => ({ status: "accepted" }) };
+  };
+  const original = payload();
+  await Submission.postPayload(original, { fetchImpl, storage: cache });
+  const corrected = structuredClone(original);
+  corrected.run_metrics.blessed_drone_kills = 60;
+  await Submission.postPayload(corrected, { fetchImpl, storage: cache, force: true });
+  assert.equal(sent.length, 2);
+  assert.equal(sent[0].run_hash, sent[1].run_hash);
+  assert.equal(sent[1].run_metrics.blessed_drone_kills, 60);
 });
 
 test("non-production hosts never contact the ingestion endpoint", async () => {
