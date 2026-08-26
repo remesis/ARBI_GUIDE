@@ -340,6 +340,14 @@ roof and prop components. The clockwise affine transform and authored spawn
 catalog are unchanged; the 3D spawn markers used during local validation are
 not baked into the published WebP.
 
+The shared Rhea / Lares / Sangeru minimap uses reviewed 1 m and 4 m walkable
+surface slices instead of the generic median derived from its nearly continuous
+spawn-height range. These layers preserve the outer arena, raised routes,
+interior floor cutouts, and large center platform. A 7 m slice is limited to
+the connected center component so the central cap and supports remain visible
+without pulling detached cave ledges or rock caps into the map. The existing
+world-to-image matrix and submitted-run spawn coordinates are unchanged.
+
 ## Production report layout
 
 As of 2026-08-23, the approved correlation layout is the production Analyzer

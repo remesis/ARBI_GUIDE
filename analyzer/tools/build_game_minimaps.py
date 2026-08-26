@@ -279,6 +279,17 @@ KADESH_COMPONENT_ONLY_HEIGHTS = {
     for group_id, anchors_by_height in KADESH_COMPONENT_BAND_ANCHORS.items()
 }
 KADESH_COMPONENT_ONLY_TOLERANCE = 0.9
+GRINEER_ASTEROID_DEFENSE_GROUP = "rhea+lares+sangeru"
+# Lares' authored spawn/objective heights form one continuous cluster, so the
+# generic median slice lands below most of the arena and flattens its broad
+# ground plane into an indistinct blob. Layer the real low and raised walkable
+# surfaces instead, then retain only the mesh component containing the large
+# central structure at the highest slice. This keeps the center platform and
+# its supports legible without importing the surrounding rock ceiling.
+GRINEER_ASTEROID_PLAYABLE_FLOOR_HEIGHTS = (1.0, 4.0, 7.0)
+GRINEER_ASTEROID_CENTER_STRUCTURE_HEIGHT = 7.0
+GRINEER_ASTEROID_CENTER_STRUCTURE_TOLERANCE = 3.0
+GRINEER_ASTEROID_CENTER_STRUCTURE_ANCHORS = ((10.0, 7.0, -9.0),)
 CORPUS_OUTPOST_DEFENSE_GROUP = "sechura+tessera+outer_terminus+cerberus"
 CORPUS_OUTPOST_HEIGHT_BAND_INDICES = {
     CORPUS_OUTPOST_DEFENSE_GROUP: (0, 1),
@@ -736,6 +747,8 @@ def render_map(
         heights = sorted([*heights, LARZAC_Y_BUILDING_HEIGHT])
     elif group_id == INFESTED_SHIP_DEFENSE_GROUP:
         heights = sorted([*heights, INFESTED_SHIP_CONNECTOR_HEIGHT])
+    elif group_id == GRINEER_ASTEROID_DEFENSE_GROUP:
+        heights = list(GRINEER_ASTEROID_PLAYABLE_FLOOR_HEIGHTS)
     elif group_id == KADESH_DEFENSE_GROUP:
         heights = sorted(
             [
@@ -794,31 +807,39 @@ def render_map(
             group_id == INFESTED_SHIP_DEFENSE_GROUP
             and abs(height - INFESTED_SHIP_CONNECTOR_HEIGHT) < 0.01
         )
+        grineer_asteroid_center_structure_band = (
+            group_id == GRINEER_ASTEROID_DEFENSE_GROUP
+            and abs(height - GRINEER_ASTEROID_CENTER_STRUCTURE_HEIGHT) < 0.01
+        )
         gas_spawn_02_side_height = (
             gas_spawn_02_side_heights[band_index]
             if gas_spawn_02_side_heights is not None
             else None
         )
         height_tolerance = (
-            LARZAC_Y_BUILDING_HEIGHT_TOLERANCE
-            if larzac_y_building_band
+            GRINEER_ASTEROID_CENTER_STRUCTURE_TOLERANCE
+            if grineer_asteroid_center_structure_band
             else (
-                INFESTED_SHIP_CONNECTOR_TOLERANCE
-                if infested_ship_connector_band
+                LARZAC_Y_BUILDING_HEIGHT_TOLERANCE
+                if larzac_y_building_band
                 else (
-                    (
-                        KADESH_COMPONENT_ONLY_TOLERANCE
-                        if group_id == KADESH_DEFENSE_GROUP
-                        else CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
-                    )
-                    if component_only_band
+                    INFESTED_SHIP_CONNECTOR_TOLERANCE
+                    if infested_ship_connector_band
                     else (
-                        CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
-                        if additional_height_band
+                        (
+                            KADESH_COMPONENT_ONLY_TOLERANCE
+                            if group_id == KADESH_DEFENSE_GROUP
+                            else CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
+                        )
+                        if component_only_band
                         else (
-                            HYF_ADDITIONAL_FLOOR_TOLERANCE
-                            if group_id == HYF_DEFENSE_GROUP and band_index > 0
-                            else 3.0
+                            CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
+                            if additional_height_band
+                            else (
+                                HYF_ADDITIONAL_FLOOR_TOLERANCE
+                                if group_id == HYF_DEFENSE_GROUP and band_index > 0
+                                else 3.0
+                            )
                         )
                     )
                 )
@@ -1025,6 +1046,23 @@ def render_map(
             )
             retained = components_near_world_points(
                 labels, LARZAC_Y_BUILDING_ANCHOR
+            )
+            if count > 1:
+                mask[~np.isin(labels, list(retained))] = 0
+        if grineer_asteroid_center_structure_band:
+            # The highest reviewed slice also crosses detached cave ledges and
+            # rock caps. Preserve only the actual center structure component so
+            # its platform and supports read over the lower walkable floor.
+            mask = cv2.morphologyEx(
+                mask,
+                cv2.MORPH_CLOSE,
+                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+            )
+            count, labels, _, _ = cv2.connectedComponentsWithStats(
+                (mask > 0).astype(np.uint8), 8
+            )
+            retained = components_near_world_points(
+                labels, GRINEER_ASTEROID_CENTER_STRUCTURE_ANCHORS
             )
             if count > 1:
                 mask[~np.isin(labels, list(retained))] = 0
@@ -1243,6 +1281,7 @@ def render_map(
         HYF_DEFENSE_GROUP: "multi-floor-20260821",
         ICE_PLANET_DEFENSE_GROUP: "y-building-20260822",
         INFESTED_SHIP_DEFENSE_GROUP: "lower-hallway-20260823",
+        GRINEER_ASTEROID_DEFENSE_GROUP: "walkable-center-20260825",
     }
     asset_version = asset_versions.get(group_id)
     return {
