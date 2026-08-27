@@ -460,19 +460,19 @@ body.empty-page-drag::after {
 .vitus-card-heading { display: block; }
 .vitus-style-selector { position: absolute; z-index: 12; top: 12px; right: 12px; margin: 0; }
 .vitus-style-selector summary {
-  min-width: 74px;
-  height: 27px;
+  min-width: 92px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 0 9px;
+  padding: 0 12px;
   border: 1px solid #3a3b44;
   border-radius: 6px;
   background: #1a1b20;
   color: #b7b8c2;
-  font-size: 11px;
-  font-weight: 850;
+  font-size: 14px;
+  font-weight: 900;
   line-height: 1;
   cursor: pointer;
   list-style: none;
@@ -504,7 +504,7 @@ body.empty-page-drag::after {
   border-radius: 4px;
   background: transparent;
   color: #b7b8c2;
-  font: 800 12px/1.2 Inter, system-ui, sans-serif;
+  font: 800 14px/1.2 Inter, system-ui, sans-serif;
   text-align: left;
   cursor: pointer;
 }
@@ -518,23 +518,6 @@ body.empty-page-drag::after {
 .vitus-design-entry-stack { min-width: 0; display: grid; row-gap: 5px; }
 .vitus-design-entry-label { color: var(--text); font: 850 17px/1 system-ui, sans-serif; white-space: nowrap; }
 .vitus-design-entry-delta { color: var(--muted); font: 400 14px/1 Inter, system-ui, sans-serif; white-space: nowrap; }
-.vitus-design-input {
-  width: 88px;
-  height: 40px;
-  min-height: 40px;
-  padding: 0 11px;
-  border: 1px solid #393a43;
-  border-radius: 6px;
-  outline: none;
-  background: #111216;
-  color: var(--vitus-actual-color, var(--text));
-  font: 900 26px/1 Inter, system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -.02em;
-  text-align: center;
-}
-.vitus-design-input::placeholder { color: #70717b; font-size: 15px; letter-spacing: 0; }
-.vitus-design-input:focus { border-color: #4aa7ff; box-shadow: 0 0 0 2px #111216, 0 0 0 4px #4aa7ff; }
 .vitus-design-rate { flex: 0 0 auto; text-align: right; }
 .vitus-design-rate-value { color: #f5f5f7; font: 900 22px/1 Inter, system-ui, sans-serif; white-space: nowrap; }
 .vitus-design-rate-value span { color: var(--muted-2); font-size: 14px; font-weight: 850; }

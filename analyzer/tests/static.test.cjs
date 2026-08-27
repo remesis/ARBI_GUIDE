@@ -17,8 +17,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260826-117\.js/);
-  assert.match(html, /analyzer\.css\?v=20260826-87/);
+  assert.match(html, /analyzer-20260826-118\.js/);
+  assert.match(html, /analyzer\.css\?v=20260826-88/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -327,7 +327,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-117.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-118.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -350,12 +350,17 @@ test("Expected Vitus card style selector persists and stays out of copied images
   assert.match(js, /vitus-style-option\$\{state\.vitusCardStyle === style \? " is-selected" : ""\}/);
   assert.match(js, /function renderVitusGauge\(run, result, view\)/);
   assert.match(js, /function renderVitusCurve\(run, result, view\)/);
-  assert.match(js, /className === "vitus-input" \? className : `vitus-input \$\{className\}`/);
+  assert.match(js, /function renderVitusInput\(view\)[\s\S]*?class="vitus-input"/);
+  assert.equal((js.match(/\$\{renderVitusInput\(view\)\}/g) || []).length, 3);
+  assert.doesNotMatch(js, /vitus-design-input/);
+  assert.match(js, /const textColor = isMean \? "#72c7ff" : "#8a8b96"/);
   assert.match(js, /const rate = view\.rate === null \? "⎵"/);
   assert.match(js, /view\.tilesetExpected === null \? "⎵"/);
   assert.match(js, /VITUS_AVERAGE_ENDPOINT = "\/api\/analyzer\/spawns\/averages"/);
   assert.match(js, /tilesetAverageVitusRate/);
   assert.match(css, /\.vitus-style-option\.is-selected\s*\{[^}]*background:\s*#30313a/);
+  assert.match(css, /\.vitus-style-selector summary\s*\{[^}]*font-size:\s*14px/);
+  assert.match(css, /\.vitus-style-option\s*\{[^}]*font:\s*800 14px/);
   assert.match(css, /\.export-stage \.vitus-style-selector\s*\{\s*display:\s*none !important/);
 });
 
