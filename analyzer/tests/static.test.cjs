@@ -17,7 +17,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260826-116\.js/);
+  assert.match(html, /analyzer-20260826-117\.js/);
+  assert.match(html, /analyzer\.css\?v=20260826-87/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -73,13 +74,13 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /class="vitus-entry-label">Actual Vitus<\/span>/);
   assert.match(js, /actual \* 60 \/ seconds/);
   assert.match(js, /return "⎵ VE\/min"/);
-  assert.match(js, /\$\("#vitusRate"\)\.textContent = formatVitusRate\(run\)/);
+  assert.match(js, /replaceVitusCard\(run, \{ focusInput: true \}\)/);
   assert.match(js, /function focusActualVitusEntry\(settle = false\)/);
   assert.match(js, /input\.focus\(\{ preventScroll: true \}\)/);
   assert.match(js, /const end = input\.value\.length;\s*input\.setSelectionRange\(end, end\)/);
   assert.match(js, /if \(settle\) setTimeout\(\(\) => requestAnimationFrame\(applyFocus\), 0\)/);
   assert.match(js, /type="text" inputmode="numeric" pattern="\[0-9\]\*" maxlength="4" autocomplete="off"/);
-  assert.match(js, /const digits = cleanVitusDigits\(vitusInput\.value\)/);
+  assert.match(js, /const digits = cleanVitusDigits\(input\.value\)/);
   assert.match(js, /function cleanVitusDigits\(value\)\s*\{\s*return String\(value \?\? ""\)\.replace\(\/\\D\/g, ""\)\.slice\(0, 4\)/);
   assert.match(js, /run\.actualVitus = ""/);
   assert.match(js, /renderReport\(state\.runs\[state\.activeIndex\]\);\s*focusActualVitusEntry\(\)/);
@@ -326,7 +327,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-116.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-117.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -335,6 +336,27 @@ test("Expected Vitus uses explicit booster copy without unscoped mod detection",
   assert.match(parser, /const BOOSTED_DROP_CHANCE = 0\.12/);
   assert.doesNotMatch(js, /MISSING RESOURCEFUL RETRIEVER MOD/);
   assert.doesNotMatch(parser, /BeastResourceDoublingMod|resourcefulRetrieverDetected/);
+});
+
+test("Expected Vitus card style selector persists and stays out of copied images", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  assert.match(js, /const VITUS_CARD_STYLE_KEY = "arbi-analyzer-vitus-card-style-v1"/);
+  assert.match(js, /Object\.freeze\(\["original", "gauge", "curve"\]\)/);
+  assert.match(js, /localStorage\.getItem\(VITUS_CARD_STYLE_KEY\)/);
+  assert.match(js, /localStorage\.setItem\(VITUS_CARD_STYLE_KEY, state\.vitusCardStyle\)/);
+  assert.match(js, /<summary aria-label="Change Expected Vitus card">Change<\/summary>/);
+  assert.match(js, /const labels = \{ original: "Original", gauge: "Gauge", curve: "Curve" \}/);
+  assert.match(js, /vitus-style-option\$\{state\.vitusCardStyle === style \? " is-selected" : ""\}/);
+  assert.match(js, /function renderVitusGauge\(run, result, view\)/);
+  assert.match(js, /function renderVitusCurve\(run, result, view\)/);
+  assert.match(js, /className === "vitus-input" \? className : `vitus-input \$\{className\}`/);
+  assert.match(js, /const rate = view\.rate === null \? "⎵"/);
+  assert.match(js, /view\.tilesetExpected === null \? "⎵"/);
+  assert.match(js, /VITUS_AVERAGE_ENDPOINT = "\/api\/analyzer\/spawns\/averages"/);
+  assert.match(js, /tilesetAverageVitusRate/);
+  assert.match(css, /\.vitus-style-option\.is-selected\s*\{[^}]*background:\s*#30313a/);
+  assert.match(css, /\.export-stage \.vitus-style-selector\s*\{\s*display:\s*none !important/);
 });
 
 test("fresh client Blessing override lasts three hours from mission start", () => {
@@ -554,7 +576,7 @@ test("report timestamps use readable mission-relative elapsed time", () => {
 
 test("actual Vitus luck uses the shared percentile bands instead of nearest totals", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  assert.match(js, /Parser\.classifyVitusScenario\(result\.scenarios, actual\)/);
+  assert.match(js, /Parser\.classifyVitusScenario\(result\.scenarios, entered\)/);
   assert.doesNotMatch(js, /Math\.abs\(a\.total-actual\)/);
 });
 
@@ -570,8 +592,8 @@ test("actual Vitus luck headline follows the red-to-green performance grade", ()
   assert.match(js, /return `\$\{actual <= result\.mean \? "Bottom" : "Top"\} \$\{chance\} Luck`/);
   assert.match(js, /<th>CHANCE<\/th><th>TOTAL<\/th><th>LUCK LEVEL<\/th>/);
   assert.match(js, /id="vitusDelta" class="mini vitus-delta"/);
-  assert.match(js, /id="vitusLuck"[\s\S]*?<strong>\$\{h\(classified\.label\)\}<\/strong><div class="mini vitus-tail">/);
-  assert.match(js, /luck\.style\.setProperty\("--luck-color", vitusLuckColor\(result\.scenarios, classified\)\)/);
+  assert.match(js, /id="vitusLuck"[\s\S]*?<strong>\$\{h\(view\.classified\.label\)\}<\/strong><div class="mini vitus-tail">/);
+  assert.match(js, /const color = vitusLuckColor\(result\.scenarios, classified\)/);
   assert.match(css, /\.vitus-luck strong\s*\{[^}]*color:\s*var\(--luck-color, #f5f5f7\)/);
   assert.match(css, /\.vitus-actual,\s*\.vitus-luck\s*\{[^}]*display:\s*grid;[^}]*grid-template-rows:\s*17px calc\(var\(--report-subtext-size\) \* 1\.55\);[^}]*row-gap:\s*4px/);
   assert.match(css, /\.vitus-entry-label,\s*\.vitus-luck strong\s*\{[^}]*font:\s*850 17px\/1 system-ui, sans-serif/);

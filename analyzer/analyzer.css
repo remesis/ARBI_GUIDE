@@ -456,6 +456,105 @@ body.empty-page-drag::after {
 .vitus-table td { padding: 6px 2px; border-top: 1px solid #26272d; }
 .vitus-table tr.active td { background: #202126; color: white; }
 
+.vitus-card { position: relative; }
+.vitus-card-heading { display: block; }
+.vitus-style-selector { position: absolute; z-index: 12; top: 12px; right: 12px; margin: 0; }
+.vitus-style-selector summary {
+  min-width: 74px;
+  height: 27px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 9px;
+  border: 1px solid #3a3b44;
+  border-radius: 6px;
+  background: #1a1b20;
+  color: #b7b8c2;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.vitus-style-selector summary::-webkit-details-marker { display: none; }
+.vitus-style-selector summary::after { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+.vitus-style-selector[open] summary { border-color: #555762; background: #202127; color: #f1f1f4; }
+.vitus-style-selector[open] summary::after { transform: translateY(2px) rotate(225deg); }
+.vitus-style-selector summary:hover { border-color: #555762; color: #f1f1f4; }
+.vitus-style-selector summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.vitus-style-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  width: 116px;
+  overflow: hidden;
+  padding: 4px;
+  border: 1px solid #3a3b44;
+  border-radius: 7px;
+  background: #17181d;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .48);
+}
+.vitus-style-option {
+  width: 100%;
+  display: block;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #b7b8c2;
+  font: 800 12px/1.2 Inter, system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.vitus-style-option:hover { background: #25262d; color: #fff; }
+.vitus-style-option.is-selected { background: #30313a; color: #fff; }
+.vitus-style-option:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.vitus-card--visual { height: 425px; display: flex; flex-direction: column; }
+.vitus-design-entry-panel { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 9px; padding: 12px; border-radius: 7px; background: #1b1c21; }
+.vitus-design-entry-row { min-width: 0; display: flex; align-items: center; gap: 12px; }
+.vitus-design-entry-stack { min-width: 0; display: grid; row-gap: 5px; }
+.vitus-design-entry-label { color: var(--text); font: 850 17px/1 system-ui, sans-serif; white-space: nowrap; }
+.vitus-design-entry-delta { color: var(--muted); font: 400 14px/1 Inter, system-ui, sans-serif; white-space: nowrap; }
+.vitus-design-input {
+  width: 88px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid #393a43;
+  border-radius: 6px;
+  outline: none;
+  background: #111216;
+  color: var(--vitus-actual-color, var(--text));
+  font: 900 26px/1 Inter, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  text-align: center;
+}
+.vitus-design-input::placeholder { color: #70717b; font-size: 15px; letter-spacing: 0; }
+.vitus-design-input:focus { border-color: #4aa7ff; box-shadow: 0 0 0 2px #111216, 0 0 0 4px #4aa7ff; }
+.vitus-design-rate { flex: 0 0 auto; text-align: right; }
+.vitus-design-rate-value { color: #f5f5f7; font: 900 22px/1 Inter, system-ui, sans-serif; white-space: nowrap; }
+.vitus-design-rate-value span { color: var(--muted-2); font-size: 14px; font-weight: 850; }
+.vitus-design-rate-delta { margin-top: 5px; font: 850 14px/1 Inter, system-ui, sans-serif; white-space: nowrap; }
+.vitus-design-rate-delta.is-positive { color: var(--good); }
+.vitus-design-rate-delta.is-negative { color: var(--red-hot); }
+.vitus-design-rate-delta.is-pending { color: var(--muted-2); }
+.vitus-visual-fill { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.vitus-visual-fill svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.vitus-gauge-legend { display: flex; align-items: center; justify-content: space-between; margin-top: 2px; color: var(--muted-2); font-size: 14px; }
+.vitus-gauge-legend b { color: #d5d6e0; font-weight: 850; }
+.vitus-curve-verdict { flex: 0 0 auto; text-align: right; }
+.vitus-curve-verdict strong { display: block; font: 900 18px/1 Inter, system-ui, sans-serif; letter-spacing: -.01em; }
+.vitus-curve-verdict span { display: block; min-height: 1em; margin-top: 6px; color: var(--muted); font: 400 14px/1 Inter, system-ui, sans-serif; }
+.vitus-curve-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 2px 0 4px; color: var(--muted); font: 400 14px/1.2 Inter, system-ui, sans-serif; }
+.vitus-curve-summary > div:first-child { padding-top: 3px; }
+.vitus-curve-summary b { color: var(--accent); font-weight: 900; }
+.vitus-curve-axis { height: 44px; margin-top: 0; }
+.vitus-curve-axis svg { width: 100%; height: 44px; display: block; overflow: visible; }
+
 .composition-bar { display: flex; height: 25px; margin-top: 12px; overflow: hidden; border-radius: 3px; }
 .composition-segment { min-width: 2px; display: grid; place-items: center; color: #121216; font-size: 9px; font-weight: 900; background: var(--segment); }
 .composition-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
@@ -608,6 +707,7 @@ body.minimap-lightbox-open { overflow: hidden; }
 .export-stage .report-actions { display: none !important; }
 .export-stage .squad-privacy-toggle { display: none !important; }
 .export-stage .client-fresh-blessing-button { display: none !important; }
+.export-stage .vitus-style-selector { display: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }

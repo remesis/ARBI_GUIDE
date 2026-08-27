@@ -88,6 +88,12 @@ in Mirror Defense. Mission type is therefore an explicit input to the mean and
 variance calculation.
 The headline luck label uses the report's red-to-green performance ramp from
 Worst Case through God Roll and recolors immediately when Actual Vitus changes.
+The webpage defaults to the original table card and offers `Original`, `Gauge`,
+and `Curve` presentations through a browser-persisted selector. The selector is
+excluded from copied PNGs, while the selected card itself is preserved. Gauge
+and Curve normalize the node's eligible aggregate Expected VE/min to the
+current run duration before displaying **Tileset AVG expected**; the empty
+slot character is retained when no eligible node benchmark exists.
 
 The exact submitted fields are:
 
@@ -191,6 +197,12 @@ It:
   retry queue);
 - returns `201 accepted`, `200 duplicate`, or a validation error;
 - never stores raw logs or user identifiers.
+
+The same Worker exposes a read-only
+`GET /api/analyzer/spawns/averages?sol_node=…` aggregate for the two visual
+Expected Vitus cards. It accepts only the maintained Arbitration node keys and
+returns the duration-weighted Expected VE/min plus eligible run count. It does
+not return per-run rows, coordinates, hashes, or user-entered Actual Vitus.
 
 D1 is sufficient. R2 is unnecessary because raw uploads and immutable log
 objects are explicitly out of scope. The collected table is a quarantine/input
