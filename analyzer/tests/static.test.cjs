@@ -275,9 +275,9 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(minimapBuilder, /10\.5: \(\(-23\.3, 10\.5, 52\.3\),\)/);
   assert.match(minimapBuilder, /LARZAC_Y_BUILDING_HEIGHT = 8\.5/);
   assert.match(minimapBuilder, /LARZAC_FRAMEWORK_MIN/);
-  assert.match(minimapBuilder, /INFESTED_SHIP_CONNECTOR_HEIGHT = 6\.25/);
-  assert.match(minimapBuilder, /INFESTED_SHIP_CONNECTOR_ANCHORS/);
-  assert.match(catalog, /akkad\+kala-azar\.webp\?v=lower-hallway-20260823/);
+  assert.match(minimapBuilder, /INFESTED_SHIP_SURFACE_BANDS = \(/);
+  assert.match(minimapBuilder, /def render_infested_ship_walkable_floor\(/);
+  assert.match(catalog, /akkad\+kala-azar\.webp\?v=walkable-layers-20260827/);
   assert.match(minimapBuilder, /KADESH_COMPONENT_BAND_ANCHORS/);
   assert.match(minimapBuilder, /16\.4: \(\(21\.0, 16\.4, 39\.0\),\)/);
   assert.match(catalog, /alator\+kadesh\+spear\.webp\?v=upper-floors-20260823/);

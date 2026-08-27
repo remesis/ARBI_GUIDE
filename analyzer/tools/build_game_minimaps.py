@@ -364,13 +364,24 @@ HYDRON_DEFENSE_GROUP = "hydron+helene+odin"
 HYF_DEFENSE_GROUP = "hyf"
 ICE_PLANET_DEFENSE_GROUP = "ose+paimon+larzac"
 INFESTED_SHIP_DEFENSE_GROUP = "akkad+kala-azar"
-# Kala-Azar's authored spawn heights form one nearly continuous cluster, so
-# the generic median slice lands around +1.9 m and misses the real +6.25 m bent
-# hallway that joins the lower-left spawn room. Composite that exact upper
-# floor band from the mesh; do not replace its shape with authored artwork.
-INFESTED_SHIP_CONNECTOR_HEIGHT = 6.25
-INFESTED_SHIP_CONNECTOR_TOLERANCE = 0.65
-INFESTED_SHIP_CONNECTOR_ANCHORS = ((35.0, 6.25, -28.0),)
+# Akkad and Kala-Azar use a heavily layered infested-ship arena. These ranges
+# recover the real walkable mesh from basement through the upper spawn decks;
+# the dedicated renderer below keeps only gameplay-touched components and
+# presents them with the same neutral elevation palette as the other maps.
+INFESTED_SHIP_SURFACE_BANDS = (
+    (-4.5, -3.45),
+    (-2.8, -1.25),
+    (-0.75, 0.75),
+    (0.75, 3.45),
+    (3.2, 4.75),
+    (4.65, 5.8),
+    (5.1, 6.85),
+    (7.05, 8.85),
+)
+INFESTED_SHIP_UPPER_FLOOR_BANDS = (
+    (5.1, 6.85),
+    (7.05, 8.85),
+)
 # Larzac's right-side spawn chain belongs to a real Y-shaped building whose
 # walkable top sits around 8.5 m even though its authored spawn markers sit at
 # 4.75 m. The generic +/-3 m middle band therefore misses the floor while
@@ -778,7 +789,10 @@ def render_grineer_asteroid_walkable_floor(
         cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)),
     )
     image = np.zeros((size, size, 4), dtype=np.uint8)
-    image[walkable > 0] = (100, 102, 107, 215)
+    # Use the same warm neutral translucent fill family as the generated
+    # multi-level maps. The previous near-opaque fill made Lares noticeably
+    # brighter even though its reviewed walkable outline was already correct.
+    image[walkable > 0] = (92, 94, 99, 90)
     contours, _ = cv2.findContours(
         walkable,
         cv2.RETR_CCOMP,
@@ -792,6 +806,231 @@ def render_grineer_asteroid_walkable_floor(
         3,
         cv2.LINE_AA,
     )
+    return image
+
+
+def render_infested_ship_walkable_floor(
+    positions: np.ndarray,
+    faces: np.ndarray,
+    project,
+    lo: np.ndarray,
+    hi: np.ndarray,
+    map_spawns: list[dict],
+    map_objective: list[dict],
+    size: int,
+) -> np.ndarray:
+    """Render Akkad/Kala-Azar's real layered walkable surfaces."""
+    surface = np.zeros((size, size), dtype=np.uint8)
+    upper_floors = [
+        np.zeros((size, size), dtype=np.uint8)
+        for _ in INFESTED_SHIP_UPPER_FLOOR_BANDS
+    ]
+    chunk_size = 160_000
+
+    for start in range(0, len(faces), chunk_size):
+        tri = positions[faces[start : start + chunk_size]]
+        ab = tri[:, 1] - tri[:, 0]
+        ac = tri[:, 2] - tri[:, 0]
+        normals = np.cross(ab, ac)
+        normal_length = np.linalg.norm(normals, axis=1)
+        up = np.abs(normals[:, 1]) / np.maximum(normal_length, 1e-9)
+        centroids = tri.mean(axis=1)
+        area = normal_length * 0.5
+        common = (
+            (normal_length > 1e-5)
+            & (area > 0.01)
+            & (area < 520.0)
+            & (centroids[:, 0] >= lo[0])
+            & (centroids[:, 0] <= hi[0])
+            & (centroids[:, 2] >= lo[1])
+            & (centroids[:, 2] <= hi[1])
+        )
+        surface_height = np.zeros(len(tri), dtype=bool)
+        for low, high in INFESTED_SHIP_SURFACE_BANDS:
+            surface_height |= (
+                (centroids[:, 1] >= low)
+                & (centroids[:, 1] <= high)
+            )
+        walkable = tri[common & (up > 0.58) & surface_height]
+        if len(walkable):
+            polygons = project(walkable.reshape((-1, 3))).reshape((-1, 3, 2))
+            cv2.fillPoly(surface, polygons, 255, lineType=cv2.LINE_AA)
+
+        # Retain true sloped connections between the horizontal floor bands.
+        # Requiring substantial vertical change rejects lightly warped deck
+        # panels and organic prop caps without hand-authoring any ramp shape.
+        vertical_span = tri[:, :, 1].max(axis=1) - tri[:, :, 1].min(axis=1)
+        sloped = tri[
+            common
+            & (up >= 0.32)
+            & (up <= 0.92)
+            & (vertical_span >= 0.75)
+            & (centroids[:, 1] >= -4.6)
+            & (centroids[:, 1] <= 8.9)
+        ]
+        if len(sloped):
+            polygons = project(sloped.reshape((-1, 3))).reshape((-1, 3, 2))
+            cv2.fillPoly(surface, polygons, 255, lineType=cv2.LINE_AA)
+
+        for upper_mask, (low, high) in zip(
+            upper_floors,
+            INFESTED_SHIP_UPPER_FLOOR_BANDS,
+            strict=True,
+        ):
+            upper = tri[
+                common
+                & (up > 0.58)
+                & (centroids[:, 1] >= low)
+                & (centroids[:, 1] <= high)
+            ]
+            if len(upper):
+                polygons = project(upper.reshape((-1, 3))).reshape((-1, 3, 2))
+                cv2.fillPoly(upper_mask, polygons, 255, lineType=cv2.LINE_AA)
+
+    close_three = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    close_seven = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    surface = cv2.morphologyEx(surface, cv2.MORPH_CLOSE, close_seven)
+    upper_floors = [
+        cv2.morphologyEx(mask, cv2.MORPH_CLOSE, close_three)
+        for mask in upper_floors
+    ]
+
+    gameplay_points = [
+        item
+        for items in (map_spawns, map_objective)
+        for item in items
+    ]
+
+    def seeded_components(
+        mask: np.ndarray,
+        low: float,
+        high: float,
+        keep_largest: bool = False,
+    ) -> np.ndarray:
+        count, labels, stats, _ = cv2.connectedComponentsWithStats(
+            (mask > 0).astype(np.uint8),
+            8,
+        )
+        retained: set[int] = set()
+        for item in gameplay_points:
+            item_y = float(item.get("y", 0.0))
+            if item_y < low - 0.65 or item_y > high + 0.65:
+                continue
+            point = np.asarray(
+                [[item["x"], item_y, item["z"]]],
+                dtype=np.float32,
+            )
+            x, y = project(point)[0]
+            for radius in (4, 8, 14, 22, 32):
+                nearby = labels[
+                    max(0, int(y) - radius) : min(size, int(y) + radius + 1),
+                    max(0, int(x) - radius) : min(size, int(x) + radius + 1),
+                ]
+                found = [
+                    int(component)
+                    for component in np.unique(nearby)
+                    if component
+                ]
+                if found:
+                    retained.update(found)
+                    break
+        if keep_largest and count > 1:
+            retained.add(1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA])))
+        return np.isin(labels, list(retained)).astype(np.uint8) * 255
+
+    def fill_small_holes(mask: np.ndarray, maximum_area: int) -> np.ndarray:
+        padded = cv2.copyMakeBorder(
+            mask,
+            1,
+            1,
+            1,
+            1,
+            cv2.BORDER_CONSTANT,
+            value=0,
+        )
+        background = (padded == 0).astype(np.uint8)
+        count, labels, stats, _ = cv2.connectedComponentsWithStats(
+            background,
+            8,
+        )
+        exterior = int(labels[0, 0])
+        result = padded.copy()
+        scaled_area = int(maximum_area * (size / 1000.0) ** 2)
+        for component in range(1, count):
+            if component == exterior:
+                continue
+            if int(stats[component, cv2.CC_STAT_AREA]) <= scaled_area:
+                result[labels == component] = 255
+        return result[1:-1, 1:-1]
+
+    surface = seeded_components(surface, -4.75, 8.9, keep_largest=True)
+    surface = fill_small_holes(surface, 900)
+    upper_floors = [
+        fill_small_holes(seeded_components(mask, low, high), 320)
+        for mask, (low, high) in zip(
+            upper_floors,
+            INFESTED_SHIP_UPPER_FLOOR_BANDS,
+            strict=True,
+        )
+    ]
+
+    image = np.zeros((size, size, 4), dtype=np.uint8)
+
+    def blend(source: np.ndarray) -> None:
+        source_alpha = source[:, :, 3:4].astype(np.float32) / 255.0
+        target_alpha = image[:, :, 3:4].astype(np.float32) / 255.0
+        out_alpha = source_alpha + target_alpha * (1.0 - source_alpha)
+        safe_alpha = np.maximum(out_alpha, 1e-6)
+        image[:, :, :3] = (
+            (
+                source[:, :, :3].astype(np.float32) * source_alpha
+                + image[:, :, :3].astype(np.float32)
+                * target_alpha
+                * (1.0 - source_alpha)
+            )
+            / safe_alpha
+        ).astype(np.uint8)
+        image[:, :, 3] = np.rint(out_alpha[:, :, 0] * 255.0).astype(np.uint8)
+
+    floor_layers = (surface, *upper_floors)
+    for layer_index, floor_layer in enumerate(floor_layers):
+        level = layer_index / max(1, len(floor_layers) - 1)
+        fill_gray = int(92 + level * 24)
+        fill_alpha = int(66 + level * 24)
+        band_layer = np.zeros_like(image)
+        band_layer[floor_layer > 0] = (
+            fill_gray,
+            fill_gray + 2,
+            fill_gray + 7,
+            fill_alpha,
+        )
+        retrieval = cv2.RETR_CCOMP if layer_index == 0 else cv2.RETR_EXTERNAL
+        contours, _ = cv2.findContours(
+            floor_layer,
+            retrieval,
+            cv2.CHAIN_APPROX_SIMPLE,
+        )
+        if contours:
+            shadow = np.zeros_like(image)
+            cv2.drawContours(
+                shadow,
+                contours,
+                -1,
+                (0, 0, 0, 135),
+                7,
+                cv2.LINE_AA,
+            )
+            blend(shadow)
+            cv2.drawContours(
+                band_layer,
+                contours,
+                -1,
+                (178, 181, 188, 220),
+                3,
+                cv2.LINE_AA,
+            )
+        blend(band_layer)
+
     return image
 
 
@@ -924,6 +1163,17 @@ def render_map(
             map_objective,
             size,
         )
+    elif group_id == INFESTED_SHIP_DEFENSE_GROUP:
+        image = render_infested_ship_walkable_floor(
+            positions,
+            faces,
+            project,
+            lo,
+            hi,
+            map_spawns,
+            map_objective,
+            size,
+        )
     spawn_heights = [float(item.get("y", 0.0)) for item in map_spawns]
     objective_heights = [float(item.get("y", 0.0)) for item in map_objective]
     source_heights = cluster_heights(spawn_heights + objective_heights)
@@ -950,7 +1200,9 @@ def render_map(
     elif group_id == ICE_PLANET_DEFENSE_GROUP:
         heights = sorted([*heights, LARZAC_Y_BUILDING_HEIGHT])
     elif group_id == INFESTED_SHIP_DEFENSE_GROUP:
-        heights = sorted([*heights, INFESTED_SHIP_CONNECTOR_HEIGHT])
+        # The reviewed layered walkable-floor renderer above has already built
+        # this arena. Skip the generic broad height-band renderer.
+        heights = []
     elif group_id == GRINEER_ASTEROID_DEFENSE_GROUP:
         # The reviewed walkable-floor renderer above has already built this
         # arena. Skip the generic translucent height-band renderer.
@@ -1009,10 +1261,6 @@ def render_map(
             group_id == ICE_PLANET_DEFENSE_GROUP
             and abs(height - LARZAC_Y_BUILDING_HEIGHT) < 0.01
         )
-        infested_ship_connector_band = (
-            group_id == INFESTED_SHIP_DEFENSE_GROUP
-            and abs(height - INFESTED_SHIP_CONNECTOR_HEIGHT) < 0.01
-        )
         gas_spawn_02_side_height = (
             gas_spawn_02_side_heights[band_index]
             if gas_spawn_02_side_heights is not None
@@ -1022,23 +1270,19 @@ def render_map(
             LARZAC_Y_BUILDING_HEIGHT_TOLERANCE
             if larzac_y_building_band
             else (
-                INFESTED_SHIP_CONNECTOR_TOLERANCE
-                if infested_ship_connector_band
+                (
+                    KADESH_COMPONENT_ONLY_TOLERANCE
+                    if group_id == KADESH_DEFENSE_GROUP
+                    else CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
+                )
+                if component_only_band
                 else (
-                    (
-                        KADESH_COMPONENT_ONLY_TOLERANCE
-                        if group_id == KADESH_DEFENSE_GROUP
-                        else CORPUS_OUTPOST_COMPONENT_ONLY_TOLERANCE
-                    )
-                    if component_only_band
+                    CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
+                    if additional_height_band
                     else (
-                        CORPUS_OUTPOST_ADDITIONAL_HEIGHT_TOLERANCE
-                        if additional_height_band
-                        else (
-                            HYF_ADDITIONAL_FLOOR_TOLERANCE
-                            if group_id == HYF_DEFENSE_GROUP and band_index > 0
-                            else 3.0
-                        )
+                        HYF_ADDITIONAL_FLOOR_TOLERANCE
+                        if group_id == HYF_DEFENSE_GROUP and band_index > 0
+                        else 3.0
                     )
                 )
             )
@@ -1256,26 +1500,6 @@ def render_map(
             # space. This restores the upper and lower-middle playable decks
             # without repainting the interior with ceiling/furniture clutter.
             mask[image[:, :, 3] > 0] = 0
-        if infested_ship_connector_band:
-            # This upper slice crosses much of the arena. Only its silhouette
-            # outside the already-rendered base floor is useful: that restores
-            # the real bent hallway and spawn room without drawing upper-level
-            # railings and props over the readable central map.
-            mask[image[:, :, 3] > 0] = 0
-            mask = cv2.morphologyEx(
-                mask,
-                cv2.MORPH_CLOSE,
-                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
-            )
-            count, labels, _, _ = cv2.connectedComponentsWithStats(
-                (mask > 0).astype(np.uint8), 8
-            )
-            retained = components_near_world_points(
-                labels, INFESTED_SHIP_CONNECTOR_ANCHORS
-            )
-            if count > 1:
-                mask[~np.isin(labels, list(retained))] = 0
-
         if interband_mask is not None:
             interband_mask = cv2.morphologyEx(
                 interband_mask,
@@ -1465,8 +1689,8 @@ def render_map(
         HYDRON_DEFENSE_GROUP: "counterclockwise-20260821",
         HYF_DEFENSE_GROUP: "multi-floor-20260821",
         ICE_PLANET_DEFENSE_GROUP: "y-building-20260822",
-        INFESTED_SHIP_DEFENSE_GROUP: "lower-hallway-20260823",
-        GRINEER_ASTEROID_DEFENSE_GROUP: "walkable-stairs-20260825-2",
+        INFESTED_SHIP_DEFENSE_GROUP: "walkable-layers-20260827",
+        GRINEER_ASTEROID_DEFENSE_GROUP: "walkable-stairs-dark-20260827",
     }
     asset_version = asset_versions.get(group_id)
     return {
