@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260826-118\.js/);
+  assert.match(html, /analyzer-20260826-119\.js/);
   assert.match(html, /analyzer\.css\?v=20260826-88/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -327,7 +327,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-118.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-119.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -362,6 +362,15 @@ test("Expected Vitus card style selector persists and stays out of copied images
   assert.match(css, /\.vitus-style-selector summary\s*\{[^}]*font-size:\s*14px/);
   assert.match(css, /\.vitus-style-option\s*\{[^}]*font:\s*800 14px/);
   assert.match(css, /\.export-stage \.vitus-style-selector\s*\{\s*display:\s*none !important/);
+});
+
+test("rare Vitus event stars stay inside PNG-safe SVG bounds", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  assert.match(js, /const starMarker = \[\s*clamp\(marker\[0\], 38, width - 38\),\s*clamp\(marker\[1\], 38, height - 38\),\s*\]/);
+  assert.match(js, /const secondStar = \[\s*starMarker\[0\] \+ \(cx - starMarker\[0\]\) \/ inwardLength \* 22,\s*starMarker\[1\] \+ \(cy - starMarker\[1\]\) \/ inwardLength \* 22,\s*\]/);
+  assert.match(js, /const starX = clamp\(actualX, pad \+ 28, width - pad - 28\)/);
+  assert.match(js, /const starY = clamp\(actualY, top \+ 24, base - 28\)/);
+  assert.match(js, /const starDirection = actualX >= meanX \? -1 : 1/);
 });
 
 test("fresh client Blessing override lasts three hours from mission start", () => {
