@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260826-115\.js/);
+  assert.match(html, /analyzer-20260826-116\.js/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -222,12 +222,18 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.squad-player, \.squad-phase\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center/);
   assert.match(css, /\.squad-privacy-toggle\s*\{[^}]*margin:\s*0 6px 0 0/);
   assert.match(css, /\.export-stage \.squad-privacy-toggle\s*\{[^}]*display:\s*none\s*!important/);
-  assert.match(css, /\.report-header::after\s*\{[^}]*width:\s*var\(--header-accent-width,\s*175px\)/);
+  assert.match(css, /\.report-header-accent\s*\{[^}]*bottom:\s*-2px[^}]*width:\s*var\(--header-accent-width,\s*175px\)/);
+  assert.doesNotMatch(css, /\.report-header::after/);
+  assert.match(js, /<span class="report-header-accent" aria-hidden="true"><\/span>/);
   assert.match(js, /function syncReportHeaderAccent\(root = document\)/);
   assert.match(js, /titleRect\.right - headerRect\.left/);
   assert.match(js, /header\.style\.setProperty\("--header-accent-width"/);
+  assert.match(js, /accent\.style\.width = cssWidth/);
+  assert.match(js, /function measureExportStage\(stage, report\)/);
+  assert.match(js, /report\.getBoundingClientRect\(\)/);
+  assert.doesNotMatch(js, /width:\s*stage\.scrollWidth|height:\s*stage\.scrollHeight|windowHeight:\s*Math\.max\(stage\.scrollHeight/);
   assert.match(js, /setupAnalyzerTooltips\(\$\("#reportRoot"\)\);\s*syncMinimapStages\(\$\("#reportRoot"\)\);\s*syncReportHeaderAccent\(\$\("#reportRoot"\)\);\s*scheduleReportFit\(\)/);
-  assert.match(js, /syncReportHeaderAccent\(report\);\s*const canvas = await html2canvas\(stage/);
+  assert.match(js, /syncReportHeaderAccent\(report\);\s*const captureBounds = measureExportStage\(stage, report\)/);
   assert.match(css, /\.saturation-card/);
   assert.match(js, /saturation\.rows\.map\(\(row,index\) => \{ const heat=heatColor\(1-index\/Math\.max\(1,saturation\.rows\.length-1\)\)/);
   assert.match(css, /\.clear-heat-map/);
@@ -320,7 +326,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-115.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-116.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
