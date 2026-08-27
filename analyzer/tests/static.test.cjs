@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260826-121\.js/);
+  assert.match(html, /analyzer-20260826-122\.js/);
   assert.match(html, /analyzer\.css\?v=20260826-88/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -318,16 +318,16 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260825-78"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260826-79"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(parser, /scanner-worker\.js\?v=20260825-11/);
-  assert.match(html, /parser\.js\?v=20260825-78/);
+  assert.match(parser, /scanner-worker\.js\?v=20260826-12/);
+  assert.match(html, /parser\.js\?v=20260826-79/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-121.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-122.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -870,7 +870,7 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(css, /\.correlation-test-defense > \.correlation-test-clear-map \.clear-heat-map\s*\{[^}]*repeat\(25,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(js, /const drones = run\.dronesPerRotation \|\| \[\]/);
   assert.match(js, /drones:\s*drones\[index\]/);
-  assert.match(js, /showRotationDrones = !phase\.defense && \["INTERCEPTION", "SURVIVAL", "MIRROR DEFENSE"\]\.includes\(run\.missionType\)/);
+  assert.match(js, /showRotationDrones = !phase\.defense && \["INTERCEPTION", "SURVIVAL", "MIRROR DEFENSE", "INFESTED SALVAGE"\]\.includes\(run\.missionType\)/);
   assert.match(js, /showRotationDrones[\s\S]*Number\.isFinite\(item\.drones\)[\s\S]*fmt\(item\.drones\)/);
   assert.doesNotMatch(js, /droneTooltip/);
   assert.match(js, /shortDuration\(item\.seconds\)\} · Saturation \$\{saturation\}/);

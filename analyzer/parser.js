@@ -24,7 +24,7 @@
   const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260825-11";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260826-12";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
@@ -160,12 +160,13 @@
   const P_NAMED_LEAVE = /ProcessSquadMessage received LEAVE message from (.+?)\s*$/;
   const P_SQUAD_ADD = /AddSquadMember:\s*(.+?),\s*mm=.*?\bsquadCount=\d+/;
   const P_INT_INIT = /TerritoryMission\.lua: .*?(?:control|captured)/i;
+  const P_PURIFY_STATE = /^!?(\d+\.\d+).*PurifyMission\.lua: ModeState = (\d+) \(ModeState\)/;
   const P_SPAWN_POINT = /^!?(\d+\.\d+).*WaveDefend\.lua: Spawned a \/Npc\/([A-Za-z0-9_]+?)\d* @ Vector\(([^)]+)\), spawn point: (\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+) @ Vector\(([^)]+)\)/;
   const P_AI_AGENT_INIT = /^!?(\d+\.\d+).*AI Agent Initialize\s+\/Npc\/([A-Za-z0-9_]+?)\d*\s+at NpcAiDirector\s+(\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+)/i;
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|PurifyMission\.lua: ModeState =|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
 
   const UTC_MONTH_INDEX = Object.freeze({
     Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
@@ -202,6 +203,7 @@
       isInterception: false,
       isDisruption: false,
       isSurvival: false,
+      isInfestedSalvage: false,
       droneKills: 0,
       enemySpawns: 0,
       rawEnemySpawns: 0,
@@ -437,6 +439,7 @@
       let hasWaveDef = false;
       let hasLoopWave = false;
       let hasTerritory = false;
+      let hasPurifyState = false;
       let hasSurvivalStart = false;
       let hasSurvivalReward = false;
       let hasDisruptionRoundStart = false;
@@ -472,6 +475,7 @@
         hasWaveDef = line.includes("WaveDefend.lua: Defense wave:");
         hasLoopWave = line.includes("LoopDefend.lua: Loop Defense wave:");
         hasTerritory = line.includes("TerritoryMission.lua");
+        hasPurifyState = line.includes("PurifyMission.lua: ModeState =");
         hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival");
         hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier");
         hasDisruptionRoundDone = line.includes("SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
@@ -510,6 +514,7 @@
           case "Defense wave:": hasWaveDef = line.includes("WaveDefend.lua: Defense wave:"); break;
           case "Loop Defense wave:": hasLoopWave = line.includes("LoopDefend.lua: Loop Defense wave:"); break;
           case "TerritoryMission.lua": hasTerritory = true; break;
+          case "PurifyMission.lua: ModeState =": hasPurifyState = true; break;
           case "Survival: Starting survival": hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival"); break;
           case "Survival: Gave reward tier": hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier"); break;
           case "Disruption: State change: ARTIFACT_ROUND":
@@ -537,7 +542,7 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasResourceBlessing || hasMission || hasMissionVote || hasArbitrationSelection || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasResourceBlessing || hasMission || hasMissionVote || hasArbitrationSelection || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasPurifyState || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
 
       const lineTimestamp = Number((line.match(P_TIMESTAMP) || [])[1]) || 0;
       if (hasResourceBlessing) {
@@ -708,6 +713,25 @@
         if (ts) {
           cur.extractionTime = ts;
           cur.lastActivity = Math.max(cur.lastActivity, ts);
+        }
+        return;
+      }
+
+      if (hasPurifyState) {
+        const match = line.match(P_PURIFY_STATE);
+        if (!match) return;
+        const state = Number(match[2]);
+        cur.isInfestedSalvage = true;
+        if (ts && state === 3 && cur.pauseOpen === null) {
+          // State 3 begins the fixed round-complete sequence. Enemy production
+          // has stopped here, before the reward screen itself is created.
+          cur.pauseOpen = ts;
+        } else if (ts && state === 2 && cur.pauseOpen !== null) {
+          // State 2 is the next active purification round. Close the entire
+          // round-end/reward intermission so later rotations retain real time,
+          // saturation, occupancy, and spawn/drone correlation data.
+          cur.pauseIntervals.push([cur.pauseOpen, ts]);
+          cur.pauseOpen = null;
         }
         return;
       }

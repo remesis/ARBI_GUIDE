@@ -300,6 +300,55 @@ test("a finalized squad invited after Survival scouting moves the active start",
   assert.equal(run.fullSquadMajority, true);
 });
 
+test("Infested Salvage Purify states preserve every rotation's active metrics", () => {
+  const lines = [
+    "1.0 Game [Info]: EliteAlertMission at SolNode167",
+    "10.0 ThemedSquadOverlay.lua: Mission name: Oestrus (Eris) - Arbitration",
+    "10.0 Script [Info]: PurifyMission.lua: ModeState = 2 (ModeState)",
+  ];
+  for (let index = 0; index < 45; index += 1) {
+    const time = 12 + index * 2;
+    const npc = index < 8 ? "CorpusEliteShieldDroneAgent" : "QuadrupedAgent";
+    lines.push(`${time.toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 20 + 1}`);
+  }
+  lines.push(
+    "110.0 Script [Info]: PurifyMission.lua: ModeState = 3 (ModeState)",
+    "130.0 Script [Info]: PurifyMission.lua: ModeState = 4 (ModeState)",
+    "137.0 Sys [Info]: Created /Lotus/Interface/DefenseReward.swf",
+    "145.0 Script [Info]: PurifyMission.lua: ModeState = 2 (ModeState)",
+  );
+  for (let index = 0; index < 45; index += 1) {
+    const time = 147 + index * 2;
+    const npc = index < 10 ? "CorpusEliteShieldDroneAgent" : "QuadrupedAgent";
+    lines.push(`${time.toFixed(1)} AI [Info]: OnAgentCreated /Npc/${npc}${index + 46} AI [Info]: MonitoredTicking ${index % 20 + 1}`);
+  }
+  lines.push(
+    "245.0 Script [Info]: PurifyMission.lua: ModeState = 3 (ModeState)",
+    "265.0 Script [Info]: PurifyMission.lua: ModeState = 4 (ModeState)",
+    "272.0 Sys [Info]: Created /Lotus/Interface/DefenseReward.swf",
+    "273.0 Script [Info]: ExtractionTimer.lua: EOM: All players extracting",
+    // A logged next-round transition must close the pause without extending
+    // the completed run beyond its extraction or final reward.
+    "279.0 Script [Info]: PurifyMission.lua: ModeState = 2 (ModeState)",
+  );
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.missionType, "INFESTED SALVAGE");
+  assert.equal(run.isInfestedSalvage, true);
+  assert.equal(run.startTime, 10);
+  assert.equal(run.endTime, 273);
+  assert.equal(run.totalDuration, 263);
+  assert.equal(run.activeDuration, 200);
+  assert.deepEqual(run.pauseIntervals, [[110, 145], [245, 279]]);
+  assert.deepEqual(run.rotationDurations, [100, 100]);
+  assert.deepEqual(run.dronesPerRotation, [8, 10]);
+  assert.deepEqual(run.dpmPerRotation, [4.8, 6]);
+  assert.equal(run.saturationPerRotation.length, 2);
+  assert.ok(run.saturationPerRotation.every(Number.isFinite));
+  const phases = Parser.helpers.calculateRotationPhases(run);
+  assert.ok(phases.map((phase) => Parser.helpers.calculateRangeOccupancy(run, phase.from, phase.to)).every(Number.isFinite));
+});
+
 test("uses Disruption round state for completed rotations, reward pauses, and per-rotation rates", () => {
   const lines = [
     "1.0 Game [Info]: EliteAlertMission at SolNode87",
