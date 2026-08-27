@@ -458,9 +458,10 @@ body.empty-page-drag::after {
 
 .vitus-card { position: relative; }
 .vitus-card-heading { display: block; }
-.vitus-style-selector { position: absolute; z-index: 12; top: 12px; right: 12px; margin: 0; }
+.vitus-style-selector { position: absolute; z-index: 12; top: 12px; right: 12px; width: 118px; margin: 0; }
 .vitus-style-selector summary {
-  min-width: 92px;
+  box-sizing: border-box;
+  width: 100%;
   height: 34px;
   display: inline-flex;
   align-items: center;
@@ -485,10 +486,11 @@ body.empty-page-drag::after {
 .vitus-style-selector summary:hover { border-color: #555762; color: #f1f1f4; }
 .vitus-style-selector summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .vitus-style-menu {
+  box-sizing: border-box;
   position: absolute;
   top: calc(100% + 5px);
   right: 0;
-  width: 116px;
+  width: 100%;
   overflow: hidden;
   padding: 4px;
   border: 1px solid #3a3b44;
