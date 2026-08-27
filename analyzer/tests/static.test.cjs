@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260826-119\.js/);
+  assert.match(html, /analyzer-20260826-120\.js/);
   assert.match(html, /analyzer\.css\?v=20260826-88/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -327,7 +327,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-119.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260826-120.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -371,6 +371,15 @@ test("rare Vitus event stars stay inside PNG-safe SVG bounds", () => {
   assert.match(js, /const starX = clamp\(actualX, pad \+ 28, width - pad - 28\)/);
   assert.match(js, /const starY = clamp\(actualY, top \+ 24, base - 28\)/);
   assert.match(js, /const starDirection = actualX >= meanX \? -1 : 1/);
+});
+
+test("empty analyzer drag overlay releases when a file leaves or drag events stop", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  assert.match(js, /const clearEmptyPageDrag=\(\)=>\{/);
+  assert.match(js, /pageDragReleaseTimer=setTimeout\(clearEmptyPageDrag,750\)/);
+  assert.match(js, /const leftViewport=event\.target===document\|\|event\.target===document\.documentElement/);
+  assert.match(js, /document\.addEventListener\("dragend",clearEmptyPageDrag\)/);
+  assert.match(js, /addEventListener\("blur",clearEmptyPageDrag\)/);
 });
 
 test("fresh client Blessing override lasts three hours from mission start", () => {
