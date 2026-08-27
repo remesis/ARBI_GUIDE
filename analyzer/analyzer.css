@@ -458,7 +458,7 @@ body.empty-page-drag::after {
 
 .vitus-card { position: relative; }
 .vitus-card-heading { display: block; }
-.vitus-style-selector { position: absolute; z-index: 12; top: 12px; right: 12px; width: 118px; margin: 0; }
+.vitus-style-selector { position: absolute; z-index: 12; top: 12px; right: 12px; width: 92px; margin: 0; }
 .vitus-style-selector summary {
   box-sizing: border-box;
   width: 100%;
