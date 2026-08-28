@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#0b0d10">
   <title>Arbitration Analyzer · Warframe Arbitrations Guide</title>
   <link rel="icon" href="../logo.webp">
-  <link rel="stylesheet" href="./analyzer.css?v=20260827-90">
+  <link rel="stylesheet" href="./analyzer.css?v=20260828-91">
   <link rel="stylesheet" href="./correlation-test.css?v=20260825-40">
 </head>
 <body>
@@ -22,6 +22,9 @@
       <symbol id="icon-search" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="5.5"/><line x1="11.5" y1="11.5" x2="16" y2="16"/></symbol>
       <symbol id="icon-eye" viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 8s4-7 11-7 11 7 11 7-4 7-11 7S1 8 1 8Z"/><circle cx="12" cy="8" r="3"/></symbol>
       <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+      <symbol id="icon-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h12l2 2v14H5z"/><path d="M8 4v6h8V4M8 20v-6h8v6"/></symbol>
+      <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></symbol>
+      <symbol id="icon-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></symbol>
       <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/></symbol>
       <symbol id="icon-close" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m4 4 12 12M16 4 4 16"/></symbol>
     </defs>
@@ -123,6 +126,14 @@
         <code>%localappdata%\Warframe\</code>
         <button id="copyLogPathBtn" class="log-path-copy" type="button">Copy</button>
       </div>
+
+      <section class="saved-runs-section" aria-labelledby="savedRunsToggle">
+        <button id="savedRunsToggle" class="saved-runs-toggle" type="button" aria-expanded="false" aria-controls="savedRunList">
+          <span>SAVED ANALYZED ARBIS</span>
+          <svg width="14" height="14" aria-hidden="true"><use href="#icon-chevron"></use></svg>
+        </button>
+        <div id="savedRunList" class="saved-run-list" hidden></div>
+      </section>
       <div id="parseStatus" class="parse-status" role="status"></div>
 
       <div class="run-list-header">
@@ -163,6 +174,6 @@
   <script src="./tier-data.js?v=20260816-2"></script>
   <script src="./spawn-alignment.js?v=20260820-1"></script>
   <script src="./submission.js?v=20260825-53"></script>
-  <script src="./analyzer-20260827-123.js"></script>
+  <script src="./analyzer-20260828-124.js"></script>
 </body>
 </html>

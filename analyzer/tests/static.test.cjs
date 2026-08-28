@@ -17,8 +17,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260827-123\.js/);
-  assert.match(html, /analyzer\.css\?v=20260827-90/);
+  assert.match(html, /analyzer-20260828-124\.js/);
+  assert.match(html, /analyzer\.css\?v=20260828-91/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -61,7 +61,24 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /id="mobileTopbarViewer"/);
   assert.match(html, /id="mobileSearchPrevBtn"/);
   assert.match(html, /id="clearRunsBtn"[^>]*>Clear</);
+  assert.match(html, /id="savedRunsToggle"[^>]*aria-expanded="false"/);
+  assert.match(html, /SAVED ANALYZED ARBIS/);
+  assert.match(html, /id="savedRunList"[^>]*hidden/);
   assert.match(js, /function clearRuns\(\)/);
+  assert.match(js, /const SAVED_RUN_DB_NAME = "arbi-analyzer-saved-runs"/);
+  assert.match(js, /indexedDB\.open\(SAVED_RUN_DB_NAME, SAVED_RUN_SCHEMA_VERSION\)/);
+  assert.match(js, /function savedRunSnapshot\(run\)/);
+  assert.match(js, /never stores the source EE\.log text/);
+  assert.match(js, /"sourceName"/);
+  assert.match(js, /transaction\.objectStore\(SAVED_RUN_STORE_NAME\)\.put\(record\)/);
+  assert.match(js, /state\.savedRuns\.push\(\{ \.\.\.record, run: reviveSavedRun\(record\) \}\)/);
+  assert.match(js, /data-saved-delete=/);
+  assert.match(js, /localRunDate\(run\)/);
+  assert.match(js, /function sortSavedRuns\(records\)/);
+  assert.match(js, /normalizedRunDate\(left\.run\)\?\.valueOf\(\)/);
+  assert.match(js, /sortSavedRuns\(state\.savedRuns\)/);
+  assert.match(js, /id="saveRunBtn" class="save-run-button"/);
+  assert.match(js, /pulseSavedRunsHeading\(\)/);
   assert.match(js, /SpawnSubmission\.submitRuns\(runs, buildContribution, options\)/);
   assert.doesNotMatch(js, /Spawn metrics:|Spawn metrics updated:|without usable spawn coordinates/);
   assert.match(js, /function setupDpmTooltips\(root\)/);
@@ -327,7 +344,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260827-123.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260828-124.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
