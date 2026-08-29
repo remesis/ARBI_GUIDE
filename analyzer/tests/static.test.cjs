@@ -17,8 +17,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260829-127\.js/);
-  assert.match(html, /analyzer\.css\?v=20260829-94/);
+  assert.match(html, /analyzer-20260829-128\.js/);
+  assert.match(html, /analyzer\.css\?v=20260829-95/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -62,10 +62,16 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /id="mobileSearchPrevBtn"/);
   assert.match(html, /id="clearRunsBtn"[^>]*>Clear</);
   assert.match(html, /id="savedRunsToggle"[^>]*aria-expanded="false"/);
+  assert.match(html, /id="tilesetAverageToggle"[^>]*aria-pressed="true"[^>]*>Toggle \+\/- tileset averages<\/button>/);
+  assert.ok(html.indexOf('id="tilesetAverageToggle"') < html.indexOf('id="savedRunsToggle"'));
   assert.match(html, /SAVED ANALYZED ARBIS/);
   assert.match(html, /id="savedRunList"[^>]*hidden/);
   assert.match(js, /function clearRuns\(\)/);
   assert.match(js, /const SAVED_RUN_DB_NAME = "arbi-analyzer-saved-runs"/);
+  assert.match(js, /const TILESET_AVERAGES_VISIBLE_KEY = "arbi-analyzer-tileset-averages-visible-v1"/);
+  assert.match(js, /return saved === null \? true : saved !== "false"/);
+  assert.match(js, /localStorage\.setItem\(TILESET_AVERAGES_VISIBLE_KEY, String\(state\.showTilesetAverages\)\)/);
+  assert.match(js, /button\.setAttribute\("aria-pressed", String\(state\.showTilesetAverages\)\)/);
   assert.match(js, /indexedDB\.open\(SAVED_RUN_DB_NAME, SAVED_RUN_SCHEMA_VERSION\)/);
   assert.match(js, /function savedRunSnapshot\(run\)/);
   assert.match(js, /never stores the source EE\.log text/);
@@ -344,7 +350,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-127.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-128.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -589,7 +595,7 @@ test("saturation summary displays telemetry coverage as a smaller muted right-si
   assert.match(css, /\.saturation-summary \.big\s*\{[^}]*line-height:\s*1/);
   assert.match(css, /\.telemetry-coverage\s*\{[^}]*width:\s*100%[^}]*justify-self:\s*stretch[^}]*justify-items:\s*end[^}]*text-align:\s*right/);
   assert.match(css, /\.saturation-card \.telemetry-coverage \.big\s*\{[^}]*color:\s*var\(--muted\)[^}]*font-size:\s*30px/);
-  assert.match(js, /class="saturation-value-row"[\s\S]*?renderAverageDelta\(averageDelta,[\s\S]*?false\)/);
+  assert.match(js, /const comparison = state\.showTilesetAverages[\s\S]*?renderAverageDelta\(averageDelta,[\s\S]*?false\)/);
   assert.match(css, /\.saturation-value-row\s*\{[^}]*display:\s*flex[^}]*align-items:\s*baseline/);
   assert.match(css, /\.cadence-summary-dry \.big,[\s\S]*?\.cadence-summary-peak \.big\s*\{[^}]*color:\s*var\(--muted\)/);
 });
@@ -632,12 +638,13 @@ test("tileset averages normalize totals by rotations and Disruption by six-minut
     dronesPerComparisonInterval: 200,
     enemiesPerMinute: 200,
     durationSecondsPerComparisonInterval: 400,
+    droneIntervalSeconds: 2.25,
     highEnemyPercent: 5,
     highEnemyThreshold: 15,
   };
   const run = {
     missionType: "DEFENSE", rotations: 20, activeDuration: 7700, totalDuration: 8100,
-    enemySpawns: 27141, droneKills: 4091, saturation: { threshold: 15, abovePercent: 7.7 },
+    enemySpawns: 27141, droneKills: 4091, avgDroneInterval: 2.03, saturation: { threshold: 15, abovePercent: 7.7 },
     tilesetAverages: averages,
   };
   const deltas = helpers.runAverageDeltas(run, run.enemySpawns / run.activeDuration * 60);
@@ -645,6 +652,7 @@ test("tileset averages normalize totals by rotations and Disruption by six-minut
   assert.equal(deltas.enemies, 1141);
   assert.equal(deltas.drones, 91);
   assert.equal(deltas.duration, 100);
+  assert.ok(Math.abs(deltas.droneInterval + 0.22) < 1e-12);
   assert.ok(Math.abs(deltas.highEnemyPercent - 2.7) < 1e-12);
   assert.equal(helpers.comparisonIntervals({ missionType: "DISRUPTION", activeDuration: 7200, rotations: 99 }), 20);
   assert.equal(helpers.averageDeltaClass(1, true), "is-positive");
@@ -652,10 +660,12 @@ test("tileset averages normalize totals by rotations and Disruption by six-minut
   assert.match(js, /averageKpi\("Total enemies"/);
   assert.match(js, /averageKpi\("Drones killed"/);
   assert.match(js, /averageKpi\("Enemies \/ min"/);
-  assert.match(js, /averageKpi\("Total duration"[\s\S]*?formatSignedDuration, false\)/);
+  assert.match(js, /averageKpi\("Total duration"[\s\S]*?formatSignedDuration, false,/);
   assert.match(js, /response\.status === 404\) return \{ noBenchmark: true \}/);
   assert.match(js, /function fillMissingTilesetAverages\(run, average\)/);
   assert.match(js, /const average = fillMissingTilesetAverages\(run, result\)/);
+  assert.match(js, /droneIntervalSeconds: finiteAverage\(payload\.drone_interval_seconds\)/);
+  assert.match(js, /if \(!state\.showTilesetAverages\) return kpi\(label, value, fallbackNote\)/);
   assert.match(css, /\.metric-average-delta\.is-positive\s*\{[^}]*color:\s*var\(--good\)/);
   assert.match(css, /\.metric-average-delta\.is-negative\s*\{[^}]*color:\s*var\(--red-hot\)/);
 });
@@ -923,9 +933,12 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(css, /\.composition-despawns\s*\{[^}]*font-size:\s*calc\(var\(--report-subtext-size\) \+ 2px\)/);
   assert.match(js, /class="highlight-panel cadence-summary"/);
   assert.match(js, /<span class="mini">Drone Interval<\/span>/);
+  assert.match(js, /class="cadence-interval-value-row"[\s\S]*?\$\{intervalComparison\}/);
+  assert.match(js, /formatSignedVitus\(value, 2\)\}s`?, false/);
   assert.match(js, /<span class="mini">Dry ≥12s<\/span>/);
   assert.match(js, /<span class="mini">Peak \/ 10s<\/span><div class="big">\$\{fmt\(peak\.count\)\}<\/div>/);
   assert.doesNotMatch(js, /peak-value-row/);
+  assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.cadence-summary\s*\{[^}]*display:\s*flex[^}]*justify-content:\s*space-between/);
   assert.match(js, /class="correlation-tooltip-stage"/);
   assert.match(js, /class="correlation-blessing-expiry"/);
   assert.match(js, /Blessing ran out at:/);
