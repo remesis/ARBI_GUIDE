@@ -196,11 +196,11 @@ test("classifies unranked Survival and Disruption nodes from stable SolNode meta
   assert.equal(runs[0].node, "Elara");
   assert.equal(runs[0].missionType, "SURVIVAL");
   assert.equal(runs[0].saturation.threshold, 30);
-  assert.deepEqual(runs[0].saturation.rows.slice(0, 6).map((row) => row.label), ["0-7", "8-14", "15-22", "23-29", "30-32", "33-35"]);
+  assert.deepEqual(runs[0].saturation.rows.map((row) => row.label), ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-32", "33-35", "36-39", "40+"]);
   assert.equal(runs[1].node, "Olympus");
   assert.equal(runs[1].missionType, "DISRUPTION");
   assert.equal(runs[1].saturation.threshold, 30);
-  assert.deepEqual(runs[1].saturation.rows.slice(0, 6).map((row) => row.label), ["0-7", "8-14", "15-22", "23-29", "30-32", "33-35"]);
+  assert.deepEqual(runs[1].saturation.rows.map((row) => row.label), ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-32", "33-35", "36-39", "40+"]);
 });
 
 test("uses Survival mission events for active timing, reward cycles, extraction, and saturation", async () => {
@@ -239,7 +239,7 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   assert.equal(run.dpmPerRotation.length, 2);
   assert.equal(run.liveCounts.length, 48);
   assert.equal(run.saturation.threshold, 30);
-  assert.equal(run.saturation.rows[4].label, "30-32");
+  assert.equal(run.saturation.rows[6].label, "30-32");
   assert.ok(run.saturation.abovePercent > 0);
   assert.ok(run.saturationPerRotation.every(Number.isFinite));
   const payload = await Parser.buildContribution(run);
@@ -928,6 +928,24 @@ test("keeps exact enemy counts through 50 and places higher counts in one overfl
   assert.equal(histogram.seconds[0], 2);
   assert.equal(histogram.seconds[50], 3);
   assert.equal(histogram.seconds[51], 3);
+});
+
+test("uses the expanded 0-40 saturation rows for Survival, Disruption, and Mirror Defense", () => {
+  const run = {
+    startTime: 0,
+    endTime: 10,
+    liveCounts: [[0, 0, 50], [10, 0, 50]],
+    pauseIntervals: [],
+  };
+  const expandedLabels = ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-32", "33-35", "36-39", "40+"];
+  for (const missionType of ["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE"]) {
+    const saturation = Parser.helpers.calculateMissionSaturation({ ...run, missionType });
+    assert.deepEqual(saturation.rows.map((row) => row.label), expandedLabels);
+    assert.equal(saturation.threshold, missionType === "MIRROR DEFENSE" ? 15 : 30);
+  }
+  const defense = Parser.helpers.calculateMissionSaturation({ ...run, missionType: "DEFENSE" });
+  assert.equal(defense.rows.at(-1).label, "27+");
+  assert.equal(defense.threshold, 15);
 });
 
 test("derives hundreds of dense-run phases without rescanning the full telemetry timeline", () => {

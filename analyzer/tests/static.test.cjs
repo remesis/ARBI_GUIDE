@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260829-129\.js/);
+  assert.match(html, /analyzer-20260829-130\.js/);
   assert.match(html, /analyzer\.css\?v=20260829-95/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -347,16 +347,16 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260826-79"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260829-80"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(parser, /scanner-worker\.js\?v=20260826-12/);
-  assert.match(html, /parser\.js\?v=20260826-79/);
+  assert.match(parser, /scanner-worker\.js\?v=20260829-13/);
+  assert.match(html, /parser\.js\?v=20260829-80/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-129.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-130.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -577,13 +577,16 @@ test("Interception clear-map colors peak at 6m30s and normalize red to the run's
   assert.match(js, /interception \? `furthest \$\{shortDuration\(interceptionFarthest\)\}`/);
 });
 
-test("saturation labels use each mission mode's configured threshold", () => {
+test("saturation rows and summary thresholds follow each mission mode", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(parser, /HIGH_DENSITY_SATURATION_TYPES = new Set\(\["SURVIVAL", "DISRUPTION"\]\)/);
-  assert.match(parser, /HIGH_DENSITY_SATURATION_EDGES = \[8, 15, 23, 30, 33, 36, 39, 42, 45\]/);
-  assert.match(parser, /\? \{ edges: HIGH_DENSITY_SATURATION_EDGES, threshold: 30 \}/);
+  assert.match(parser, /EXPANDED_SATURATION_TYPES = new Set\(\["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE"\]\)/);
+  assert.match(parser, /EXPANDED_SATURATION_EDGES = \[5, 10, 15, 20, 25, 30, 33, 36, 40\]/);
+  assert.match(parser, /edges: EXPANDED_SATURATION_TYPES\.has\(normalized\) \? EXPANDED_SATURATION_EDGES : DEFAULT_SATURATION_EDGES/);
+  assert.match(parser, /threshold: HIGH_DENSITY_SATURATION_TYPES\.has\(normalized\) \? 30 : 15/);
   assert.match(parser, /calculateRangeSaturation\(run, phase\.from, phase\.to, saturationScale\.threshold\)/);
+  assert.match(js, /Parser\.helpers\.calculateMissionSaturation\(run\)/);
   assert.match(js, /Time at \$\{threshold\}\+ enemies/);
 });
 

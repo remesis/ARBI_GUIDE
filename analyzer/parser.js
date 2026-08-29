@@ -24,11 +24,12 @@
   const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260826-12";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260829-13";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
+  const EXPANDED_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
-  const HIGH_DENSITY_SATURATION_EDGES = [8, 15, 23, 30, 33, 36, 39, 42, 45];
+  const EXPANDED_SATURATION_EDGES = [5, 10, 15, 20, 25, 30, 33, 36, 40];
   const FORCED_VALID_AGENTS = new Set(["CorpusEliteShieldDroneAgent"]);
   const EXCLUDED_AGENT = /Replicant|RJCrew|petavatar|VoidClone|Turret|Dropship|CatbrowPetAgent|AllyAgent|AutoTurretAgentShipRemaster|Summon\s*Motorcycle/i;
   const NON_MISSION_LEVEL = [
@@ -1112,9 +1113,7 @@
           : (run.isSurvival ? "SURVIVAL" : "UNKNOWN")));
     run.faction = node ? node[3] : "Unknown";
     run.tileset = node ? node[4] : tileFromPath(run.levelPath);
-    const saturationScale = HIGH_DENSITY_SATURATION_TYPES.has(run.missionType)
-      ? { edges: HIGH_DENSITY_SATURATION_EDGES, threshold: 30 }
-      : { edges: DEFAULT_SATURATION_EDGES, threshold: 15 };
+    const saturationScale = saturationScaleForMission(run.missionType);
     const wavePhases = calculateWavePhases(run);
     const rotationPhases = calculateRotationPhases(run);
     run.waveDurations = wavePhases.map((phase) => [phase.label, phase.seconds]);
@@ -1129,7 +1128,7 @@
     run.avgDroneInterval = run.droneTimestamps.length > 1
       ? (run.droneTimestamps[run.droneTimestamps.length - 1] - run.droneTimestamps[0]) / (run.droneTimestamps.length - 1)
       : 0;
-    run.saturation = calculateSaturation(run, saturationScale.edges, saturationScale.threshold);
+    run.saturation = calculateMissionSaturation(run);
     run.telemetryCoverage = calculateTelemetryCoverage(run);
     run.cadence = calculateCadence(run);
     run.longestDroneGaps = longestGaps(run.droneTimestamps, run.pauseIntervals, 5, run.startTime, run.endTime);
@@ -1443,6 +1442,19 @@
     labels.push(`${lower}+`);
     const rows = buckets.map((duration, index) => ({ label: labels[index], percent: total ? duration / total * 100 : 0 }));
     return { rows, abovePercent: total ? above / total * 100 : 0, threshold };
+  }
+
+  function saturationScaleForMission(missionType) {
+    const normalized = String(missionType || "").toLocaleUpperCase();
+    return {
+      edges: EXPANDED_SATURATION_TYPES.has(normalized) ? EXPANDED_SATURATION_EDGES : DEFAULT_SATURATION_EDGES,
+      threshold: HIGH_DENSITY_SATURATION_TYPES.has(normalized) ? 30 : 15,
+    };
+  }
+
+  function calculateMissionSaturation(run) {
+    const scale = saturationScaleForMission(run?.missionType);
+    return calculateSaturation(run, scale.edges, scale.threshold);
   }
 
   function calculateCadence(run, edges = [1, 2, 3, 5, 8, 12]) {
@@ -1840,7 +1852,7 @@
       observed_spawn_events: spawnPoints.reduce((sum, point) => sum + point.count, 0),
       spawn_points: spawnPoints,
     };
-    const highEnemyThreshold = HIGH_DENSITY_SATURATION_TYPES.has(run.missionType) ? 30 : 15;
+    const highEnemyThreshold = saturationScaleForMission(run.missionType).threshold;
     const saturationTotals = calculateSaturationTotals(run, highEnemyThreshold);
     const enemyCountHistogram = calculateEnemyCountHistogram(run, 50);
     const cadence = run.cadence || calculateCadence(run);
@@ -1905,6 +1917,8 @@
     helpers: {
       calculateCadence,
       calculateSaturation,
+      calculateMissionSaturation,
+      saturationScaleForMission,
       calculateRangeSaturation,
       calculateSaturationTotals,
       calculateEnemyCountHistogram,
