@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260829-128\.js/);
+  assert.match(html, /analyzer-20260829-129\.js/);
   assert.match(html, /analyzer\.css\?v=20260829-95/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -74,6 +74,12 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /button\.setAttribute\("aria-pressed", String\(state\.showTilesetAverages\)\)/);
   assert.match(js, /indexedDB\.open\(SAVED_RUN_DB_NAME, SAVED_RUN_SCHEMA_VERSION\)/);
   assert.match(js, /function savedRunSnapshot\(run\)/);
+  assert.match(js, /snapshot\.actualVitus = cleanVitusDigits\(run\.actualVitus\)/);
+  assert.match(js, /function persistSavedActualVitus\(run\)/);
+  assert.match(js, /record\.run\.actualVitus = actualVitus/);
+  assert.match(js, /persistSavedActualVitus\(run\);/);
+  assert.match(js, /await initializeSavedRuns\(\)/);
+  assert.match(js, /restoreSavedActualVitus\(run\)/);
   assert.match(js, /never stores the source EE\.log text/);
   assert.match(js, /"sourceName"/);
   assert.match(js, /transaction\.objectStore\(SAVED_RUN_STORE_NAME\)\.put\(record\)/);
@@ -350,7 +356,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-128.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-129.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
