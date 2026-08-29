@@ -17,8 +17,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260828-124\.js/);
-  assert.match(html, /analyzer\.css\?v=20260828-91/);
+  assert.match(html, /analyzer-20260829-125\.js/);
+  assert.match(html, /analyzer\.css\?v=20260829-92/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -183,7 +183,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.dashboard-composition-card\s*\{[^}]*height:\s*100%[^}]*align-self:\s*stretch/);
   assert.match(css, /\.dashboard-composition-card \.composition-list\s*\{[^}]*grid-auto-rows:\s*auto/);
   assert.match(css, /\.dashboard-cadence-card \.metric-bars\s*\{[^}]*flex:\s*0 0 auto[^}]*align-content:\s*start/);
-  assert.match(css, /\.dashboard-cadence-card > \.split-row\s*\{[^}]*margin-top:\s*13px/);
+  assert.match(css, /\.dashboard-cadence-card > \.cadence-summary\s*\{[^}]*margin-top:\s*13px/);
   assert.match(css, /\.dashboard-layout \.center-column\s*\{[^}]*align-content:\s*start/);
   assert.match(css, /\.dashboard-layout\.dashboard-defense \.center-column\s*\{[^}]*grid-template-rows:\s*auto auto minmax\(0, 1fr\)[^}]*align-content:\s*stretch/);
   assert.match(css, /\.dashboard-workspace-top \.right-column\s*\{[^}]*grid-template-rows:\s*auto auto 1fr/);
@@ -344,7 +344,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260828-124.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-125.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -589,7 +589,29 @@ test("saturation summary displays telemetry coverage as a smaller muted right-si
   assert.match(css, /\.saturation-summary \.big\s*\{[^}]*line-height:\s*1/);
   assert.match(css, /\.telemetry-coverage\s*\{[^}]*width:\s*100%[^}]*justify-self:\s*stretch[^}]*justify-items:\s*end[^}]*text-align:\s*right/);
   assert.match(css, /\.saturation-card \.telemetry-coverage \.big\s*\{[^}]*color:\s*var\(--muted\)[^}]*font-size:\s*30px/);
-  assert.match(css, /\.cadence-highlights > \.highlight-panel:last-child \.big\s*\{[^}]*color:\s*var\(--muted\)/);
+  assert.match(css, /\.cadence-summary-dry \.big,[\s\S]*?\.cadence-summary-peak \.big\s*\{[^}]*color:\s*var\(--muted\)/);
+});
+
+test("drone clear efficiency excludes drones and uses the approved two-column KPI", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  const functionSource = js.match(/function droneClearMetrics\(run\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(functionSource);
+  const calculate = new Function(`${functionSource}; return droneClearMetrics;`)();
+  const metrics = calculate({ enemySpawns: 15681, droneKills: 2433 });
+  assert.equal(metrics.nonDroneEnemies, 13248);
+  assert.ok(Math.abs(metrics.enemiesPerDrone - 5.445129469790382) < 1e-12);
+  assert.ok(Math.abs(metrics.observedChancePercent - 18.36503623188406) < 1e-12);
+  assert.ok(Math.abs(metrics.efficiencyPercent - 91.8251811594203) < 1e-12);
+  assert.match(js, /renderDroneClearEfficiency\(run\)/);
+  assert.match(js, /Drone clear efficiency/);
+  assert.match(js, /Enemies \/ Drone/);
+  assert.match(js, /observed · 20% Drone chance before 3\/3 cap\./);
+  assert.match(js, /Math\.max\(0, count - droneValues\[index\]\) \/ droneValues\[index\]/);
+  assert.match(css, /\.drone-clear-efficiency-kpi\s*\{[^}]*grid-column:\s*span 2/);
+  assert.match(css, /\.drone-clear-gauge\s*\{[^}]*height:\s*12px[^}]*border:\s*1px solid #08090b[^}]*box-shadow:\s*0 0 6px 2px rgba\(255,255,255,\.45\), 0 0 15px 4px rgba\(255,255,255,\.14\)/);
+  assert.match(css, /\.drone-clear-gauge-fill\s*\{[^}]*linear-gradient\(90deg, #777982, #cfd0d4\)/);
+  assert.match(css, /\.drone-clear-note\s*\{[^}]*font-size:\s*12px[^}]*text-align:\s*center[^}]*white-space:\s*nowrap/);
 });
 
 test("small report annotations use brighter colors and larger type", () => {
@@ -618,7 +640,7 @@ test("report timestamps use readable mission-relative elapsed time", () => {
   assert.match(js, /parts\.push\(`\$\{hours\}h`\)/);
   assert.match(js, /parts\.push\(`\$\{minutes\}m`\)/);
   assert.match(js, /parts\.push\(`\$\{secs\}s`\)/);
-  assert.match(js, /at \$\{elapsedAt\(run, peak\.time\)\}/);
+  assert.doesNotMatch(js, /at \$\{elapsedAt\(run, peak\.time\)\}/);
   assert.match(js, /at \$\{elapsedAt\(run, item\[1\]\)\}/);
   assert.match(js, /timestamp >= run\.startTime && timestamp <= run\.endTime/);
   assert.doesNotMatch(js, /at \$\{shortDuration\(peak\.time\)\}/);
@@ -840,7 +862,7 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   const branchEnd = js.indexOf('` : `', branchStart);
   assert.ok(branchStart >= 0 && branchEnd > branchStart);
   const compactKpis = js.slice(branchStart, branchEnd);
-  const labels = ["Total enemies", "Drones killed", "Enemies / min", "Total duration", "Enemies / drone", "Drone interval"];
+  const labels = ["Total enemies", "Drones killed", "Enemies / min", "Total duration"];
   let previous = -1;
   for (const label of labels) {
     const index = compactKpis.indexOf(`kpi("${label}"`);
@@ -853,7 +875,11 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.composition-despawns\s*\{[^}]*display:\s*inline-flex[^}]*gap:\s*\.34em/);
   assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.composition-despawns strong\s*\{[^}]*color:\s*var\(--despawn-color, var\(--text\)\)[^}]*font-size:\s*calc\(1em \+ 2px\)/);
   assert.match(css, /\.composition-despawns\s*\{[^}]*font-size:\s*calc\(var\(--report-subtext-size\) \+ 2px\)/);
-  assert.match(js, /class="peak-value-row"/);
+  assert.match(js, /class="highlight-panel cadence-summary"/);
+  assert.match(js, /<span class="mini">Drone Interval<\/span>/);
+  assert.match(js, /<span class="mini">Dry ≥12s<\/span>/);
+  assert.match(js, /<span class="mini">Peak \/ 10s<\/span><div class="big">\$\{fmt\(peak\.count\)\}<\/div>/);
+  assert.doesNotMatch(js, /peak-value-row/);
   assert.match(js, /class="correlation-tooltip-stage"/);
   assert.match(js, /class="correlation-blessing-expiry"/);
   assert.match(js, /Blessing ran out at:/);
@@ -929,7 +955,7 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(css, /\.correlation-test-saturation\s*\{[^}]*padding-bottom:\s*16px/);
   assert.match(css, /\.correlation-test-saturation \.metric-bars\s*\{[^}]*align-content:\s*space-between/);
   assert.match(css, /\.correlation-test-cadence \.metric-bars\s*\{[^}]*align-content:\s*space-between/);
-  assert.match(css, /\.correlation-test-saturation > \.saturation-summary,[\s\S]*?\.correlation-test-cadence > \.split-row\s*\{[^}]*align-self:\s*end/);
+  assert.match(css, /\.correlation-test-saturation > \.saturation-summary,[\s\S]*?\.correlation-test-cadence > \.cadence-summary\s*\{[^}]*align-self:\s*end/);
   assert.match(js, /fixedIntervals = run\.missionType === "DISRUPTION"/);
   assert.match(js, /fixedIntervals\s*\? correlationFixedActivePhases\(run\)/);
   assert.match(js, /calculateFixedDpmWindows\(run, windowSeconds\)/);

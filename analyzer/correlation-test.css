@@ -111,7 +111,7 @@ html[data-analyzer-layout="correlation-test"] .correlation-test-cadence .metric-
 }
 
 html[data-analyzer-layout="correlation-test"] .correlation-test-saturation > .saturation-summary,
-html[data-analyzer-layout="correlation-test"] .correlation-test-cadence > .split-row {
+html[data-analyzer-layout="correlation-test"] .correlation-test-cadence > .cadence-summary {
   align-self: end;
 }
 

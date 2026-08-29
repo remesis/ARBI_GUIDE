@@ -426,7 +426,7 @@ body.empty-page-drag::after {
 .dashboard-composition-card { height: 100%; align-self: stretch; }
 .dashboard-minimap-card .minimap-wrap { flex: 1; }
 .dashboard-cadence-card .metric-bars { flex: 0 0 auto; align-content: start; }
-.dashboard-cadence-card > .split-row { margin-top: 13px !important; }
+.dashboard-cadence-card > .cadence-summary { margin-top: 13px !important; }
 .dashboard-composition-card .composition-bar { flex: 0 0 32px; height: 32px; }
 .dashboard-composition-card .composition-list { grid-auto-rows: auto; align-items: center; }
 .dashboard-layout > .activity-card { grid-column: 1 / 4; width: 100%; }
@@ -441,7 +441,7 @@ body.empty-page-drag::after {
 .dashboard-no-spawns .dashboard-dpm { padding: 13px; }
 .dashboard-no-spawns .dashboard-cadence-card { height: auto; padding: 13px; }
 .dashboard-no-spawns .dashboard-cadence-card .metric-bars { flex: 0 0 auto; align-content: start; gap: 5px; }
-.dashboard-no-spawns .dashboard-cadence-card > .split-row { margin-top: 10px !important; }
+.dashboard-no-spawns .dashboard-cadence-card > .cadence-summary { margin-top: 10px !important; }
 .dashboard-no-spawns .dashboard-cadence-card .highlight-panel { padding: 9px; }
 .kpi-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
 .card { min-width: 0; border: 1px solid var(--border); border-radius: 9px; background: var(--panel); padding: 16px; overflow: hidden; }
@@ -451,6 +451,15 @@ body.empty-page-drag::after {
 .kpi-label { color: var(--muted); font-size: 10px; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
 .kpi-value { max-width: 100%; margin-top: 6px; color: var(--text); font-size: clamp(20px, 23cqi, 37px); font-weight: 850; letter-spacing: -.025em; line-height: .95; white-space: nowrap; }
 .kpi-note { margin-top: 8px; color: var(--muted-2); font-size: var(--report-subtext-size); }
+.drone-clear-efficiency-kpi { grid-column: span 2; }
+.drone-clear-labels { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.drone-clear-labels .kpi-label:last-child { text-align: right; }
+.drone-clear-values { display: grid; grid-template-columns: max-content minmax(48px, 1fr) max-content; align-items: center; gap: 16px; margin-top: 6px; }
+.drone-clear-values .kpi-value { margin-top: 0; }
+.drone-clear-values .kpi-value:last-child { text-align: right; }
+.drone-clear-gauge { position: relative; height: 12px; border: 1px solid #08090b; border-radius: 3px; background: #303139; box-shadow: 0 0 6px 2px rgba(255,255,255,.45), 0 0 15px 4px rgba(255,255,255,.14); }
+.drone-clear-gauge-fill { width: var(--drone-clear-width); height: 100%; border-radius: 2px; background: linear-gradient(90deg, #777982, #cfd0d4); }
+.drone-clear-note { font-size: 12px; text-align: center; white-space: nowrap; }
 
 .heat-map { display: grid; grid-template-columns: repeat(var(--heat-cols, 12), minmax(24px, 1fr)); gap: 4px; }
 .heat-cell { aspect-ratio: 1.12; display: grid; place-items: center; border-radius: 4px; background: var(--heat); color: var(--ink); font-weight: 850; font-size: 10px; }
@@ -494,9 +503,14 @@ body.empty-page-drag::after {
 .highlight-panel { border-radius: 7px; background: #1b1c21; padding: 12px; }
 .highlight-panel .big { color: var(--red-hot); font-weight: 900; font-size: 30px; }
 .highlight-panel .mini { color: var(--muted); font-size: var(--report-subtext-size); }
-.peak-value-row { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
-.peak-value-row .mini { white-space: nowrap; }
-.cadence-highlights > .highlight-panel:last-child .big { color: var(--muted); }
+.cadence-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 18px; }
+.cadence-summary-item { min-width: 0; display: grid; grid-template-rows: auto auto; align-content: start; row-gap: 8px; }
+.cadence-summary-item .big { line-height: 1; }
+.cadence-summary-interval .big { color: var(--text); }
+.cadence-summary-dry { justify-items: center; text-align: center; }
+.cadence-summary-dry .big,
+.cadence-summary-peak .big { color: var(--muted); }
+.cadence-summary-peak { justify-items: end; text-align: right; }
 .saturation-card { padding: 21px; }
 .saturation-card .card-title { font-size: 16px; }
 .saturation-card .card-subtitle { margin-bottom: 16px; }
