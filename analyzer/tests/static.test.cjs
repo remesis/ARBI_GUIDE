@@ -17,8 +17,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260829-125\.js/);
-  assert.match(html, /analyzer\.css\?v=20260829-92/);
+  assert.match(html, /analyzer-20260829-126\.js/);
+  assert.match(html, /analyzer\.css\?v=20260829-93/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -344,7 +344,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-125.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-126.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -609,8 +609,12 @@ test("drone clear efficiency excludes drones and uses the approved two-column KP
   assert.match(js, /observed · 20% Drone chance before 3\/3 cap\./);
   assert.match(js, /Math\.max\(0, count - droneValues\[index\]\) \/ droneValues\[index\]/);
   assert.match(css, /\.drone-clear-efficiency-kpi\s*\{[^}]*grid-column:\s*span 2/);
-  assert.match(css, /\.drone-clear-gauge\s*\{[^}]*height:\s*12px[^}]*border:\s*1px solid #08090b[^}]*box-shadow:\s*0 0 6px 2px rgba\(255,255,255,\.45\), 0 0 15px 4px rgba\(255,255,255,\.14\)/);
-  assert.match(css, /\.drone-clear-gauge-fill\s*\{[^}]*linear-gradient\(90deg, #777982, #cfd0d4\)/);
+  assert.match(js, /class="drone-clear-secondary"><div class="kpi-value">\$\{h\(enemiesPerDroneLabel\)\}<\/div><div class="kpi-label">Enemies \/ Drone<\/div>/);
+  assert.doesNotMatch(js, /drone-clear-gauge/);
+  assert.match(css, /\.drone-clear-stats\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /\.drone-clear-secondary\s*\{[^}]*justify-items:\s*end[^}]*text-align:\s*right/);
+  assert.match(css, /\.drone-clear-secondary \.kpi-label\s*\{[^}]*max-width:\s*100%[^}]*white-space:\s*nowrap/);
+  assert.doesNotMatch(css, /\.drone-clear-gauge/);
   assert.match(css, /\.drone-clear-note\s*\{[^}]*font-size:\s*12px[^}]*text-align:\s*center[^}]*white-space:\s*nowrap/);
 });
 
