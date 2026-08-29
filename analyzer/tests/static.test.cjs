@@ -17,8 +17,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260829-126\.js/);
-  assert.match(html, /analyzer\.css\?v=20260829-93/);
+  assert.match(html, /analyzer-20260829-127\.js/);
+  assert.match(html, /analyzer\.css\?v=20260829-94/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -344,7 +344,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-126.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-127.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -377,7 +377,7 @@ test("Expected Vitus card style selector persists and stays out of copied images
   assert.match(js, /const textColor = isMean \? "#72c7ff" : "#8a8b96"/);
   assert.match(js, /const rate = view\.rate === null \? "⎵"/);
   assert.match(js, /view\.tilesetExpected === null \? "⎵"/);
-  assert.match(js, /VITUS_AVERAGE_ENDPOINT = "\/api\/analyzer\/spawns\/averages"/);
+  assert.match(js, /TILESET_AVERAGE_ENDPOINT = "\/api\/analyzer\/spawns\/averages"/);
   assert.match(js, /tilesetAverageVitusRate/);
   assert.match(css, /\.vitus-style-option\.is-selected\s*\{[^}]*background:\s*#30313a/);
   assert.match(css, /\.vitus-style-selector\s*\{[^}]*width:\s*92px/);
@@ -589,10 +589,12 @@ test("saturation summary displays telemetry coverage as a smaller muted right-si
   assert.match(css, /\.saturation-summary \.big\s*\{[^}]*line-height:\s*1/);
   assert.match(css, /\.telemetry-coverage\s*\{[^}]*width:\s*100%[^}]*justify-self:\s*stretch[^}]*justify-items:\s*end[^}]*text-align:\s*right/);
   assert.match(css, /\.saturation-card \.telemetry-coverage \.big\s*\{[^}]*color:\s*var\(--muted\)[^}]*font-size:\s*30px/);
+  assert.match(js, /class="saturation-value-row"[\s\S]*?renderAverageDelta\(averageDelta,[\s\S]*?false\)/);
+  assert.match(css, /\.saturation-value-row\s*\{[^}]*display:\s*flex[^}]*align-items:\s*baseline/);
   assert.match(css, /\.cadence-summary-dry \.big,[\s\S]*?\.cadence-summary-peak \.big\s*\{[^}]*color:\s*var\(--muted\)/);
 });
 
-test("drone clear efficiency excludes drones and uses the approved two-column KPI", () => {
+test("clear efficiency excludes drones and uses the approved gauge KPI", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
   const functionSource = js.match(/function droneClearMetrics\(run\) \{[\s\S]*?\n  \}/)?.[0];
@@ -604,18 +606,58 @@ test("drone clear efficiency excludes drones and uses the approved two-column KP
   assert.ok(Math.abs(metrics.observedChancePercent - 18.36503623188406) < 1e-12);
   assert.ok(Math.abs(metrics.efficiencyPercent - 91.8251811594203) < 1e-12);
   assert.match(js, /renderDroneClearEfficiency\(run\)/);
-  assert.match(js, /Drone clear efficiency/);
+  assert.match(js, /<div class="kpi-label">Clear efficiency<\/div>/);
   assert.match(js, /Enemies \/ Drone/);
   assert.match(js, /observed · 20% Drone chance before 3\/3 cap\./);
   assert.match(js, /Math\.max\(0, count - droneValues\[index\]\) \/ droneValues\[index\]/);
   assert.match(css, /\.drone-clear-efficiency-kpi\s*\{[^}]*grid-column:\s*span 2/);
-  assert.match(js, /class="drone-clear-secondary"><div class="kpi-value">\$\{h\(enemiesPerDroneLabel\)\}<\/div><div class="kpi-label">Enemies \/ Drone<\/div>/);
-  assert.doesNotMatch(js, /drone-clear-gauge/);
-  assert.match(css, /\.drone-clear-stats\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(css, /\.drone-clear-secondary\s*\{[^}]*justify-items:\s*end[^}]*text-align:\s*right/);
-  assert.match(css, /\.drone-clear-secondary \.kpi-label\s*\{[^}]*max-width:\s*100%[^}]*white-space:\s*nowrap/);
-  assert.doesNotMatch(css, /\.drone-clear-gauge/);
+  assert.match(js, /class="drone-clear-labels"><div class="kpi-label">Clear efficiency<\/div><div class="kpi-label">Enemies \/ Drone<\/div>/);
+  assert.match(js, /class="drone-clear-values"><div class="kpi-value">\$\{h\(efficiencyLabel\)\}<\/div><div class="drone-clear-gauge"/);
+  assert.match(css, /\.drone-clear-values\s*\{[^}]*grid-template-columns:\s*max-content minmax\(48px, 1fr\) max-content/);
+  assert.match(css, /\.drone-clear-gauge\s*\{[^}]*height:\s*12px[^}]*box-shadow:/);
+  assert.match(css, /\.drone-clear-gauge-fill\s*\{[^}]*width:\s*var\(--drone-clear-width\)/);
   assert.match(css, /\.drone-clear-note\s*\{[^}]*font-size:\s*12px[^}]*text-align:\s*center[^}]*white-space:\s*nowrap/);
+});
+
+test("tileset averages normalize totals by rotations and Disruption by six-minute intervals", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  const intervalsSource = js.match(/function comparisonIntervals\(run\) \{[\s\S]*?\n  \}/)?.[0];
+  const deltasSource = js.match(/function runAverageDeltas\(run, enemyRate\) \{[\s\S]*?\n  \}/)?.[0];
+  const classSource = js.match(/function averageDeltaClass\(delta, goodWhenHigher = true\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(intervalsSource && deltasSource && classSource);
+  const helpers = new Function(`${intervalsSource}\n${deltasSource}\n${classSource}\nreturn { comparisonIntervals, runAverageDeltas, averageDeltaClass };`)();
+  const averages = {
+    enemiesPerComparisonInterval: 1300,
+    dronesPerComparisonInterval: 200,
+    enemiesPerMinute: 200,
+    durationSecondsPerComparisonInterval: 400,
+    highEnemyPercent: 5,
+    highEnemyThreshold: 15,
+  };
+  const run = {
+    missionType: "DEFENSE", rotations: 20, activeDuration: 7700, totalDuration: 8100,
+    enemySpawns: 27141, droneKills: 4091, saturation: { threshold: 15, abovePercent: 7.7 },
+    tilesetAverages: averages,
+  };
+  const deltas = helpers.runAverageDeltas(run, run.enemySpawns / run.activeDuration * 60);
+  assert.equal(helpers.comparisonIntervals(run), 20);
+  assert.equal(deltas.enemies, 1141);
+  assert.equal(deltas.drones, 91);
+  assert.equal(deltas.duration, 100);
+  assert.ok(Math.abs(deltas.highEnemyPercent - 2.7) < 1e-12);
+  assert.equal(helpers.comparisonIntervals({ missionType: "DISRUPTION", activeDuration: 7200, rotations: 99 }), 20);
+  assert.equal(helpers.averageDeltaClass(1, true), "is-positive");
+  assert.equal(helpers.averageDeltaClass(1, false), "is-negative");
+  assert.match(js, /averageKpi\("Total enemies"/);
+  assert.match(js, /averageKpi\("Drones killed"/);
+  assert.match(js, /averageKpi\("Enemies \/ min"/);
+  assert.match(js, /averageKpi\("Total duration"[\s\S]*?formatSignedDuration, false\)/);
+  assert.match(js, /response\.status === 404\) return \{ noBenchmark: true \}/);
+  assert.match(js, /function fillMissingTilesetAverages\(run, average\)/);
+  assert.match(js, /const average = fillMissingTilesetAverages\(run, result\)/);
+  assert.match(css, /\.metric-average-delta\.is-positive\s*\{[^}]*color:\s*var\(--good\)/);
+  assert.match(css, /\.metric-average-delta\.is-negative\s*\{[^}]*color:\s*var\(--red-hot\)/);
 });
 
 test("small report annotations use brighter colors and larger type", () => {
@@ -869,7 +911,7 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   const labels = ["Total enemies", "Drones killed", "Enemies / min", "Total duration"];
   let previous = -1;
   for (const label of labels) {
-    const index = compactKpis.indexOf(`kpi("${label}"`);
+    const index = compactKpis.indexOf(`averageKpi("${label}"`);
     assert.ok(index > previous, `${label} should follow the requested compact KPI order`);
     previous = index;
   }
