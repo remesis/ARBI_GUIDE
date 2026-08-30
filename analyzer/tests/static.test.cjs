@@ -18,7 +18,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
   assert.match(html, /analyzer-20260830-132\.js/);
-  assert.match(html, /analyzer\.css\?v=20260829-95/);
+  assert.match(html, /analyzer\.css\?v=20260830-96/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -634,9 +634,10 @@ test("clear efficiency excludes drones and uses the approved gauge KPI", () => {
   assert.match(js, /class="drone-clear-labels"><div class="kpi-label">Clear efficiency<\/div><div class="kpi-label">Enemies \/ Drone<\/div>/);
   assert.match(js, /class="drone-clear-values"><div class="kpi-value">\$\{h\(efficiencyLabel\)\}<\/div><div class="drone-clear-gauge"/);
   assert.match(css, /\.drone-clear-values\s*\{[^}]*grid-template-columns:\s*max-content minmax\(48px, 1fr\) max-content/);
+  assert.match(css, /\.drone-clear-values \.kpi-value\s*\{[^}]*font-size:\s*clamp\(20px, calc\(11\.5cqi - 4px\), 37px\)/);
   assert.match(css, /\.drone-clear-gauge\s*\{[^}]*height:\s*12px[^}]*box-shadow:/);
   assert.match(css, /\.drone-clear-gauge-fill\s*\{[^}]*width:\s*var\(--drone-clear-width\)/);
-  assert.match(css, /\.drone-clear-note\s*\{[^}]*font-size:\s*12px[^}]*text-align:\s*center[^}]*white-space:\s*nowrap/);
+  assert.match(css, /\.drone-clear-note\s*\{[^}]*font-size:\s*clamp\(12px, 3\.7cqi, 14px\)[^}]*line-height:\s*14px[^}]*text-align:\s*center[^}]*white-space:\s*nowrap/);
 });
 
 test("tileset averages normalize totals by rotations and Disruption by six-minute intervals", () => {
