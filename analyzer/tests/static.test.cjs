@@ -18,7 +18,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
   assert.match(html, /analyzer-20260830-132\.js/);
-  assert.match(html, /analyzer\.css\?v=20260830-96/);
+  assert.match(html, /analyzer\.css\?v=20260830-97/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -681,6 +681,8 @@ test("tileset averages normalize totals by rotations and Disruption by six-minut
   assert.match(js, /const average = fillMissingTilesetAverages\(run, result\)/);
   assert.match(js, /droneIntervalSeconds: finiteAverage\(payload\.drone_interval_seconds\)/);
   assert.match(js, /if \(!state\.showTilesetAverages\) return kpi\(label, value, fallbackNote\)/);
+  assert.match(css, /\.kpi-note\s*\{[^}]*margin-top:\s*8px[^}]*line-height:\s*14px[^}]*white-space:\s*nowrap/);
+  assert.match(css, /\.metric-average-delta\s*\{[^}]*margin-top:\s*8px[^}]*font:\s*850 14px\/1/);
   assert.match(css, /\.metric-average-delta\.is-positive\s*\{[^}]*color:\s*var\(--good\)/);
   assert.match(css, /\.metric-average-delta\.is-negative\s*\{[^}]*color:\s*var\(--red-hot\)/);
 });
