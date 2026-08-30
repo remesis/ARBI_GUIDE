@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260830-131\.js/);
+  assert.match(html, /analyzer-20260830-132\.js/);
   assert.match(html, /analyzer\.css\?v=20260829-95/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -356,7 +356,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260830-131.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260830-132.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -566,7 +566,7 @@ test("Defense wave cells truncate seconds and turn red at a full 26 seconds", ()
   assert.equal(score(25.99999), 1);
   assert.equal(score(26), 0);
   assert.match(js, /String\(defenseWaveSeconds\(item\.seconds\)\)/);
-  assert.match(js, /`≥\$\{threshold \+ 1\}s`/);
+  assert.match(js, /`>\$\{threshold\}s`/);
 });
 
 test("Interception clear-map colors peak at 6m30s and normalize red to the run's furthest deviation", () => {
