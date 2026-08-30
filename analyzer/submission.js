@@ -2,10 +2,10 @@
   "use strict";
 
   const ENDPOINT = "/api/analyzer/spawns";
-  // v9 intentionally gets a fresh browser cache so previously accepted runs
-  // can reconcile their Blessing-eligible drone count under the same canonical
-  // hash when their original logs are analyzed again.
-  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v9";
+  // v10 intentionally gets a fresh browser cache so previously accepted runs
+  // can reconcile finalized-window active-time and drone-interval totals under
+  // the same canonical hash when their original logs are analyzed again.
+  const CACHE_KEY = "arbi-analyzer-accepted-run-hashes-v10";
   const CACHE_LIMIT = 5000;
   const PRODUCTION_HOSTS = new Set(["arbi.guide"]);
 
@@ -76,7 +76,7 @@
       && metrics.drone_interval_span_seconds >= 0
       && metrics.drone_interval_span_seconds <= metrics.mission_seconds + 0.01
       && Number.isInteger(metrics.drone_interval_count)
-      && metrics.drone_interval_count === Math.max(0, metrics.drone_kills - 1)
+      && metrics.drone_interval_count <= Math.max(0, metrics.drone_kills - 1)
       && (metrics.drone_interval_count > 0 || metrics.drone_interval_span_seconds === 0)
       && Number.isInteger(metrics.reward_cycles)
       && metrics.reward_cycles >= 0

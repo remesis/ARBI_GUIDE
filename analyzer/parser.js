@@ -24,7 +24,7 @@
   const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260829-13";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260830-13";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
   const EXPANDED_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE"]);
@@ -1125,8 +1125,9 @@
     run.dronesPerRotation = calculateDronesPerRotation(run);
     run.dpmPerRotation = calculateDpmPerRotation(run);
     run.dpmWindows6m = run.missionType === "DISRUPTION" ? calculateFixedDpmWindows(run, 6 * 60) : [];
-    run.avgDroneInterval = run.droneTimestamps.length > 1
-      ? (run.droneTimestamps[run.droneTimestamps.length - 1] - run.droneTimestamps[0]) / (run.droneTimestamps.length - 1)
+    const intervalDroneTimestamps = droneTimestampsInRange(run);
+    run.avgDroneInterval = intervalDroneTimestamps.length > 1
+      ? (intervalDroneTimestamps[intervalDroneTimestamps.length - 1] - intervalDroneTimestamps[0]) / (intervalDroneTimestamps.length - 1)
       : 0;
     run.saturation = calculateMissionSaturation(run);
     run.telemetryCoverage = calculateTelemetryCoverage(run);
@@ -1457,11 +1458,20 @@
     return calculateSaturation(run, scale.edges, scale.threshold);
   }
 
-  function calculateCadence(run, edges = [1, 2, 3, 5, 8, 12]) {
+  function droneTimestampsInRange(run, rangeStart = run.startTime, rangeEnd = run.endTime) {
+    const start = Number.isFinite(rangeStart) ? rangeStart : -Infinity;
+    const end = Number.isFinite(rangeEnd) ? rangeEnd : Infinity;
+    return (run.droneTimestamps || []).filter((timestamp) => (
+      Number.isFinite(timestamp) && timestamp >= start && timestamp <= end
+    ));
+  }
+
+  function calculateCadence(run, edges = [1, 2, 3, 5, 8, 12], rangeStart = run.startTime, rangeEnd = run.endTime) {
+    const timestamps = droneTimestampsInRange(run, rangeStart, rangeEnd);
     const gaps = [];
-    for (let index = 1; index < run.droneTimestamps.length; index += 1) {
-      const from = run.droneTimestamps[index - 1];
-      const to = run.droneTimestamps[index];
+    for (let index = 1; index < timestamps.length; index += 1) {
+      const from = timestamps[index - 1];
+      const to = timestamps[index];
       const gap = to - from - pauseSeconds(run, from, to);
       if (gap > 0) gaps.push(gap);
     }
@@ -1856,9 +1866,10 @@
     const saturationTotals = calculateSaturationTotals(run, highEnemyThreshold);
     const enemyCountHistogram = calculateEnemyCountHistogram(run, 50);
     const cadence = run.cadence || calculateCadence(run);
-    const droneIntervalCount = Math.max(0, (run.droneTimestamps || []).length - 1);
+    const intervalDroneTimestamps = droneTimestampsInRange(run);
+    const droneIntervalCount = Math.max(0, intervalDroneTimestamps.length - 1);
     const droneIntervalSpanSeconds = droneIntervalCount
-      ? run.droneTimestamps[run.droneTimestamps.length - 1] - run.droneTimestamps[0]
+      ? intervalDroneTimestamps[intervalDroneTimestamps.length - 1] - intervalDroneTimestamps[0]
       : 0;
     const droneKills = Math.max(0, Math.trunc(run.droneKills || 0));
     const requestedBlessedDroneKills = Object.hasOwn(options, "blessedDroneKills")
@@ -1916,6 +1927,7 @@
     stableStringify,
     helpers: {
       calculateCadence,
+      droneTimestampsInRange,
       calculateSaturation,
       calculateMissionSaturation,
       saturationScaleForMission,

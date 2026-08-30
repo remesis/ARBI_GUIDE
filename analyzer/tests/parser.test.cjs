@@ -55,6 +55,7 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   assert.equal(payload.run_offset_seconds, runs[0].startTime);
   const saturationTotals = Parser.helpers.calculateSaturationTotals(runs[0], 15);
   const enemyCountHistogram = Parser.helpers.calculateEnemyCountHistogram(runs[0], 50);
+  const intervalTimestamps = Parser.helpers.droneTimestampsInRange(runs[0]);
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: runs[0].totalDuration,
     active_seconds: runs[0].activeDuration,
@@ -66,8 +67,10 @@ test("parses multiple local Arbitration runs and retains structured spawn points
     enemy_count_seconds: enemyCountHistogram.seconds.map((seconds) => Math.round(seconds * 1000) / 1000),
     drone_dry_seconds: Math.round(runs[0].cadence.droughtSeconds * 1000) / 1000,
     drone_cadence_seconds: Math.round(runs[0].cadence.totalSeconds * 1000) / 1000,
-    drone_interval_span_seconds: Math.round((runs[0].droneTimestamps.at(-1) - runs[0].droneTimestamps[0]) * 1000) / 1000,
-    drone_interval_count: runs[0].droneTimestamps.length - 1,
+    drone_interval_span_seconds: intervalTimestamps.length > 1
+      ? Math.round((intervalTimestamps.at(-1) - intervalTimestamps[0]) * 1000) / 1000
+      : 0,
+    drone_interval_count: Math.max(0, intervalTimestamps.length - 1),
     reward_cycles: runs[0].rotations,
     defense_waves: Object.keys(runs[0].waveStarts).length,
     four_member_majority: false,
@@ -79,6 +82,31 @@ test("parses multiple local Arbitration runs and retains structured spawn points
   const serialized = JSON.stringify(payload);
   assert.doesNotMatch(serialized, /Squad|player|Mission name|OnAgentCreated/i);
   assert.doesNotMatch(serialized, /npc_types|wave_counts/i);
+});
+
+test("drone cadence and interval totals exclude events outside the finalized run window", async () => {
+  const lines = [];
+  addRun(lines, {
+    offset: 20,
+    node: "SolNode130",
+    name: "Arbitration: Lares (Mercury) - Defense",
+    level: "/Lotus/Levels/GrineerAsteroidRelight/GrnDefenseOne.level",
+  });
+  const [run] = Parser.parseText(lines.join("\n"));
+  const inWindow = Parser.helpers.droneTimestampsInRange(run);
+  const earlyTimestamp = run.startTime - 10;
+  const lateTimestamp = run.endTime + 10;
+  run.droneTimestamps = [earlyTimestamp, ...run.droneTimestamps, lateTimestamp];
+  run.droneKills += 2;
+  run.cadence = Parser.helpers.calculateCadence(run);
+
+  assert.deepEqual(Parser.helpers.droneTimestampsInRange(run), inWindow);
+  assert.equal(run.cadence.gaps.length, Math.max(0, inWindow.length - 1));
+
+  const payload = await Parser.buildContribution(run);
+  assert.equal(payload.run_metrics.drone_interval_count, Math.max(0, inWindow.length - 1));
+  assert.ok(payload.run_metrics.drone_interval_count < payload.run_metrics.drone_kills - 1);
+  assert.ok(payload.run_metrics.drone_interval_span_seconds <= payload.run_metrics.mission_seconds);
 });
 
 test("derives each report's wall-clock start from the EE.log UTC process anchor", () => {
@@ -248,6 +276,7 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
   assert.equal(payload.observed_spawn_events, 0);
   const saturationTotals = Parser.helpers.calculateSaturationTotals(run, 30);
   const enemyCountHistogram = Parser.helpers.calculateEnemyCountHistogram(run, 50);
+  const intervalTimestamps = Parser.helpers.droneTimestampsInRange(run);
   assert.deepEqual(payload.run_metrics, {
     mission_seconds: 130,
     active_seconds: run.activeDuration,
@@ -259,8 +288,10 @@ test("uses Survival mission events for active timing, reward cycles, extraction,
     enemy_count_seconds: enemyCountHistogram.seconds.map((seconds) => Math.round(seconds * 1000) / 1000),
     drone_dry_seconds: Math.round(run.cadence.droughtSeconds * 1000) / 1000,
     drone_cadence_seconds: Math.round(run.cadence.totalSeconds * 1000) / 1000,
-    drone_interval_span_seconds: Math.round((run.droneTimestamps.at(-1) - run.droneTimestamps[0]) * 1000) / 1000,
-    drone_interval_count: run.droneTimestamps.length - 1,
+    drone_interval_span_seconds: intervalTimestamps.length > 1
+      ? Math.round((intervalTimestamps.at(-1) - intervalTimestamps[0]) * 1000) / 1000
+      : 0,
+    drone_interval_count: Math.max(0, intervalTimestamps.length - 1),
     reward_cycles: 2,
     defense_waves: 0,
     four_member_majority: false,

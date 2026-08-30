@@ -115,7 +115,7 @@ test("requires a complete duration-balanced 0-50 plus overflow histogram", () =>
   assert.equal(Submission.isValidPayload(unbalanced), false);
 });
 
-test("requires exact active-time and drone-interval normalization totals", () => {
+test("accepts finalized-window drone intervals and rejects impossible totals", () => {
   const valid = payload();
   assert.equal(Submission.isValidPayload(valid), true);
 
@@ -123,7 +123,15 @@ test("requires exact active-time and drone-interval normalization totals", () =>
   inactive.run_metrics.active_seconds = inactive.run_metrics.mission_seconds + 1;
   assert.equal(Submission.isValidPayload(inactive), false);
 
-  const wrongIntervals = structuredClone(valid);
-  wrongIntervals.run_metrics.drone_interval_count -= 1;
-  assert.equal(Submission.isValidPayload(wrongIntervals), false);
+  const boundedIntervals = structuredClone(valid);
+  boundedIntervals.run_metrics.drone_interval_count -= 4;
+  assert.equal(Submission.isValidPayload(boundedIntervals), true);
+
+  const tooManyIntervals = structuredClone(valid);
+  tooManyIntervals.run_metrics.drone_interval_count += 1;
+  assert.equal(Submission.isValidPayload(tooManyIntervals), false);
+
+  const tooLongSpan = structuredClone(valid);
+  tooLongSpan.run_metrics.drone_interval_span_seconds = tooLongSpan.run_metrics.mission_seconds + 1;
+  assert.equal(Submission.isValidPayload(tooLongSpan), false);
 });

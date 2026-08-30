@@ -140,10 +140,11 @@ The cache namespace is versioned. A contract change may advance it once so
 already accepted hashes are reconciled without changing their canonical spawn
 identity.
 
-The current v9 namespace resubmits previously accepted runs once so D1 can
-reconcile the Blessing-eligible drone count and its server-derived Expected
-Vitus values. Historical reduced fields stay `NULL` until their original logs
-are analyzed again; missing values are never estimated or treated as zero.
+The current v10 namespace resubmits previously accepted runs once so D1 can
+reconcile finalized-window active time and drone-interval totals, along with
+the Blessing-eligible drone count and its server-derived Expected Vitus values.
+Historical reduced fields stay `NULL` until their original logs are analyzed
+again; missing values are never estimated or treated as zero.
 
 The site-only **Client had Fresher Blessing** toggle updates the report
 immediately and debounces its D1 correction for two seconds. Rapid toggles
@@ -255,10 +256,12 @@ are therefore normalized by `active_seconds / 360`, including a final partial
 window; other modes use the submitted reward-cycle count and exclude runs with
 zero completed cycles from per-cycle averages. The D1 summary view exposes the
 row's comparison basis so Disruption's six-minute values are not mistaken for
-reward rounds. `drone_interval_span_seconds` and
-`drone_interval_count` reproduce the displayed first-to-last average interval
-without submitting individual drone timestamps, and allow a pooled tileset
-average as `SUM(span) / SUM(count)`.
+reward rounds. `drone_interval_span_seconds` and `drone_interval_count`
+reproduce the displayed first-to-last average interval using only drone events
+inside the finalized run window, without submitting individual drone
+timestamps. The observed interval count can therefore be lower than
+`drone_kills - 1` when prebuffer/rejoin events precede that window. The reduced
+totals allow a pooled tileset average as `SUM(span) / SUM(count)`.
 
 On 2026-08-18, a D1 audit found three older submissions—one Larzac and two
 Stöfler—that matched a later row in every canonical spawn field and every
