@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260829-130\.js/);
+  assert.match(html, /analyzer-20260830-131\.js/);
   assert.match(html, /analyzer\.css\?v=20260829-95/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -356,7 +356,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260829-130.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260830-131.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -543,25 +543,30 @@ test("clear maps display per-wave and per-rotation saturation", () => {
   assert.match(css, /\.clear-cell-content \.phase-saturation/);
   assert.match(css, /\.round-saturation-legend\s*\{[^}]*margin-left:\s*auto/);
   assert.match(js, /DEFENSE_WAVE_TARGET_SECONDS = 25/);
+  assert.match(js, /function defenseWaveSeconds\(seconds\)/);
   assert.match(js, /function defenseWaveScore\(seconds\)/);
-  assert.match(js, /Math\.round\(Number\(seconds \|\| 0\)\) <= DEFENSE_WAVE_TARGET_SECONDS/);
+  assert.match(js, /Math\.floor\(Number\(seconds \|\| 0\)\)/);
+  assert.match(js, /defenseWaveSeconds\(seconds\) <= DEFENSE_WAVE_TARGET_SECONDS/);
   assert.match(js, /phase\.defense\s*\? defenseWaveScore\(item\.seconds\)/);
 });
 
-test("Defense wave colors use the same rounded seconds shown in each cell", () => {
+test("Defense wave cells truncate seconds and turn red at a full 26 seconds", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const functionSource = js.match(/function defenseWaveScore\(seconds\) \{[\s\S]*?\n  \}/)?.[0];
-  assert.ok(functionSource);
+  const secondsSource = js.match(/function defenseWaveSeconds\(seconds\) \{[\s\S]*?\n  \}/)?.[0];
+  const scoreSource = js.match(/function defenseWaveScore\(seconds\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(secondsSource);
+  assert.ok(scoreSource);
   const score = new Function(
     "DEFENSE_WAVE_TARGET_SECONDS",
-    `${functionSource}; return defenseWaveScore;`,
+    `${secondsSource}; ${scoreSource}; return defenseWaveScore;`,
   )(25);
   assert.equal(score(24.5), 1);
   assert.equal(score(25), 1);
   assert.equal(score(25.4), 1);
-  assert.equal(score(25.499), 1);
-  assert.equal(score(25.5), 0);
+  assert.equal(score(25.99999), 1);
   assert.equal(score(26), 0);
+  assert.match(js, /String\(defenseWaveSeconds\(item\.seconds\)\)/);
+  assert.match(js, /`≥\$\{threshold \+ 1\}s`/);
 });
 
 test("Interception clear-map colors peak at 6m30s and normalize red to the run's furthest deviation", () => {
@@ -991,11 +996,12 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(js, /showRotationDrones = !phase\.defense && \["INTERCEPTION", "SURVIVAL", "MIRROR DEFENSE", "INFESTED SALVAGE"\]\.includes\(run\.missionType\)/);
   assert.match(js, /showRotationDrones[\s\S]*Number\.isFinite\(item\.drones\)[\s\S]*fmt\(item\.drones\)/);
   assert.doesNotMatch(js, /droneTooltip/);
-  assert.match(js, /shortDuration\(item\.seconds\)\} · Saturation \$\{saturation\}/);
+  assert.match(js, /const tooltipDuration = phase\.defense \? `\$\{defenseWaveSeconds\(item\.seconds\)\}s` : shortDuration\(item\.seconds\)/);
+  assert.match(js, /\$\{tooltipDuration\} · Saturation \$\{saturation\}/);
   assert.match(js, /Color is time per rotation, number is Drones per rotation\./);
   assert.match(css, /\.correlation-test-non-defense \.correlation-test-clear-map \.clear-heat-map\s*\{[^}]*repeat\(10,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(css, /\.correlation-test-non-defense \.correlation-test-clear-map \.heat-cell\s*\{[^}]*min-height:\s*0[^}]*aspect-ratio:\s*1/);
-  assert.match(js, /visibleDuration = CORRELATION_LAYOUT_ACTIVE && phase\.defense[\s\S]*String\(Math\.round\(item\.seconds\)\)/);
+  assert.match(js, /visibleDuration = CORRELATION_LAYOUT_ACTIVE && phase\.defense[\s\S]*String\(defenseWaveSeconds\(item\.seconds\)\)/);
   assert.match(js, /visibleDuration\.split\(\/\\s\+\/\)[\s\S]*class="clear-duration-stack"/);
   assert.match(css, /\.clear-duration-stack\s*\{[^}]*display:\s*grid[^}]*white-space:\s*nowrap/);
   assert.match(css, /\.clear-duration-stack > span\s*\{[^}]*display:\s*block/);
