@@ -636,6 +636,8 @@ body.empty-page-drag::after {
 .vitus-curve-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 2px 0 4px; color: var(--muted); font: 400 14px/1.2 Inter, system-ui, sans-serif; }
 .vitus-curve-summary > div:first-child { padding-top: 3px; }
 .vitus-curve-summary b { color: var(--accent); font-weight: 900; }
+.vitus-card--curve .vitus-design-rate { position: relative; z-index: 2; }
+.vitus-card--curve .vitus-design-rate-delta { position: absolute; top: 100%; right: 0; margin-top: 5px; pointer-events: none; }
 .vitus-curve-axis { height: 44px; margin-top: 0; }
 .vitus-curve-axis svg { width: 100%; height: 44px; display: block; overflow: visible; }
 

@@ -18,7 +18,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
   assert.match(html, /analyzer-20260830-132\.js/);
-  assert.match(html, /analyzer\.css\?v=20260830-97/);
+  assert.match(html, /analyzer\.css\?v=20260830-98/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -397,6 +397,8 @@ test("Expected Vitus card style selector persists and stays out of copied images
   assert.match(css, /\.vitus-style-menu\s*\{[^}]*width:\s*100%/);
   assert.match(css, /\.vitus-style-selector summary\s*\{[^}]*font-size:\s*14px/);
   assert.match(css, /\.vitus-style-option\s*\{[^}]*font:\s*800 14px/);
+  assert.match(css, /\.vitus-card--curve \.vitus-design-rate\s*\{[^}]*position:\s*relative[^}]*z-index:\s*2/);
+  assert.match(css, /\.vitus-card--curve \.vitus-design-rate-delta\s*\{[^}]*position:\s*absolute[^}]*top:\s*100%[^}]*right:\s*0[^}]*pointer-events:\s*none/);
   assert.match(css, /\.export-stage \.vitus-style-selector\s*\{\s*display:\s*none !important/);
 });
 
