@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260830-132\.js/);
+  assert.match(html, /analyzer-20260901-133\.js/);
   assert.match(html, /analyzer\.css\?v=20260830-98/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -356,7 +356,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260830-132.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-133.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -427,23 +427,33 @@ test("fresh client Blessing override lasts three hours from mission start", () =
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const blessedSource = js.match(/function effectiveBlessedDroneKills\(run\) \{[\s\S]*?\n  \}/)?.[0];
   const expirySource = js.match(/function effectiveBlessingExpiry\(run\) \{[\s\S]*?\n  \}/)?.[0];
+  const eligibilitySource = js.match(/function canUseClientFreshBlessing\(run\) \{[\s\S]*?\n  \}/)?.[0];
+  const copySource = js.match(/function vitusAssumptionCopy\(run\) \{[\s\S]*?\n  \}/)?.[0];
   const durationSource = js.match(/function blessingDuration\(seconds\) \{[\s\S]*?\n  \}/)?.[0];
   assert.ok(blessedSource);
   assert.ok(expirySource);
+  assert.ok(eligibilitySource);
+  assert.ok(copySource);
   assert.ok(durationSource);
   const context = {};
   vm.runInNewContext(`
     const RESOURCE_BLESSING_SECONDS = 3 * 60 * 60;
     ${blessedSource}
     ${expirySource}
+    ${eligibilitySource}
     ${durationSource}
+    ${copySource}
     const shortRun = { clientFreshBlessing: true, startTime: 100, totalDuration: 8100, droneKills: 3, droneTimestamps: [200, 1000, 8000] };
     const longRun = { clientFreshBlessing: true, startTime: 100, totalDuration: 14400, droneKills: 3, droneTimestamps: [200, 10900, 10901] };
+    const expiredBeforeRun = { clientFreshBlessing: false, startTime: 11000, endTime: 12000, resourceBlessingExpiresAt: 10900 };
     result = {
       shortKills: effectiveBlessedDroneKills(shortRun),
       shortExpiry: effectiveBlessingExpiry(shortRun),
       longKills: effectiveBlessedDroneKills(longRun),
       longExpiry: effectiveBlessingExpiry(longRun),
+      expiredBeforeRunExpiry: effectiveBlessingExpiry(expiredBeforeRun),
+      expiredBeforeRunEligible: canUseClientFreshBlessing(expiredBeforeRun),
+      shortCopy: vitusAssumptionCopy({ ...shortRun, blessedDroneKills: 0 }),
       threeHourLabel: blessingDuration(RESOURCE_BLESSING_SECONDS),
     };
   `, context);
@@ -452,6 +462,11 @@ test("fresh client Blessing override lasts three hours from mission start", () =
   assert.equal(context.result.longKills, 2);
   assert.equal(context.result.longExpiry.elapsed, 10800);
   assert.equal(context.result.longExpiry.timestamp, 10900);
+  assert.equal(context.result.expiredBeforeRunExpiry.elapsed, 0);
+  assert.equal(context.result.expiredBeforeRunExpiry.timestamp, 11000);
+  assert.equal(context.result.expiredBeforeRunExpiry.expiredBeforeRun, true);
+  assert.equal(context.result.expiredBeforeRunEligible, true);
+  assert.equal(context.result.shortCopy, "Blessing, Both Boosters and Resourceful Retriever.");
   assert.equal(context.result.threeHourLabel, "3h 0m 0s");
 });
 
@@ -961,6 +976,7 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(js, /class="correlation-tooltip-stage"/);
   assert.match(js, /class="correlation-blessing-expiry"/);
   assert.match(js, /Blessing ran out at:/);
+  assert.match(js, /Blessing had expired before this run/);
   assert.match(js, /Click this button if Client had Fresher Blessing/);
   assert.match(js, /const RESOURCE_BLESSING_SECONDS = 3 \* 60 \* 60/);
   assert.match(js, /Parser\.computeVitus\(run\.droneKills, run\.rotations, run\.missionType, effectiveBlessedDroneKills\(run\)\)/);
