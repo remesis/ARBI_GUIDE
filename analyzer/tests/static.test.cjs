@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260901-135\.js/);
+  assert.match(html, /analyzer-20260901-136\.js/);
   assert.match(html, /analyzer\.css\?v=20260830-98/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -356,7 +356,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-135.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-136.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -528,6 +528,15 @@ test("analyzer uses the full composition list and green performance scale", () =
   assert.doesNotMatch(js, /entries\.slice\(0,(?:8|10)\)/);
   assert.match(js, /\.filter\(\(\[name\]\) => !isExcludedCompositionAgent\(name\)\)/);
   assert.match(js, /=== "summonmotorcycle"/);
+  const excludedSource = js.match(/function isExcludedCompositionAgent\(value\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(excludedSource);
+  const isExcluded = new Function(`${excludedSource}; return isExcludedCompositionAgent;`)();
+  for (const companion of ["CatbrowPetAgent", "KubrowPetAgent", "MoaPetAgent", "SentinelAgent", "VulpaphylaPetAgent", "PredasitePodMinionAgent", "HelminthChargerAgent", "CompanionDroneAgent"]) {
+    assert.equal(isExcluded(companion), true);
+  }
+  for (const enemy of ["ShipMoaDeraAgent", "CombatKubrowAgent", "CombatCatbrowAgent", "InfestedCritterSentinelAgent"]) {
+    assert.equal(isExcluded(enemy), false);
+  }
   assert.match(js, /<footer class="report-footer"><span>https:\/\/arbi\.guide\/analyzer<\/span><span>discord\.gg\/Arbitrations<\/span><\/footer>/);
   assert.match(js, /Greener = more enemies/);
   assert.match(js, /const PERFORMANCE_SUCCESS = "#00e676"/);
