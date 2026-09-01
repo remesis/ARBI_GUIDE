@@ -17,8 +17,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260901-136\.js/);
-  assert.match(html, /analyzer\.css\?v=20260830-98/);
+  assert.match(html, /analyzer-20260901-137\.js/);
+  assert.match(html, /analyzer\.css\?v=20260901-99/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -126,6 +126,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /savePlayerNamePrivacy\(\)/);
   assert.match(js, /function syncSquadPrivacy\(root, run\)/);
   assert.match(js, /root\.querySelectorAll\("\.squad-player"\)\.forEach/);
+  assert.match(js, /text: companion \? `\$\{name\} \(had a \$\{companion\}\)` : name/);
+  assert.match(js, /player\.classList\.toggle\("has-robotic-companion", entry\.hasRoboticCompanion\)/);
   assert.match(js, /savePlayerNamePrivacy\(\);\s*syncSquadPrivacy\(\$\("#reportRoot"\), run\)/);
   assert.doesNotMatch(js, /savePlayerNamePrivacy\(\);\s*renderReport\(run\)/);
   assert.match(js, /renderReport\(null\)/);
@@ -246,10 +248,11 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(css, /\.squad-privacy-toggle\.is-hidden::after/);
   assert.doesNotMatch(js, /class="squad-label">Squad/);
   assert.doesNotMatch(css, /\.squad-player \+ \.squad-player::before|\.squad-player \+ \.squad-phase::before/);
-  assert.match(js, /class="squad-member"><span class="squad-player">[\s\S]*?<i class="squad-separator" aria-hidden="true"><\/i>/);
+  assert.match(js, /squadPlayerEntries\(run\)\.map\(\(entry\) => `<span class="squad-member"><span class="squad-player\$\{entry\.hasRoboticCompanion/);
   assert.match(css, /\.squad-member\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center[^}]*flex:\s*0 0 auto/);
   assert.match(css, /\.squad-separator\s*\{[^}]*width:\s*5px[^}]*height:\s*5px[^}]*margin:\s*0 8px[^}]*border-radius:\s*50%[^}]*background:\s*#d9dae2/);
   assert.match(css, /\.squad-player, \.squad-phase\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center/);
+  assert.match(css, /\.squad-player\.has-robotic-companion\s*\{[^}]*color:\s*var\(--red-hot\)[^}]*font-weight:\s*800/);
   assert.match(css, /\.squad-privacy-toggle\s*\{[^}]*margin:\s*0 6px 0 0/);
   assert.match(css, /\.export-stage \.squad-privacy-toggle\s*\{[^}]*display:\s*none\s*!important/);
   assert.match(css, /\.report-header-accent\s*\{[^}]*bottom:\s*-2px[^}]*width:\s*var\(--header-accent-width,\s*175px\)/);
@@ -347,16 +350,16 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260901-82"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260901-83"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(parser, /scanner-worker\.js\?v=20260901-15/);
-  assert.match(html, /parser\.js\?v=20260901-82/);
+  assert.match(parser, /scanner-worker\.js\?v=20260901-16/);
+  assert.match(html, /parser\.js\?v=20260901-83/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-136.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-137.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);

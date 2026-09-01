@@ -346,6 +346,7 @@ body.empty-page-drag::after {
   box-shadow: 0 0 4px rgba(217, 218, 226, .5);
 }
 .squad-player, .squad-phase { display: inline-flex; align-items: center; }
+.squad-player.has-robotic-companion { color: var(--red-hot); font-weight: 800; }
 .squad-privacy-toggle {
   position: relative;
   display: inline-flex;

@@ -22,9 +22,10 @@
   const OPENING_REJOIN_WINDOW_SECONDS = 10 * 60;
   const JOIN_EVIDENCE_WINDOW_SECONDS = 60;
   const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
+  const COMPANION_JOIN_RESOLUTION_SECONDS = 30;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260901-15";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260901-16";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "VOID CASCADE"]);
   const EXPANDED_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE", "VOID CASCADE"]);
@@ -162,6 +163,9 @@
   const P_NAMED_JOIN = /ProcessSquadMessage received JOIN message from (.+?),\s*loadout:/;
   const P_NAMED_LEAVE = /ProcessSquadMessage received LEAVE message from (.+?)\s*$/;
   const P_SQUAD_ADD = /AddSquadMember:\s*(.+?),\s*mm=.*?\bsquadCount=\d+/;
+  const P_COMPANION_OWNER_DIRECT = /LotusSentinelAvatar\s+([A-Za-z0-9_]+?)(\d+)\s+setting owner player to\s+(.+?)\s*$/;
+  const P_COMPANION_REGISTER = /SentinelAvatar:\s+registering\s+([A-Za-z0-9_]+?)(\d+)\s*$/;
+  const P_COMPANION_OWNER_REPLICATED = /LotusSentinelAvatar with ID\s+(\d+)\s+(?:player and loadout replicated\. Player name is|owned by)\s+(.+?)(?:\s+Notify GameRules of spawn)?\s*$/;
   const P_INT_INIT = /TerritoryMission\.lua: .*?(?:control|captured)/i;
   const P_PURIFY_STATE = /^!?(\d+\.\d+).*PurifyMission\.lua: ModeState = (\d+) \(ModeState\)/;
   const P_SPAWN_POINT = /^!?(\d+\.\d+).*WaveDefend\.lua: Spawned a \/Npc\/([A-Za-z0-9_]+?)\d* @ Vector\(([^)]+)\), spawn point: (\/[A-Za-z0-9_/]*?)\/([Nn]pcSpawnPoint\d+) @ Vector\(([^)]+)\)/;
@@ -169,7 +173,7 @@
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|enemySpec=\/Lotus\/Types\/Game\/EnemySpecs\/Zariman\/|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|PurifyMission\.lua: ModeState =|Survival: Starting survival|Survival: Gave reward tier|Zariman Survival \(Void Cascade\): State Change: ENDLESS|ZarimanSurvivalMission\.lua: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|enemySpec=\/Lotus\/Types\/Game\/EnemySpecs\/Zariman\/|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|PurifyMission\.lua: ModeState =|Survival: Starting survival|Survival: Gave reward tier|Zariman Survival \(Void Cascade\): State Change: ENDLESS|ZarimanSurvivalMission\.lua: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|setting owner player to|SentinelAvatar: registering|LotusSentinelAvatar with ID|MonitoredTicking|Live /g;
 
   const UTC_MONTH_INDEX = Object.freeze({
     Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
@@ -198,6 +202,15 @@
   function isPlayerCompanionAgent(line) {
     const npcName = (String(line || "").match(P_NPC)?.[1] || "").replace(/\d+$/, "");
     return P_PLAYER_COMPANION.test(npcName);
+  }
+
+  function companionLoadoutKind(avatarType) {
+    const normalized = String(avatarType || "").replace(/\d+$/, "");
+    if (normalized === "SentinelAvatar") return "Sentinel";
+    if (normalized === "MoaPetAvatar") return "MOA";
+    if (normalized === "ZanukaPetAvatar") return "Hound";
+    if (normalized === "CatbrowPetAvatar" || normalized === "KubrowPetAvatar") return "Beast";
+    return "";
   }
 
   function createRun() {
@@ -232,6 +245,9 @@
       spawnPoints: {},
       host: "",
       squadmates: [],
+      roboticCompanions: {},
+      companionLoadouts: [],
+      pendingCompanionAvatars: new Map(),
       missionStart: 0,
       preciseStart: null,
       extractionTime: 0,
@@ -466,6 +482,9 @@
       let hasNamedLeave = false;
       let hasSquadAdd = false;
       let hasLocalInProgress = false;
+      let hasCompanionOwnerDirect = false;
+      let hasCompanionRegister = false;
+      let hasCompanionOwnerReplicated = false;
       let hasLiveCount = false;
 
       if (relevantToken === undefined) {
@@ -505,6 +524,9 @@
         hasNamedLeave = line.includes("ProcessSquadMessage received LEAVE message from");
         hasSquadAdd = line.includes("AddSquadMember:");
         hasLocalInProgress = line.includes("LoadLevelMsg received. Client joining mission in-progress");
+        hasCompanionOwnerDirect = line.includes("setting owner player to");
+        hasCompanionRegister = line.includes("SentinelAvatar: registering");
+        hasCompanionOwnerReplicated = line.includes("LotusSentinelAvatar with ID");
         hasLiveCount = line.includes("MonitoredTicking") || (line.includes("AI [Info]:") && line.includes("Live "));
       } else {
         switch (relevantToken) {
@@ -553,6 +575,9 @@
           case "received LEAVE message from": hasNamedLeave = true; break;
           case "AddSquadMember:": hasSquadAdd = true; break;
           case "Client joining mission in-progress": hasLocalInProgress = true; break;
+          case "setting owner player to": hasCompanionOwnerDirect = true; break;
+          case "SentinelAvatar: registering": hasCompanionRegister = true; break;
+          case "LotusSentinelAvatar with ID": hasCompanionOwnerReplicated = true; break;
           case "MonitoredTicking":
             hasLiveCount = true;
             hasAgent = line.includes("OnAgentCreated");
@@ -564,7 +589,7 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasResourceBlessing || hasMission || hasMissionVote || hasArbitrationSelection || hasZarimanEnemySpec || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasPurifyState || hasSurvivalStart || hasSurvivalReward || hasVoidCascadeStart || hasVoidCascadeReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasResourceBlessing || hasMission || hasMissionVote || hasArbitrationSelection || hasZarimanEnemySpec || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasPurifyState || hasSurvivalStart || hasSurvivalReward || hasVoidCascadeStart || hasVoidCascadeReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasCompanionOwnerDirect || hasCompanionRegister || hasCompanionOwnerReplicated || hasLiveCount)) return;
 
       const lineTimestamp = Number((line.match(P_TIMESTAMP) || [])[1]) || 0;
       if (hasResourceBlessing) {
@@ -642,6 +667,19 @@
       if (/^!?\d/.test(line)) {
         const match = line.match(P_TIMESTAMP);
         if (match) ts = Number(match[1]);
+      }
+
+      if (hasCompanionOwnerDirect) {
+        this.companionOwnerDirect(line, ts);
+        return;
+      }
+      if (hasCompanionRegister) {
+        this.companionRegister(line, ts);
+        return;
+      }
+      if (hasCompanionOwnerReplicated) {
+        this.companionOwnerReplicated(line, ts);
+        return;
       }
 
       if (hasDroneDespawn) {
@@ -985,6 +1023,36 @@
       point.waveCounts[wave] = (point.waveCounts[wave] || 0) + 1;
     }
 
+    recordCompanionLoadout(name, kind, timestamp = 0) {
+      const player = cleanName(name);
+      if (!player || !kind) return;
+      this.cur.companionLoadouts.push({ player, kind, timestamp });
+    }
+
+    companionOwnerDirect(line, timestamp = 0) {
+      const match = line.match(P_COMPANION_OWNER_DIRECT);
+      if (!match) return;
+      this.recordCompanionLoadout(match[3], companionLoadoutKind(match[1]), timestamp);
+    }
+
+    companionRegister(line, timestamp = 0) {
+      const match = line.match(P_COMPANION_REGISTER);
+      if (!match) return;
+      const kind = companionLoadoutKind(match[1]);
+      if (kind) this.cur.pendingCompanionAvatars.set(match[2], { kind, timestamp });
+      else this.cur.pendingCompanionAvatars.delete(match[2]);
+    }
+
+    companionOwnerReplicated(line, timestamp = 0) {
+      const match = line.match(P_COMPANION_OWNER_REPLICATED);
+      if (!match) return;
+      const pending = this.cur.pendingCompanionAvatars.get(match[1]);
+      if (!pending) return;
+      this.cur.pendingCompanionAvatars.delete(match[1]);
+      if (timestamp && pending.timestamp && timestamp - pending.timestamp > 10) return;
+      this.recordCompanionLoadout(match[2], pending.kind, timestamp);
+    }
+
     playerJoinEvidence(line, timestamp = 0, pattern = P_NAMED_JOIN) {
       const match = line.match(pattern);
       if (!match || !this.cur.isArbitration) return;
@@ -1144,9 +1212,21 @@
     run.fullSquadCoverage = fullSquadCoverage(run, run.startTime, run.endTime);
     run.fullSquadMajority = run.fullSquadCoverage > 0.5;
     run.squadmates = finalizedCore.names;
+    const finalizedPlayers = new Set([run.host, ...run.squadmates]);
+    const latestCompanions = new Map();
+    const companionCutoff = run.startTime + COMPANION_JOIN_RESOLUTION_SECONDS;
+    (run.companionLoadouts || []).forEach((entry) => {
+      if (!finalizedPlayers.has(entry.player)) return;
+      if (entry.timestamp && entry.timestamp > companionCutoff) return;
+      latestCompanions.set(entry.player, entry.kind);
+    });
+    run.roboticCompanions = Object.fromEntries([...latestCompanions]
+      .filter(([, kind]) => kind !== "Beast"));
     delete run.playerPresence;
     delete run.openingOperationalLoads;
     delete run.recentJoinEvidence;
+    delete run.companionLoadouts;
+    delete run.pendingCompanionAvatars;
     const paused = pauseSeconds(run, run.startTime, run.endTime);
     run.activeDuration = Math.max(0, run.totalDuration - paused);
     const nodeKey = canonicalNode(run.nodeKey);

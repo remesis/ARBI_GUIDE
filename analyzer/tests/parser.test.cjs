@@ -858,6 +858,37 @@ test("excludes player companions without removing similarly named enemies", () =
   realEnemies.forEach((npc) => assert.equal(run.enemyTypes[npc], 1));
 });
 
+test("identifies the specific squad members using robotic companions", () => {
+  const lines = [
+    "0.1 Game [Info]: Host loadout loader finished.",
+    "0.2 Game [Info]: Eskord loadout loader finished.",
+    "0.3 Game [Info]: BeastUser loadout loader finished.",
+    "0.4 Game [Info]: HoundUser loadout loader finished.",
+  ];
+  addRun(lines, {
+    offset: 1,
+    node: "SolNode17",
+    name: "Arbitration: Proteus (Neptune) - Defense",
+    level: "/Lotus/Levels/CorpusShip/CorpusShipDefense.level",
+  });
+  lines.push("3.8 Sys [Info]: LotusSentinelAvatar SentinelAvatar77 setting owner player to Host");
+  lines.push("3.9 Sys [Info]: LotusSentinelAvatar CatbrowPetAvatar81 setting owner player to Host");
+  lines.push("4.1 Sys [Info]: LotusSentinelAvatar MoaPetAvatar78 setting owner player to Eskord");
+  lines.push("4.2 Sys [Info]: LotusSentinelAvatar CatbrowPetAvatar79 setting owner player to BeastUser");
+  lines.push("4.25 Sys [Info]: LotusSentinelAvatar SentinelAvatar82 setting owner player to BeastUser");
+  lines.push("4.3 Sys [Info]: LotusSentinelAvatar SentinelHubAvatar80 setting owner player to BeastUser");
+  lines.push("5.0 Sys [Info]: SentinelAvatar: registering ZanukaPetAvatar88");
+  lines.push("5.1 Sys [Info]: LotusSentinelAvatar with ID 88 player and loadout replicated. Player name is HoundUser");
+  lines.push("80.0 Sys [Info]: LotusSentinelAvatar SentinelAvatar99 setting owner player to Host");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.deepEqual(run.roboticCompanions, {
+    Eskord: "MOA",
+    BeastUser: "Sentinel",
+    HoundUser: "Hound",
+  });
+});
+
 test("calculates time at 15+ active enemies inside an individual phase", () => {
   const run = {
     startTime: 0,
