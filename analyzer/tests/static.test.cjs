@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260901-134\.js/);
+  assert.match(html, /analyzer-20260901-135\.js/);
   assert.match(html, /analyzer\.css\?v=20260830-98/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -235,7 +235,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /workspace\.append\(workspaceTop, clearMap\)/);
   assert.match(js, /grid\.replaceChildren\(left, workspace, activity\)/);
   assert.match(js, /Spawn points observed/);
-  assert.match(js, /\["SURVIVAL", "DISRUPTION"\]\.includes\(run\.missionType\)/);
+  assert.match(js, /\["SURVIVAL", "DISRUPTION", "VOID CASCADE"\]\.includes\(run\.missionType\)/);
   assert.match(js, /kpi\("Drones despawned", fmt\(run\.dronesDespawned \|\| 0\), "Despawn after 20s"\)/);
   assert.match(js, /: kpi\(`Drones \/ \$\{phase\.noun\}`/);
   assert.doesNotMatch(js, /debug-export/);
@@ -347,16 +347,16 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260830-80"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260901-81"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(parser, /scanner-worker\.js\?v=20260830-13/);
-  assert.match(html, /parser\.js\?v=20260830-80/);
+  assert.match(parser, /scanner-worker\.js\?v=20260901-14/);
+  assert.match(html, /parser\.js\?v=20260901-81/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-134.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-135.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -483,10 +483,10 @@ test("Actual Vitus input accepts only the first four numeric digits", () => {
   assert.deepEqual(Array.from(context.result), ["1234", "9876", ""]);
 });
 
-test("Disruption drone pace uses six-minute active-time windows", () => {
+test("Disruption and markerless Void Cascade drone pace use six-minute active-time windows", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
-  assert.match(parser, /run\.dpmWindows6m = run\.missionType === "DISRUPTION"/);
+  assert.match(parser, /run\.dpmWindows6m = \["DISRUPTION", "VOID CASCADE"\]\.includes\(run\.missionType\)/);
   assert.match(parser, /calculateFixedDpmWindows\(run, 6 \* 60\)/);
   assert.match(js, /run\.missionType === "DISRUPTION"/);
   assert.match(js, /Six-minute active-time windows, against the run average\./);
@@ -606,14 +606,27 @@ test("Interception clear-map colors peak at 6m30s and normalize red to the run's
 test("saturation rows and summary thresholds follow each mission mode", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
-  assert.match(parser, /HIGH_DENSITY_SATURATION_TYPES = new Set\(\["SURVIVAL", "DISRUPTION"\]\)/);
-  assert.match(parser, /EXPANDED_SATURATION_TYPES = new Set\(\["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE"\]\)/);
+  assert.match(parser, /HIGH_DENSITY_SATURATION_TYPES = new Set\(\["SURVIVAL", "DISRUPTION", "VOID CASCADE"\]\)/);
+  assert.match(parser, /EXPANDED_SATURATION_TYPES = new Set\(\["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE", "VOID CASCADE"\]\)/);
   assert.match(parser, /EXPANDED_SATURATION_EDGES = \[5, 10, 15, 20, 25, 30, 33, 36, 40\]/);
   assert.match(parser, /edges: EXPANDED_SATURATION_TYPES\.has\(normalized\) \? EXPANDED_SATURATION_EDGES : DEFAULT_SATURATION_EDGES/);
   assert.match(parser, /threshold: HIGH_DENSITY_SATURATION_TYPES\.has\(normalized\) \? 30 : 15/);
   assert.match(parser, /calculateRangeSaturation\(run, phase\.from, phase\.to, saturationScale\.threshold\)/);
   assert.match(js, /Parser\.helpers\.calculateMissionSaturation\(run\)/);
   assert.match(js, /Time at \$\{threshold\}\+ enemies/);
+});
+
+test("Void Cascade prefers logged reward cycles and falls back to active six-minute intervals", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
+  assert.match(parser, /SolNode232: \["Tuvul Commons", "Zariman", "Void Cascade", "Corpus \/ Grineer", "Zariman"\]/);
+  assert.match(parser, /Zariman Survival \\\(Void Cascade\\\): State Change: ENDLESS/);
+  assert.match(parser, /ZarimanSurvivalMission\\\.lua: Gave reward tier/);
+  assert.match(parser, /enemySpec=.*Zariman.*\(Corpus\|Grineer\)ZarimanSurvival/);
+  assert.match(js, /const rotationPhases = Parser\.helpers\.calculateRotationPhases\(run\)/);
+  assert.match(js, /run\.missionType === "VOID CASCADE" && !rotationPhases\.length/);
+  assert.match(js, /run\.missionType === "VOID CASCADE" && !hasRotationData/);
+  assert.match(js, /\["SURVIVAL", "DISRUPTION", "VOID CASCADE"\]\.includes\(run\.missionType\) \? 30 : 15/);
 });
 
 test("saturation summary displays telemetry coverage as a smaller muted right-side metric", () => {
@@ -1018,7 +1031,7 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(css, /\.correlation-test-defense > \.correlation-test-clear-map \.clear-heat-map\s*\{[^}]*repeat\(25,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(js, /const drones = run\.dronesPerRotation \|\| \[\]/);
   assert.match(js, /drones:\s*drones\[index\]/);
-  assert.match(js, /showRotationDrones = !phase\.defense && \["INTERCEPTION", "SURVIVAL", "MIRROR DEFENSE", "INFESTED SALVAGE"\]\.includes\(run\.missionType\)/);
+  assert.match(js, /showRotationDrones = !phase\.defense && \["INTERCEPTION", "SURVIVAL", "MIRROR DEFENSE", "INFESTED SALVAGE", "VOID CASCADE"\]\.includes\(run\.missionType\)/);
   assert.match(js, /showRotationDrones[\s\S]*Number\.isFinite\(item\.drones\)[\s\S]*fmt\(item\.drones\)/);
   assert.doesNotMatch(js, /droneTooltip/);
   assert.match(js, /const tooltipDuration = phase\.defense \? `\$\{defenseWaveSeconds\(item\.seconds\)\}s` : shortDuration\(item\.seconds\)/);

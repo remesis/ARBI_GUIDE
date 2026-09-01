@@ -231,6 +231,37 @@ test("classifies unranked Survival and Disruption nodes from stable SolNode meta
   assert.deepEqual(runs[1].saturation.rows.map((row) => row.label), ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-32", "33-35", "36-39", "40+"]);
 });
 
+test("parses Tuvul Commons Void Cascade reward cycles and its alternating faction", () => {
+  const lines = [
+    '1.0 ThemedSquadOverlay.lua: ShowMissionVote {"name":"SolNode232_EliteAlert"}',
+    "1.5 ThemedSquadOverlay.lua: Mission name: Tuvul Commons (Zariman) - Arbitration",
+    "    enemySpec=/Lotus/Types/Game/EnemySpecs/Zariman/CorpusZarimanSurvival",
+    "2.0 ZarimanSurvivalMission.lua: Zariman Survival (Void Cascade): State Change: ENDLESS",
+  ];
+  for (let index = 0; index < 60; index += 1) {
+    const npc = index < 10 ? "CorpusEliteShieldDroneAgent" : "ShipCrewmanAgent";
+    lines.push(`${3 + index}.0 AI [Info]: OnAgentCreated /Npc/${npc}${index + 1} AI [Info]: MonitoredTicking ${index % 41}`);
+  }
+  lines.push("80.0 ZarimanSurvivalMission.lua: Gave reward tier 1");
+  lines.push("160.0 ZarimanSurvivalMission.lua: Gave reward tier 2");
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.nodeKey, "SolNode232");
+  assert.equal(run.node, "Tuvul Commons");
+  assert.equal(run.planet, "Zariman");
+  assert.equal(run.missionType, "VOID CASCADE");
+  assert.equal(run.faction, "Corpus");
+  assert.equal(run.tileset, "Zariman");
+  assert.equal(run.startTime, 2);
+  assert.equal(run.rotations, 2);
+  assert.deepEqual(run.rewardTimestamps, [80, 160]);
+  assert.equal(run.rotationDurations.length, 2);
+  assert.equal(run.dronesPerRotation.length, 2);
+  assert.equal(run.saturationPerRotation.length, 2);
+  assert.equal(run.saturation.threshold, 30);
+  assert.equal(run.saturation.rows.at(-1).label, "40+");
+});
+
 test("uses Survival mission events for active timing, reward cycles, extraction, and saturation", async () => {
   const lines = [
     "1.0 Game [Info]: EliteAlertMission at ClanNode23",
@@ -961,7 +992,7 @@ test("keeps exact enemy counts through 50 and places higher counts in one overfl
   assert.equal(histogram.seconds[51], 3);
 });
 
-test("uses the expanded 0-40 saturation rows for Survival, Disruption, and Mirror Defense", () => {
+test("uses the expanded 0-40 saturation rows for high-density and Mirror Defense missions", () => {
   const run = {
     startTime: 0,
     endTime: 10,
@@ -969,7 +1000,7 @@ test("uses the expanded 0-40 saturation rows for Survival, Disruption, and Mirro
     pauseIntervals: [],
   };
   const expandedLabels = ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-32", "33-35", "36-39", "40+"];
-  for (const missionType of ["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE"]) {
+  for (const missionType of ["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE", "VOID CASCADE"]) {
     const saturation = Parser.helpers.calculateMissionSaturation({ ...run, missionType });
     assert.deepEqual(saturation.rows.map((row) => row.label), expandedLabels);
     assert.equal(saturation.threshold, missionType === "MIRROR DEFENSE" ? 15 : 30);

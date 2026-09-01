@@ -24,10 +24,10 @@
   const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260830-13";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260901-14";
   const LIVE_SEGMENT_CACHE = new WeakMap();
-  const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION"]);
-  const EXPANDED_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE"]);
+  const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "VOID CASCADE"]);
+  const EXPANDED_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE", "VOID CASCADE"]);
   const DEFAULT_SATURATION_EDGES = [3, 6, 9, 12, 15, 18, 21, 24, 27];
   const EXPANDED_SATURATION_EDGES = [5, 10, 15, 20, 25, 30, 33, 36, 40];
   const FORCED_VALID_AGENTS = new Set(["CorpusEliteShieldDroneAgent"]);
@@ -127,6 +127,7 @@
     SolNode711: ["Terrorem", "Deimos", "Survival", "Infested", "Orokin Derelict"],
     SolNode744: ["Taveuni", "Kuva Fortress", "Survival", "Grineer", "Grineer Asteroid Fortress"],
     SolNode745: ["Tamu", "Kuva Fortress", "Disruption", "Grineer", "Grineer Asteroid Fortress"],
+    SolNode232: ["Tuvul Commons", "Zariman", "Void Cascade", "Corpus / Grineer", "Zariman"],
   };
 
   // Mission classification is intentionally broader than the curated tier
@@ -167,7 +168,7 @@
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|PurifyMission\.lua: ModeState =|Survival: Starting survival|Survival: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|enemySpec=\/Lotus\/Types\/Game\/EnemySpecs\/Zariman\/|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|PurifyMission\.lua: ModeState =|Survival: Starting survival|Survival: Gave reward tier|Zariman Survival \(Void Cascade\): State Change: ENDLESS|ZarimanSurvivalMission\.lua: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|MonitoredTicking|Live /g;
 
   const UTC_MONTH_INDEX = Object.freeze({
     Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
@@ -198,12 +199,14 @@
       missionName: "Unknown Node",
       isArbitration: false,
       nodeKey: "",
+      factionHint: "",
       levelPath: "",
       levelComponents: [],
       isDefense: false,
       isInterception: false,
       isDisruption: false,
       isSurvival: false,
+      isVoidCascade: false,
       isInfestedSalvage: false,
       droneKills: 0,
       enemySpawns: 0,
@@ -263,6 +266,7 @@
     if (run.isInterception) return run.rounds < WAVES_PER_ROTATION;
     if (run.isDisruption) return run.rounds < WAVES_PER_ROTATION;
     if (run.isSurvival) return true;
+    if (run.isVoidCascade) return true;
     return run.preciseStart === null;
   }
 
@@ -428,6 +432,7 @@
       let hasMission = false;
       let hasMissionVote = false;
       let hasArbitrationSelection = false;
+      let hasZarimanEnemySpec = false;
       let hasSpawnPoint = false;
       let hasAgentInitialize = false;
       let hasEliteAlert = false;
@@ -443,6 +448,8 @@
       let hasPurifyState = false;
       let hasSurvivalStart = false;
       let hasSurvivalReward = false;
+      let hasVoidCascadeStart = false;
+      let hasVoidCascadeReward = false;
       let hasDisruptionRoundStart = false;
       let hasDisruptionRoundDone = false;
       let hasDisruptionReward = false;
@@ -464,6 +471,7 @@
         hasMission = line.includes("Mission name:");
         hasMissionVote = line.includes("ShowMissionVote");
         hasArbitrationSelection = P_ARBITRATION_SELECTION.test(line);
+        hasZarimanEnemySpec = line.includes("enemySpec=/Lotus/Types/Game/EnemySpecs/Zariman/");
         hasSpawnPoint = line.includes("spawn point:");
         hasAgentInitialize = line.includes("AI Agent Initialize");
         hasEliteAlert = line.includes("EliteAlertMission at");
@@ -479,6 +487,8 @@
         hasPurifyState = line.includes("PurifyMission.lua: ModeState =");
         hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival");
         hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier");
+        hasVoidCascadeStart = line.includes("ZarimanSurvivalMission.lua: Zariman Survival (Void Cascade): State Change: ENDLESS");
+        hasVoidCascadeReward = line.includes("ZarimanSurvivalMission.lua: Gave reward tier");
         hasDisruptionRoundDone = line.includes("SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
         hasDisruptionRoundStart = line.includes("SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND") && !hasDisruptionRoundDone;
         hasDisruptionReward = line.includes("SentientArtifactMission.lua: Disruption: Endless mission reward given");
@@ -503,6 +513,7 @@
             hasArbitrationSelection = P_ARBITRATION_SELECTION.test(line);
             break;
           case "_EliteAlert": hasArbitrationSelection = true; break;
+          case "enemySpec=/Lotus/Types/Game/EnemySpecs/Zariman/": hasZarimanEnemySpec = true; break;
           case "spawn point:": hasSpawnPoint = true; break;
           case "AI Agent Initialize": hasAgentInitialize = true; break;
           case "EliteAlertMission at": hasEliteAlert = true; break;
@@ -518,6 +529,10 @@
           case "PurifyMission.lua: ModeState =": hasPurifyState = true; break;
           case "Survival: Starting survival": hasSurvivalStart = line.includes("SurvivalMission.lua: Survival: Starting survival"); break;
           case "Survival: Gave reward tier": hasSurvivalReward = line.includes("SurvivalMission.lua: Survival: Gave reward tier"); break;
+          case "Zariman Survival (Void Cascade): State Change: ENDLESS":
+            hasVoidCascadeStart = line.includes("ZarimanSurvivalMission.lua: Zariman Survival (Void Cascade): State Change: ENDLESS");
+            break;
+          case "ZarimanSurvivalMission.lua: Gave reward tier": hasVoidCascadeReward = true; break;
           case "Disruption: State change: ARTIFACT_ROUND":
             hasDisruptionRoundDone = line.includes("SentientArtifactMission.lua: Disruption: State change: ARTIFACT_ROUND_DONE");
             hasDisruptionRoundStart = !hasDisruptionRoundDone;
@@ -543,7 +558,7 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasResourceBlessing || hasMission || hasMissionVote || hasArbitrationSelection || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasPurifyState || hasSurvivalStart || hasSurvivalReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasResourceBlessing || hasMission || hasMissionVote || hasArbitrationSelection || hasZarimanEnemySpec || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasPurifyState || hasSurvivalStart || hasSurvivalReward || hasVoidCascadeStart || hasVoidCascadeReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasLiveCount)) return;
 
       const lineTimestamp = Number((line.match(P_TIMESTAMP) || [])[1]) || 0;
       if (hasResourceBlessing) {
@@ -670,6 +685,35 @@
       // each completed five-minute reward cycle.
       if (hasSurvivalReward) {
         cur.isSurvival = true;
+        if (ts && ts - cur.lastReward > 30) {
+          cur.rounds += 1;
+          cur.lastReward = ts;
+          cur.rewardTimestamps.push(ts);
+          cur.lastActivity = Math.max(cur.lastActivity, ts);
+        }
+        return;
+      }
+      if (hasZarimanEnemySpec) {
+        const faction = line.match(/enemySpec=\/Lotus\/Types\/Game\/EnemySpecs\/Zariman\/(Corpus|Grineer)ZarimanSurvival/i)?.[1];
+        if (this.cur.isArbitration && faction) {
+          this.cur.factionHint = faction[0].toLocaleUpperCase() + faction.slice(1).toLocaleLowerCase();
+        }
+        return;
+      }
+
+      if (hasVoidCascadeStart) {
+        cur.isVoidCascade = true;
+        if (ts) {
+          if (cur.preciseStart === null && !cur.rewardTimestamps.length) cur.preciseStart = ts;
+          cur.lastActivity = Math.max(cur.lastActivity, ts);
+        }
+        return;
+      }
+
+      // Void Cascade emits this mission-script marker once per completed
+      // reward cycle. Prefer it over guessed time slices whenever it exists.
+      if (hasVoidCascadeReward) {
+        cur.isVoidCascade = true;
         if (ts && ts - cur.lastReward > 30) {
           cur.rounds += 1;
           cur.lastReward = ts;
@@ -854,6 +898,7 @@
       if (lower.includes("defense")) next.isDefense = true;
       else if (lower.includes("interception")) next.isInterception = true;
       else if (lower.includes("disruption")) next.isDisruption = true;
+      else if (lower.includes("void cascade")) next.isVoidCascade = true;
       else if (lower.includes("survival")) next.isSurvival = true;
       if (lower.includes("munio") || lower.includes("tyana")) next.isDefense = true;
     }
@@ -1110,8 +1155,12 @@
         ? "DEFENSE"
         : (run.isInterception
           ? "INTERCEPTION"
-          : (run.isSurvival ? "SURVIVAL" : "UNKNOWN")));
-    run.faction = node ? node[3] : "Unknown";
+          : (run.isVoidCascade
+            ? "VOID CASCADE"
+            : (run.isSurvival ? "SURVIVAL" : "UNKNOWN"))));
+    run.faction = run.missionType === "VOID CASCADE"
+      ? inferVoidCascadeFaction(run, node ? node[3] : "Unknown")
+      : (node ? node[3] : "Unknown");
     run.tileset = node ? node[4] : tileFromPath(run.levelPath);
     const saturationScale = saturationScaleForMission(run.missionType);
     const wavePhases = calculateWavePhases(run);
@@ -1124,7 +1173,7 @@
     run.dronesDespawned = run.droneDespawnTimestamps.filter((timestamp) => timestamp >= run.startTime && timestamp <= run.endTime).length;
     run.dronesPerRotation = calculateDronesPerRotation(run);
     run.dpmPerRotation = calculateDpmPerRotation(run);
-    run.dpmWindows6m = run.missionType === "DISRUPTION" ? calculateFixedDpmWindows(run, 6 * 60) : [];
+    run.dpmWindows6m = ["DISRUPTION", "VOID CASCADE"].includes(run.missionType) ? calculateFixedDpmWindows(run, 6 * 60) : [];
     const intervalDroneTimestamps = droneTimestampsInRange(run);
     run.avgDroneInterval = intervalDroneTimestamps.length > 1
       ? (intervalDroneTimestamps[intervalDroneTimestamps.length - 1] - intervalDroneTimestamps[0]) / (intervalDroneTimestamps.length - 1)
@@ -1136,6 +1185,20 @@
     run.longestSpawnGaps = longestGaps(run.enemyTimestamps, run.pauseIntervals, 5, run.startTime, run.endTime);
     run.shortId = "pending";
     return run;
+  }
+
+  function inferVoidCascadeFaction(run, fallback = "Corpus / Grineer") {
+    if (run.factionHint === "Corpus" || run.factionHint === "Grineer") return run.factionHint;
+    let corpus = 0;
+    let grineer = 0;
+    Object.entries(run.enemyTypes || {}).forEach(([name, count]) => {
+      const amount = Number(count) || 0;
+      if (name === "CorpusEliteShieldDroneAgent") return;
+      if (/^(?:Ship|Crp)|Corpus|Crewman|Moa|Osprey/i.test(name)) corpus += amount;
+      if (/^(?:Fortress|Grn)|Grineer|Lancer|Bombard|Sawman|Manic/i.test(name)) grineer += amount;
+    });
+    if (corpus || grineer) return corpus > grineer ? "Corpus" : "Grineer";
+    return fallback;
   }
 
   function attachResourceBlessing(run, timestamps) {
