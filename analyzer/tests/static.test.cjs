@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260901-133\.js/);
+  assert.match(html, /analyzer-20260901-134\.js/);
   assert.match(html, /analyzer\.css\?v=20260830-98/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -356,10 +356,12 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-133.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-134.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
+  assert.match(js, /Both Boosters and Resourceful Retriever\./);
+  assert.doesNotMatch(js, /the logged Drop Blessing had expired/);
   assert.match(js, /computeVitus\(run\.droneKills, run\.rotations, run\.missionType, effectiveBlessedDroneKills\(run\)\)/);
   assert.match(parser, /ResourceDropChanceBlessingStoreItem/);
   assert.match(parser, /const BOOSTED_DROP_CHANCE = 0\.12/);
@@ -453,6 +455,7 @@ test("fresh client Blessing override lasts three hours from mission start", () =
       longExpiry: effectiveBlessingExpiry(longRun),
       expiredBeforeRunExpiry: effectiveBlessingExpiry(expiredBeforeRun),
       expiredBeforeRunEligible: canUseClientFreshBlessing(expiredBeforeRun),
+      expiredBeforeRunCopy: vitusAssumptionCopy(expiredBeforeRun),
       shortCopy: vitusAssumptionCopy({ ...shortRun, blessedDroneKills: 0 }),
       threeHourLabel: blessingDuration(RESOURCE_BLESSING_SECONDS),
     };
@@ -466,6 +469,7 @@ test("fresh client Blessing override lasts three hours from mission start", () =
   assert.equal(context.result.expiredBeforeRunExpiry.timestamp, 11000);
   assert.equal(context.result.expiredBeforeRunExpiry.expiredBeforeRun, true);
   assert.equal(context.result.expiredBeforeRunEligible, true);
+  assert.equal(context.result.expiredBeforeRunCopy, "Both Boosters and Resourceful Retriever.");
   assert.equal(context.result.shortCopy, "Blessing, Both Boosters and Resourceful Retriever.");
   assert.equal(context.result.threeHourLabel, "3h 0m 0s");
 });
