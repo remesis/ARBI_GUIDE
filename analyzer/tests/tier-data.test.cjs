@@ -14,7 +14,12 @@ test("matches tier-list nodes while ignoring presentation asterisks", () => {
 test("matches Special nodes and exposes the section subtitle", () => {
   assert.deepEqual(TierData.findTier("Mot"), {
     name: "Special",
-    subname: "Survival / Disruption",
+    subname: "Survival / Disruption / Void Cascade",
+    color: [147, 112, 219],
+  });
+  assert.deepEqual(TierData.findTier("Tuvul Commons"), {
+    name: "Special",
+    subname: "Survival / Disruption / Void Cascade",
     color: [147, 112, 219],
   });
 });

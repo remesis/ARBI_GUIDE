@@ -64,12 +64,12 @@ boundaries, and ends the run at `EOM: All players extracting`. The frequently
 created `SurvivalReward.swf` UI asset is deliberately ignored because it is not
 a reward-cycle marker. Live enemy counters are retained for every Arbitration
 mode so Survival saturation is measurable even without wave events.
-For Survival and Disruption, the ninth KPI reports explicit
+For Survival, Disruption, and Void Cascade, the ninth KPI reports explicit
 `Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar` markers inside the
 active mission window as **Drones despawned**. Defense and Interception retain
 the **Drones / rotation** KPI. Its subtitle is **Despawn after 20s**, matching
 the reason recorded by the mission-script marker.
-Survival and Disruption split the sub-30 range across four saturation buckets
+Survival, Disruption, and Void Cascade split the sub-30 range across four saturation buckets
 (`0-7`, `8-14`, `15-22`, `23-29`), placing the first high-density bucket
 (`30-32`) on the fifth row. They measure high saturation at 30+ enemies. Other
 mission types retain the original three-enemy buckets and the 15+ threshold.
@@ -225,7 +225,7 @@ current averages with pre-field history. The populated-run count remains
 queryable from the raw table but is not shown as an extra dashboard column.
 
 `high_enemy_seconds / enemy_telemetry_seconds * 100` is exactly the value shown
-by the Analyzer's **Time at 15+ enemies** card. Survival and Disruption use the
+by the Analyzer's **Time at 15+ enemies** card. Survival, Disruption, and Void Cascade use the
 same local calculation at 30+ instead. The Worker derives that threshold from
 the server-owned mission mode, and the aggregate view displays the weighted
 result as values such as `0.3% at 15+`; neither a live-count timeline nor raw

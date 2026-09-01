@@ -11,10 +11,10 @@
   const SPECIAL_SECTIONS = [
     {
       "name": "Special",
-      "subname": "Survival / Disruption",
+      "subname": "Survival / Disruption / Void Cascade",
       "items": [
         "Terrorem", "Ani", "Mot", "Kappa",
-        "Ur", "Laomedeia", "Apollo", "Ganymede",
+        "Ur", "Laomedeia", "Apollo", "Ganymede", "Tuvul Commons",
       ],
       "color": [147, 112, 219],
     },
