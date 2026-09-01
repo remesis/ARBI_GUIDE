@@ -24,7 +24,7 @@
   const ARBITRATION_SELECTION_WINDOW_SECONDS = 10 * 60;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260901-14";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260901-15";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "VOID CASCADE"]);
   const EXPANDED_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE", "VOID CASCADE"]);
@@ -151,6 +151,7 @@
   const P_RESOURCE_BLESSING = /^!?(\d+\.\d+).*LotusProfileData::AddPendingHubBlessing \/Lotus\/Types\/StoreItems\/Boosters\/ResourceDropChanceBlessingStoreItem\b/;
   const P_AGENT_FULL = /OnAgentCreated.*?\/Npc\/(.+?)(\d+)\s+.*?MonitoredTicking\s+(\d+)/;
   const P_NPC = /\/Npc\/([A-Za-z0-9_]+)/;
+  const P_PLAYER_COMPANION = /(?:PetAgent$|^SentinelAgent$|^Predasite.*Agent$|^Vulpaphyla.*Agent$|^HelminthCharger.*Agent$|^Companion.*Agent$)/i;
   const P_WAVE_LINE = /^!?(\d+\.\d+).*WaveDefend\.lua: Starting wave (\d+)/;
   const P_WAVE_DEF = /^!?(\d+\.\d+).*WaveDefend\.lua: Defense wave: (\d+)/;
   const P_WAVE_CAP = /WaveDefend\.lua: Starting wave \d+.*?\((\d+) simultaneous/;
@@ -192,6 +193,11 @@
 
   function cleanName(raw) {
     return String(raw || "").replace(/[\x00-\x1F\x7F-\x9F\uE000-\uF8FF\uFFFD■□]/g, "").trim().slice(0, 50);
+  }
+
+  function isPlayerCompanionAgent(line) {
+    const npcName = (String(line || "").match(P_NPC)?.[1] || "").replace(/\d+$/, "");
+    return P_PLAYER_COMPANION.test(npcName);
   }
 
   function createRun() {
@@ -652,7 +658,7 @@
           if (mon) cur.liveCounts.push([ts, Number(mon[1]), cur.simCap]);
         }
         const isDrone = line.includes("CorpusEliteShieldDroneAgent");
-        if (!isDrone && EXCLUDED_AGENT.test(line)) return;
+        if (!isDrone && (EXCLUDED_AGENT.test(line) || isPlayerCompanionAgent(line))) return;
         if (isDrone) {
           cur.droneKills += 1;
           if (ts) {

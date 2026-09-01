@@ -826,6 +826,38 @@ test("streaming parser ignores non-Arbitration mission noise", async () => {
   assert.equal(progress.at(-1), 1);
 });
 
+test("excludes player companions without removing similarly named enemies", () => {
+  const lines = [];
+  addRun(lines, {
+    offset: 1,
+    node: "SolNode17",
+    name: "Arbitration: Proteus (Neptune) - Defense",
+    level: "/Lotus/Levels/CorpusShip/CorpusShipDefense.level",
+  });
+  const companions = [
+    "CatbrowPetAgent",
+    "KubrowPetAgent",
+    "MoaPetAgent",
+    "SentinelAgent",
+    "VulpaphylaPetAgent",
+    "PredasitePodMinionAgent",
+    "HelminthChargerAgent",
+    "CompanionDroneAgent",
+  ];
+  companions.forEach((npc, index) => {
+    lines.push(`${50 + index}.0 AI [Info]: OnAgentCreated /Npc/${npc}${100 + index} AI [Info]: MonitoredTicking ${49 + index}`);
+  });
+  const realEnemies = ["ShipMoaDeraAgent", "CombatKubrowAgent", "CombatCatbrowAgent", "InfestedCritterSentinelAgent"];
+  realEnemies.forEach((npc, index) => {
+    lines.push(`${70 + index}.0 AI [Info]: OnAgentCreated /Npc/${npc}${200 + index} AI [Info]: MonitoredTicking ${49 + index}`);
+  });
+
+  const [run] = Parser.parseText(lines.join("\n"));
+  assert.equal(run.rawEnemySpawns, 52);
+  companions.forEach((npc) => assert.equal(run.enemyTypes[npc], undefined));
+  realEnemies.forEach((npc) => assert.equal(run.enemyTypes[npc], 1));
+});
+
 test("calculates time at 15+ active enemies inside an individual phase", () => {
   const run = {
     startTime: 0,
