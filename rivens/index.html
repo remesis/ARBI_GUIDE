@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="apple-touch-icon" href="/logo.png">
   <link rel="stylesheet" href="./guide-shell.css">
-  <link rel="stylesheet" href="./rivens.css?v=20260903-combined-ingredients">
+  <link rel="stylesheet" href="./rivens.css?v=20260903-sidebar-date">
 </head>
 <body class="rivens-page">
   <a class="skip-link" href="#content">Skip to Riven calculator</a>
@@ -132,7 +132,7 @@
 
   <div class="layout">
     <aside id="sidebar" class="sidebar" aria-label="Weapon Riven stat ranges">
-      <div class="sidebar-updated"><span id="dataDate">Updated 3 Sep 2026</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
+      <div class="sidebar-updated"><span id="dataDate">Last updated: 2026-09-03</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
       <div id="sidebarLinks" class="sidebar-links riven-sidebar-content">
       <div class="range-heading"><span class="section-kicker">STAT RANGES</span><div class="range-title-row"><h2 id="rangeWeapon">Soma</h2><div class="disposition"><span>Disposition</span><strong id="dispositionValue">1.15</strong><div id="dispositionDots" class="disposition-dots" aria-hidden="true"><i></i><i></i><i></i><i class="dim"></i><i class="dim"></i></div></div></div><p id="rangeSubtitle">3p1n</p></div>
       <label class="range-search"><svg width="15" height="15"><use href="#r-search"/></svg><input id="rangeSearch" type="search" placeholder="Filter stats" aria-label="Filter stat ranges" autocomplete="off"></label>
@@ -202,6 +202,6 @@
   <div id="rivenStatus" class="sr-only" role="status" aria-live="polite"></div>
   <noscript><p class="noscript-notice">Enable JavaScript to select a weapon and calculate Riven odds.</p></noscript>
   <script type="module" src="./shell.mjs"></script>
-  <script type="module" src="./app.mjs?v=20260903-combined-ingredients"></script>
+  <script type="module" src="./app.mjs?v=20260903-sidebar-date"></script>
 </body>
 </html>

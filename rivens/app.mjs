@@ -181,7 +181,7 @@ function render({selectBest = false} = {}) {
   $('#poolNotice').textContent = 'Some trait eligibility for this weapon is still being researched. Amber entries are not confirmed exclusions. Odds are conservative ranges across possible pools, not a claim that all those pools are equally likely.';
   $('#rangeWeapon').textContent = variant.name;
   $('#rangeSubtitle').textContent = format();
-  $('#dataDate').textContent = `Updated ${new Date(catalog.snapshot.date + 'T12:00:00Z').toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'})}`;
+  $('#dataDate').textContent = `Last updated: ${catalog.snapshot.date}`;
   $('#cardWeapon').textContent = variant.name; $('#cardWeapon').title = variant.name;
   $('#acceptableCount').textContent = state.hasNegative ? `${state.negatives.length} acceptable negative${state.negatives.length === 1 ? '' : 's'}` : 'No negative';
   document.querySelectorAll('[data-lock]').forEach(button => {
