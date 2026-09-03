@@ -30,7 +30,10 @@ export function enumeratePools(family) {
 export function evaluate(pool, target, assumptions) {
   const {positives, negatives, hasNegative, heldNegative} = target;
   const combined = positives.filter(isCombinedTrait);
-  const ordinary = positives.filter(id => !isCombinedTrait(id));
+  const retainedPositiveSet = new Set([...(target.retainedPositives || []), ...combined]);
+  const retainedNegativeSet = new Set(target.retainedNegatives || []);
+  const retainedPositives = positives.filter(id => retainedPositiveSet.has(id));
+  const ordinary = positives.filter(id => !retainedPositiveSet.has(id));
   const heldPositive = target.heldPositive ?? combined[0] ?? positives[0];
   const k = positives.length;
   const p = pool.positive.size, n = pool.negative.size;
@@ -40,11 +43,12 @@ export function evaluate(pool, target, assumptions) {
   const a = new Set(negatives.filter(id => compatible.includes(id))).size;
   const delta = pool.positive.has(heldNegative) ? 1 : 0;
   const validTarget = [2, 3].includes(k) && new Set(positives).size === k && ordinary.every(id => pool.positive.has(id));
-  const validPositive = validTarget && !combined.length;
-  const validPositiveLock = validTarget && positives.includes(heldPositive) && (combined.length === 1
-    ? heldPositive === combined[0] : !combined.length && pool.positive.has(heldPositive));
-  const positiveCandidates = p - (pool.positive.has(heldPositive) ? 1 : 0);
-  const validNegative = hasNegative && compatible.includes(heldNegative) && negatives.includes(heldNegative);
+  const validPositive = validTarget && !retainedPositives.length;
+  const validPositiveLock = validTarget && positives.includes(heldPositive) && (retainedPositives.length === 1
+    ? heldPositive === retainedPositives[0] : !retainedPositives.length && pool.positive.has(heldPositive));
+  const positiveCandidates = p - (retainedPositiveSet.has(heldPositive) ? 0 : pool.positive.has(heldPositive) ? 1 : 0);
+  const validNegative = hasNegative && negatives.includes(heldNegative) && !positives.includes(heldNegative)
+    && (compatible.includes(heldNegative) || retainedNegativeSet.has(heldNegative));
   const negativeFactor = hasNegative ? (d > 0 ? a / d : 0) : 1;
   const q0 = validPositive ? assumptions.unlockedLayoutWeight / choose(p, k) * negativeFactor : 0;
   const qPositive = validPositiveLock ? assumptions.positiveLockLayoutWeight / choose(positiveCandidates, k - 1) * negativeFactor : 0;
@@ -52,7 +56,8 @@ export function evaluate(pool, target, assumptions) {
   const threshold = validPositive && validNegative
     ? assumptions.negativeLockLayoutWeight / assumptions.positiveLockLayoutWeight * d * choose(p - 1, k - 1) / choose(p - delta, k)
     : null;
-  return {p, n, k, r, d, a, delta, compatible, heldPositive, positiveCandidates, combinedCount: combined.length, q0, qPositive, qNegative, threshold,
+  return {p, n, k, r, d, a, delta, compatible, heldPositive, positiveCandidates, combinedCount: combined.length,
+    retainedPositiveCount: retainedPositives.length, retainedNegative: retainedNegativeSet.has(heldNegative), q0, qPositive, qNegative, threshold,
     winsFrom: threshold === null ? null : Math.floor(threshold + 1e-10) + 1};
 }
 
@@ -71,9 +76,11 @@ export function analyze(pools, target, assumptions) {
   const scenarios = pools.map(pool => evaluate(pool, target, assumptions));
   const results = {};
   for (const [strategy, field] of [['none', 'q0'], ['positive', 'qPositive'], ['negative', 'qNegative']]) {
+    const probability = bounds(scenarios.map(row => row[field]));
     results[strategy] = {
-      probability: bounds(scenarios.map(row => row[field])),
-      kuvaReduction: strategy === 'none' ? (target.positives.some(isCombinedTrait) ? null : {min: 0, max: 0}) : bounds(scenarios.map(row => reduction(row.q0, row[field], assumptions.lockedKuvaMultiplier))),
+      probability,
+      kuvaReduction: strategy === 'none' ? probability.max > 0 ? {min: 0, max: 0} : null
+        : bounds(scenarios.map(row => reduction(row.q0, row[field], assumptions.lockedKuvaMultiplier))),
     };
   }
   const winningLocks = new Set(scenarios.filter(row => row.qPositive > 0 || row.qNegative > 0).map(row =>

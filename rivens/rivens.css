@@ -54,6 +54,8 @@
 .combo-option:hover, .combo-option.is-highlighted { background: #23394b; color: #b7e8ff; outline: 0; }
 .combo-option[aria-selected="true"] { color: #9cdbff; background: rgba(114,199,255,.09); }
 .combo-option[aria-disabled="true"] { color: var(--bad); opacity: .8; cursor: not-allowed; }
+.combo-option.vintage:not([aria-disabled="true"]) { color: var(--bad); }
+.combo-option.vintage:not([aria-disabled="true"]) .option-description { color: #c9848d; }
 .combo-option .option-description { display: block; font-size: calc(9px * var(--riven-text-scale)); color: var(--muted); margin-top: 3px; }
 .combo-option .option-check { border: 1px solid #526273; border-radius: 3px; width: 14px; height: 14px; flex: 0 0 auto; display: grid; place-items: center; }
 .combo-option[aria-selected="true"] .option-check { border-color: var(--accent); background: #74c8ff; color: #0b1620; }
@@ -105,6 +107,7 @@
 .lock-button[aria-pressed="true"] { color: #a0e3ff; background: #1c3545; border-color: #50879e; }
 .lock-button:disabled { opacity: .3; cursor: not-allowed; }
 .stat-row.is-locked .stat-combo .combo-trigger { border-color: #589bb7; color: #bdeaff; background: #193040; }
+.stat-row.is-vintage .stat-combo .combo-trigger { border-color: #9b626b; color: var(--bad); }
 .card-footer { color: var(--riven); text-align: center; line-height: 1.3; }
 .negative-lock-choice { max-width: 300px; margin: 12px auto 0; }
 .negative-lock-choice label { color: var(--muted); font-size: calc(10px * var(--riven-text-scale)); display: block; margin-bottom: 5px; }

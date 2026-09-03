@@ -78,6 +78,7 @@ export class SearchCombo {
       item.setAttribute('aria-selected', String(Array.isArray(selected) ? selected.includes(option.value) : selected === option.value));
       if (option.disabled) item.setAttribute('aria-disabled', 'true');
       if (option.uncertain) item.classList.add('unverified');
+      if (option.vintage) item.classList.add('vintage');
       const label = document.createElement('span');
       label.className = 'combo-option-label';
       label.textContent = option.label;

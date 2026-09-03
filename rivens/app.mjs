@@ -14,9 +14,14 @@ const combos = {}, poolCache = new Map();
 const format = () => `${state.positives[2] ? 3 : 2}p${state.hasNegative ? 1 : 0}n`;
 const nameOf = id => definitions.find(t => t.id === id)?.name || COMBINED_TRAITS.find(t => t.id === id)?.name || '';
 const combinedTargets = () => state.positives.filter(isCombinedTrait);
-const positiveForComparison = () => state.lock !== null && state.lock !== 'negative' ? state.positives[Number(state.lock)] : combinedTargets()[0] || state.positives[0];
-const target = () => ({positives: state.positives.filter(Boolean), negatives: state.negatives, hasNegative: state.hasNegative, heldNegative: state.heldNegative, heldPositive: positiveForComparison()});
+const isVintage = (id, polarity) => Boolean(family.traits[id]?.vintage && family.traits[id][polarity] === 'excluded');
+const retainedPositiveTargets = () => state.positives.filter(id => isCombinedTrait(id) || isVintage(id, 'positive'));
+const retainedNegativeTargets = () => state.negatives.filter(id => isVintage(id, 'negative'));
+const positiveForComparison = () => state.lock !== null && state.lock !== 'negative' ? state.positives[Number(state.lock)] : retainedPositiveTargets()[0] || state.positives[0];
+const target = () => ({positives: state.positives.filter(Boolean), negatives: state.negatives, hasNegative: state.hasNegative, heldNegative: state.heldNegative,
+  heldPositive: positiveForComparison(), retainedPositives: retainedPositiveTargets(), retainedNegatives: retainedNegativeTargets()});
 const allowed = (id, polarity) => isCombinedTrait(id) ? polarity === 'positive' : family.traits[id] && family.traits[id][polarity] !== 'excluded';
+const selectable = (id, polarity) => allowed(id, polarity) || isVintage(id, polarity);
 const compatibleNegatives = () => definitions.filter(t => allowed(t.id, 'negative') && !state.positives.includes(t.id));
 
 function normalize(autoNegative = false) {
@@ -24,10 +29,10 @@ function normalize(autoNegative = false) {
   const candidates = [...new Set([...preferred, ...definitions.map(t => t.id)])].filter(id => allowed(id, 'positive'));
   for (let i = 0; i < 3; i++) {
     if (i === 2 && state.positives[i] === null) continue;
-    if (!allowed(state.positives[i], 'positive') || state.positives.indexOf(state.positives[i]) < i)
+    if (!selectable(state.positives[i], 'positive') || state.positives.indexOf(state.positives[i]) < i)
       state.positives[i] = candidates.find(id => !state.positives.includes(id)) || null;
   }
-  state.negatives = [...new Set(state.negatives)].filter(id => allowed(id, 'negative') && !state.positives.includes(id));
+  state.negatives = [...new Set(state.negatives)].filter(id => selectable(id, 'negative') && !state.positives.includes(id));
   if (autoNegative && state.hasNegative && !state.negatives.length) {
     const order = ['zoom', 'weapon-recoil', 'damage-to-corpus', 'damage-to-corpus', ...compatibleNegatives().map(t => t.id)];
     const next = order.find(id => allowed(id, 'negative') && !state.positives.includes(id));
@@ -65,14 +70,17 @@ function statOptions(polarity, row = null) {
   const result = definitions.filter(t => t[polarity]).map(trait => {
     const status = family.traits[trait.id];
     const conflict = polarity === 'positive' ? state.positives.some((id, i) => id === trait.id && i !== row) : state.positives.includes(trait.id);
-    const excluded = status[polarity] === 'excluded';
-    return {value: trait.id, label: trait.name, search: aliases[trait.id], disabled: excluded || conflict, uncertain: status[polarity] === 'unresolved',
-      description: conflict ? 'Already selected as a positive' : excluded ? status.vintage ? 'Vintage stat: not currently rollable' : 'Not rollable on this weapon' : status[polarity] === 'unresolved' ? 'Eligibility under research' : ''};
+    const excluded = status[polarity] === 'excluded', vintage = excluded && status.vintage;
+    return {value: trait.id, label: trait.name, search: aliases[trait.id], disabled: !vintage && excluded || polarity === 'negative' && conflict,
+      uncertain: status[polarity] === 'unresolved', vintage,
+      description: vintage ? 'Vintage stat: select only when this line already exists and will be locked'
+        : conflict ? 'Selected in another positive slot: choosing it swaps the two stats'
+        : excluded ? 'Not rollable on this weapon' : status[polarity] === 'unresolved' ? 'Eligibility under research' : ''};
   });
   if (polarity === 'positive') result.push(...COMBINED_TRAITS.map(trait => {
     const conflict = state.positives.some((id, i) => id === trait.id && i !== row);
-    return {value: trait.id, label: trait.name, search: trait.recipe, disabled: conflict,
-      description: conflict ? 'Already selected as a positive' : `Combined stat${trait.recipe ? ` · ${trait.recipe}` : ' · Created by combining traits'}`};
+    return {value: trait.id, label: trait.name, search: trait.recipe,
+      description: conflict ? 'Selected in another positive slot: choosing it swaps the two stats' : `Combined stat${trait.recipe ? ` · ${trait.recipe}` : ' · Created by combining traits'}`};
   }));
   result.sort((a, b) => Number(a.disabled) - Number(b.disabled) || a.label.localeCompare(b.label));
   if (polarity === 'positive' && row === 2) result.unshift({value: '_none', label: 'No third positive', description: 'Target a 2-positive Riven'});
@@ -85,6 +93,8 @@ function statOptions(polarity, row = null) {
 function selectPositive(row, id) {
   const value = id === '_none' ? null : id;
   if (state.positives[row] === value) return;
+  const previous = state.positives[row], existing = value === null ? -1 : state.positives.findIndex((selected, index) => index !== row && selected === value);
+  if (existing >= 0) state.positives[existing] = previous;
   state.positives[row] = value;
   normalize(); render({selectBest: true});
 }
@@ -93,18 +103,23 @@ function selectNegative(id) {
   const before = JSON.stringify(target());
   if (id === '_none') { state.hasNegative = false; state.negatives = []; }
   else if (id === '_all') { state.hasNegative = true; state.negatives = compatibleNegatives().map(t => t.id); }
-  else { state.hasNegative = true; state.negatives = state.negatives.includes(id) ? state.negatives.filter(value => value !== id) : [...state.negatives, id]; }
+  else {
+    state.hasNegative = true;
+    const adding = !state.negatives.includes(id);
+    state.negatives = adding ? [...state.negatives, id] : state.negatives.filter(value => value !== id);
+    if (adding && isVintage(id, 'negative')) state.heldNegative = id;
+  }
   normalize(); render({selectBest: before !== JSON.stringify(target())});
 }
 
 function selectBestLock() {
-  const combined = combinedTargets();
-  if (combined.length) {
-    state.lock = combined.length === 1 && (!state.hasNegative || state.negatives.length)
-      ? String(state.positives.indexOf(combined[0])) : null;
+  const retained = retainedPositiveTargets();
+  if (retained.length) {
+    state.lock = retained.length === 1 && (!state.hasNegative || state.negatives.length)
+      ? String(state.positives.indexOf(retained[0])) : null;
     return;
   }
-  if (!(research.results.positive.probability.max > 0)) { state.lock = null; return; }
+  if (!(research.results.positive.probability.max > 0 || research.results.negative.probability.max > 0)) { state.lock = null; return; }
   if (research.winningLock === 'negative') state.lock = 'negative';
   else if (research.winningLock === 'positive' || research.winningLock === 'tie' && state.lock === null) {
     if (state.lock === null || state.lock === 'negative') state.lock = '0';
@@ -130,9 +145,9 @@ function connectControls() {
     const row = event.target.closest('[data-strategy-row]');
     const button = row?.querySelector('[data-strategy]'), strategy = button?.dataset.strategy;
     if (!strategy || button.disabled) return;
-    const combined = combinedTargets();
+    const retained = retainedPositiveTargets();
     state.lock = strategy === 'none' ? null : strategy === 'positive'
-      ? combined.length === 1 ? String(state.positives.indexOf(combined[0])) : state.lock !== null && state.lock !== 'negative' ? state.lock : '0'
+      ? retained.length === 1 ? String(state.positives.indexOf(retained[0])) : state.lock !== null && state.lock !== 'negative' ? state.lock : '0'
       : 'negative';
     render();
     $('#strategyRows').querySelector(`[data-strategy="${strategy}"]`).focus({preventScroll: true});
@@ -193,6 +208,8 @@ function render({selectBest = false} = {}) {
     button.title = valid ? `${locked ? 'Unlock' : 'Lock'} ${statName}` : 'Choose a stat first';
     button.querySelector('use').setAttribute('href', locked ? '#r-lock' : '#r-unlock');
     button.closest('.stat-row').classList.toggle('is-locked', locked);
+    button.closest('.stat-row').classList.toggle('is-vintage', row === 'negative'
+      ? retainedNegativeTargets().includes(state.heldNegative) : isVintage(state.positives[Number(row)], 'positive'));
   });
   $('#negativeLockChoice').hidden = !state.hasNegative || state.negatives.length < 2;
   $('#negativeLockChoice label').textContent = state.lock === 'negative' ? 'Negative to keep locked' : 'Negative used for lock comparison';
@@ -206,25 +223,34 @@ function render({selectBest = false} = {}) {
 function renderResults() {
   const active = state.lock === null ? 'none' : state.lock === 'negative' ? 'negative' : 'positive';
   const labels = {none: 'No lock', positive: 'Lock positive', negative: 'Lock negative'};
-  const combined = combinedTargets(), combiningOnly = combined.length > 1;
+  const retained = retainedPositiveTargets(), retainedNegative = retainedNegativeTargets();
+  const combiningOnly = retained.length > 1, retainedPositive = retained.length === 1 ? retained[0] : null;
   const incomplete = state.hasNegative && !state.negatives.length, rec = $('#strategyRecommendation');
-  rec.classList.toggle('is-uncertain', incomplete || combiningOnly || !combined.length && research.winningLock === 'uncertain');
-  const bestText = incomplete ? 'Choose an acceptable negative' : combiningOnly ? 'Combining route required' : combined.length ? `Lock ${nameOf(combined[0])}` : !state.hasNegative ? 'Lock a positive' : research.winningLock === 'tie' ? 'Both locks have equal odds' : research.winningLock === 'uncertain' ? 'The best lock depends on eligibility' : `Lock a ${research.winningLock}`;
-  const description = incomplete ? 'Select at least one alternative, or choose No negative.' : combiningOnly ? 'One lock cannot retain multiple combined lines through cycling. This calculator does not estimate further combining steps.' : combined.length ? 'Combined stats cannot appear through ordinary rerolling. Their ingredients stay in the ordinary pool. These odds start with that combined line already created and locked; its creation cost is excluded.' : !state.hasNegative ? 'A locked negative cannot produce a 0N target.' : research.winningLock === 'negative' ? `Keep ${nameOf(state.heldNegative)} while rolling the ${target().positives.length} positives.` : research.winningLock === 'positive' ? 'Keep any selected positive and accept the chosen negative alternatives.' : 'Compare the probability ranges below. Both locked strategies use the same Kuva cost.';
+  rec.classList.toggle('is-uncertain', incomplete || combiningOnly || !retained.length && research.winningLock === 'uncertain');
+  const bestText = incomplete ? 'Choose an acceptable negative' : combiningOnly ? 'More than one retained line' : retainedPositive ? `Lock ${nameOf(retainedPositive)}` : !state.hasNegative ? 'Lock a positive' : research.winningLock === 'tie' ? 'Both locks have equal odds' : research.winningLock === 'uncertain' ? 'The best lock depends on eligibility' : `Lock a ${research.winningLock}`;
+  const description = incomplete ? 'Select at least one alternative, or choose No negative.'
+    : combiningOnly ? 'One lock cannot retain multiple combined or vintage lines through cycling.'
+    : retainedPositive ? isCombinedTrait(retainedPositive)
+      ? 'Combined stats cannot appear through ordinary rerolling. Their ingredients stay in the ordinary pool. These odds start with that combined line already created and locked; its creation cost is excluded.'
+      : 'This vintage line is not currently rollable. These odds start with it already present and locked; obtaining it is excluded.'
+    : !state.hasNegative ? 'A locked negative cannot produce a 0N target.'
+    : research.winningLock === 'negative' ? `Keep ${nameOf(state.heldNegative)}${retainedNegative.includes(state.heldNegative) ? ', a vintage line,' : ''} while rolling the ${target().positives.length} positives.`
+    : research.winningLock === 'positive' ? 'Keep any selected positive and accept the chosen negative alternatives.' : 'Compare the probability ranges below. Both locked strategies use the same Kuva cost.';
   rec.innerHTML = `<span class="recommendation-label">${incomplete ? 'COMPLETE YOUR TARGET' : combiningOnly ? 'OUTSIDE THE CYCLING MODEL' : 'BEST LOCK FOR THIS TARGET'}</span><strong>${esc(bestText)}</strong><p>${esc(description)}</p>`;
   $('#strategyRows').innerHTML = ['none', 'positive', 'negative'].map(strategy => {
     const result = research.results[strategy], unavailable = strategy === 'negative' && (!state.hasNegative || !state.negatives.length);
     const reductionClass = !result.kuvaReduction ? 'muted' : result.kuvaReduction.min >= 0 ? 'positive-text' : 'negative-text';
     const rowClasses = research.winningLock === strategy && !unavailable ? 'best-row' : '';
-    const caption = combined.length ? strategy === 'positive' ? combiningOnly ? 'Only one line can be locked' : `Keep ${nameOf(positiveForComparison())}` : 'Cannot reroll combined stats' : strategy === 'none' ? 'Previous odds' : strategy === 'negative' ? nameOf(state.heldNegative) || 'Choose a negative' : 'Any selected positive';
-    const noCyclingChance = combined.length && result.probability.max <= 0;
+    const caption = retained.length ? strategy === 'positive' ? combiningOnly ? 'Only one line can be locked' : `Keep ${nameOf(positiveForComparison())}` : 'Cannot reroll a retained line'
+      : strategy === 'none' ? 'Previous odds' : strategy === 'negative' ? nameOf(state.heldNegative) || 'Choose a negative' : 'Any selected positive';
+    const noCyclingChance = (retained.length || retainedNegative.length) && result.probability.max <= 0;
     const chance = noCyclingChance ? 'Not possible by cycling' : oddsText(result.probability);
     return `<tr class="${rowClasses}" data-strategy-row="${strategy}"${unavailable ? ' aria-disabled="true"' : ''}><th scope="row"><div class="strategy-label"><span class="strategy-check" data-checked="${active === strategy}" aria-hidden="true"></span><div class="strategy-copy"><button class="strategy-pick${strategy === 'negative' ? ' negative-text' : ''}" type="button" data-strategy="${strategy}" aria-pressed="${active === strategy}"${unavailable ? ' disabled' : ''}>${labels[strategy]}</button><small>${esc(caption)}</small></div></div></th><td${!same(result.probability) || noCyclingChance ? ' class="has-probability-range"' : ''}>${unavailable ? '<span class="muted">Not applicable</span>' : esc(chance)}</td><td class="${strategy === 'none' || unavailable ? 'muted' : reductionClass}">${unavailable ? 'Not applicable' : percentText(result.kuvaReduction)}</td></tr>`;
   }).join('');
   const probability = research.results[active].probability;
-  const noCyclingChance = combined.length && probability.max <= 0;
-  const selectedName = combined.length && active === 'positive' ? `LOCK ${nameOf(positiveForComparison()).toUpperCase()}` : labels[active].toUpperCase();
-  const note = noCyclingChance ? 'This lock cannot retain every selected combined stat. Further combining steps are outside this estimate.' : `${pools.length > 1 ? 'Conditional on eligibility. ' : ''}A 1 / X chance means X rolls on average, not a guarantee.`;
+  const noCyclingChance = (retained.length || retainedNegative.length) && probability.max <= 0;
+  const selectedName = retained.length && active === 'positive' ? `LOCK ${nameOf(positiveForComparison()).toUpperCase()}` : labels[active].toUpperCase();
+  const note = noCyclingChance ? 'This strategy cannot retain every selected combined or vintage line. Additional acquisition steps are outside this estimate.' : `${pools.length > 1 ? 'Conditional on eligibility. ' : ''}A 1 / X chance means X rolls on average, not a guarantee.`;
   $('#activeStrategy').innerHTML = `<span>SELECTED STRATEGY · ${esc(selectedName)}</span><strong${!same(probability) || noCyclingChance ? ' class="active-range"' : ''}>${esc(noCyclingChance ? 'No cycling outcome' : oddsText(probability))}</strong><p>${esc(note)}</p>`;
   if (noCyclingChance) {
     $('#planningStats').innerHTML = ['Average Kuva', '50% success', '95% success'].map(label => `<div><span>${label}</span><strong>Not applicable</strong></div>`).join('');
@@ -237,7 +263,7 @@ function renderResults() {
 }
 
 function renderCrossovers() {
-  const section = $('.crossover-section'); section.hidden = !state.hasNegative || !state.negatives.length || combinedTargets().length > 0;
+  const section = $('.crossover-section'); section.hidden = !state.hasNegative || !state.negatives.length || retainedPositiveTargets().length > 0 || retainedNegativeTargets().length > 0;
   if (section.hidden) return;
   const max = Math.max(...research.scenarios.map(row => row.d)), threshold = research.threshold;
   $('#crossoverSummary').textContent = !threshold ? 'Choose an eligible negative for this comparison.' : threshold.min > max ? 'No attainable number of negatives makes a positive lock better for this target.' : same(threshold) ? `For this ${format().toUpperCase()} target, a positive lock wins from ${number(threshold.min)} compatible negatives.` : `For this ${format().toUpperCase()} target, the crossover is ${intervalText(threshold)} compatible negatives, depending on eligibility.`;
