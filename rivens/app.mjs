@@ -49,7 +49,7 @@ function selectWeapon(id) {
   pools = poolCache.get(family.id);
   normalize(true);
   $('#rangeList').scrollTop = 0;
-  render();
+  render({selectBest: true});
 }
 
 function selectCategory(category) {
@@ -75,15 +75,27 @@ function statOptions(polarity, row = null) {
 }
 
 function selectPositive(row, id) {
-  state.positives[row] = id === '_none' ? null : id;
-  normalize(); render();
+  const value = id === '_none' ? null : id;
+  if (state.positives[row] === value) return;
+  state.positives[row] = value;
+  normalize(); render({selectBest: true});
 }
 
 function selectNegative(id) {
+  const before = JSON.stringify(target());
   if (id === '_none') { state.hasNegative = false; state.negatives = []; }
   else if (id === '_all') { state.hasNegative = true; state.negatives = compatibleNegatives().map(t => t.id); }
   else { state.hasNegative = true; state.negatives = state.negatives.includes(id) ? state.negatives.filter(value => value !== id) : [...state.negatives, id]; }
-  normalize(); render();
+  normalize(); render({selectBest: before !== JSON.stringify(target())});
+}
+
+function selectBestLock() {
+  if (!(research.results.positive.probability.max > 0)) { state.lock = null; return; }
+  if (research.winningLock === 'negative') state.lock = 'negative';
+  else if (research.winningLock === 'positive' || research.winningLock === 'tie' && state.lock === null) {
+    if (state.lock === null || state.lock === 'negative') state.lock = '0';
+  }
+  // Preserve a valid lock on ties or when eligibility does not establish a winner.
 }
 
 function connectControls() {
@@ -101,9 +113,12 @@ function connectControls() {
   $('#rangeSearch').addEventListener('input', renderRanges);
   $('#heldNegative').addEventListener('change', event => { state.heldNegative = event.target.value; render(); });
   $('#strategyRows').addEventListener('click', event => {
-    const strategy = event.target.closest('[data-strategy]')?.dataset.strategy;
-    if (!strategy || strategy === 'negative' && (!state.hasNegative || !state.negatives.length)) return;
-    state.lock = strategy === 'none' ? null : strategy === 'positive' ? '0' : 'negative'; render();
+    const row = event.target.closest('[data-strategy-row]');
+    const button = row?.querySelector('[data-strategy]'), strategy = button?.dataset.strategy;
+    if (!strategy || button.disabled) return;
+    state.lock = strategy === 'none' ? null : strategy === 'positive' ? state.lock !== null && state.lock !== 'negative' ? state.lock : '0' : 'negative';
+    render();
+    $('#strategyRows').querySelector(`[data-strategy="${strategy}"]`).focus({preventScroll: true});
   });
   $('#resetTarget').addEventListener('click', () => {
     Object.assign(state, {positives: [CC, CD, MS], negatives: ['zoom'], hasNegative: true, heldNegative: 'zoom', lock: null, variant: null});
@@ -133,8 +148,9 @@ function renderRanges() {
   $('#rangeList').innerHTML = rows.length ? rows.join('') : '<p class="range-empty">No stats match your search.</p>';
 }
 
-function render() {
+function render({selectBest = false} = {}) {
   research = analyze(pools, target(), catalog.assumptions);
+  if (selectBest) selectBestLock();
   const hasUncertainty = pools.length > 1;
   combos.category.update(state.category); combos.weapon.update(weapon.name); combos.variant.update(variant.label);
   state.positives.forEach((id, i) => combos[`positive${i}`].update(id ? nameOf(id) : 'No third positive'));
@@ -182,7 +198,7 @@ function renderResults() {
     const result = research.results[strategy], unavailable = strategy === 'negative' && (!state.hasNegative || !state.negatives.length);
     const reductionClass = result.kuvaReduction?.min >= 0 ? 'positive-text' : 'negative-text';
     const rowClasses = [research.winningLock === strategy && !unavailable ? 'best-row' : '', active === strategy ? 'active-row' : ''].join(' ');
-    return `<tr class="${rowClasses}"><th scope="row"><button class="strategy-pick${strategy === 'negative' ? ' negative-text' : ''}" type="button" data-strategy="${strategy}"${unavailable ? ' disabled' : ''}>${labels[strategy]}</button><small>${strategy === 'none' ? 'Previous odds' : strategy === 'negative' ? esc(nameOf(state.heldNegative) || 'Choose a negative') : 'Any selected positive'}</small></th><td${!same(result.probability) ? ' class="has-probability-range"' : ''}>${unavailable ? '<span class="muted">Not applicable</span>' : esc(oddsText(result.probability))}</td><td class="${strategy === 'none' || unavailable ? 'muted' : reductionClass}">${unavailable ? 'Not applicable' : percentText(result.kuvaReduction)}</td></tr>`;
+    return `<tr class="${rowClasses}" data-strategy-row="${strategy}"${unavailable ? ' aria-disabled="true"' : ''}><th scope="row"><button class="strategy-pick${strategy === 'negative' ? ' negative-text' : ''}" type="button" data-strategy="${strategy}" aria-pressed="${active === strategy}"${unavailable ? ' disabled' : ''}><span class="strategy-check" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><path d="m3.5 8 3 3 6-6"/></svg></span><span>${labels[strategy]}</span></button><small>${strategy === 'none' ? 'Previous odds' : strategy === 'negative' ? esc(nameOf(state.heldNegative) || 'Choose a negative') : 'Any selected positive'}</small></th><td${!same(result.probability) ? ' class="has-probability-range"' : ''}>${unavailable ? '<span class="muted">Not applicable</span>' : esc(oddsText(result.probability))}</td><td class="${strategy === 'none' || unavailable ? 'muted' : reductionClass}">${unavailable ? 'Not applicable' : percentText(result.kuvaReduction)}</td></tr>`;
   }).join('');
   const probability = research.results[active].probability;
   $('#activeStrategy').innerHTML = `<span>SELECTED STRATEGY · ${labels[active].toUpperCase()}</span><strong${!same(probability) ? ' class="active-range"' : ''}>${esc(oddsText(probability))}</strong><p>${pools.length > 1 ? 'Conditional on eligibility. ' : ''}A 1 / X chance means X rolls on average, not a guarantee.</p>`;
