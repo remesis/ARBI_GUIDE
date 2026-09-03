@@ -2,12 +2,6 @@
   Content-Security-Policy: frame-ancestors 'none'
   X-Frame-Options: DENY
 
-# Calculator modules use explicit MIME types and revalidate on updates.
-/rivens/*
-  Cache-Control: no-cache
-/rivens/*.mjs
-  Content-Type: text/javascript; charset=utf-8
-
 # WFG2 chunks are precompressed Brotli streams. Their filenames contain
 # the decoded mesh hash, so a changed mesh gets a new immutable URL.
 /3d_tilesets/data/*.wfg2.br
