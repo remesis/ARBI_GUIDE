@@ -1,19 +1,23 @@
 import {escapeHTML as esc, number, oddsText, intervalText} from './format.mjs';
+import {isCombinedTrait} from './catalog.mjs';
 
 export function renderMath({catalog, research, target, variant, format, nameOf}) {
   const single = research.scenarios.length === 1, row = research.scenarios[0];
   const positives = target.positives.map(nameOf).map(esc).join(', ');
   const negatives = target.negatives.map(nameOf).map(esc).join(', ');
+  const combined = target.positives.filter(isCombinedTrait);
+  const chance = probability => combined.length && probability.max <= 0 ? 'Not possible by cycling' : oddsText(probability);
   return `
   <h3>1. Scope and assumptions</h3>
   <p>This reference models <strong>trait identities</strong>, not numerical grades, mastery rank, polarity, or the cost of obtaining a starting Riven. A target is one exact unordered set of two or three positive traits, with either no negative or one negative from a set of acceptable alternatives.</p>
   <div class="math-callout"><strong>Working model: positives first.</strong> Positives are sampled uniformly without replacement. The negative is then sampled uniformly from its compatible pool. This is a modeling assumption, not a published probability guarantee. Different sampling weights or a different generation procedure would require different formulas.</div>
   <p>Without a lock, and with a positive locked, each of 2P0N, 3P0N, 2P1N, and 3P1N is assigned probability 1/4. A positive lock retains that positive line; it does not force the Riven to keep the same layout. A negative lock retains a negative line, excludes both 0N layouts, and assigns probability 1/2 to each of 2P1N and 3P1N. Its positive counterpart is excluded if that counterpart belongs to the positive pool.</p>
   <p>Only one line may be locked. The locked line is assumed to be available before the modeled rolling begins. No trait may appear as both a positive and a negative in the same target.</p>
+  <p>Blast, Corrosive, Gas, Magnetic, Radiation, Viral, Weakpoint Damage, and Status Damage are treated as <strong>combination-only targets</strong>, not additions to the ordinary cycling pool. Calculations for these entries are conditional on the combined line being obtainable for the selected weapon, already created, and retained by the lock. Recipes, category availability, and the final combination system remain subject to the update.</p>
 
   <h3>2. Notation</h3>
   <dl>
-    <dt>P, p</dt><dd>The eligible positive-trait set and its size, p = |P|.</dd>
+    <dt>P, p</dt><dd>The eligible ordinary positive-trait set and its size, p = |P|. Combination-only traits are not members of P.</dd>
     <dt>N, n</dt><dd>The eligible negative-trait set and its size, n = |N|.</dd>
     <dt>S, k</dt><dd>The desired positive set and its size, k = 2 or 3.</dd>
     <dt>r</dt><dd>The number of desired positives that also belong to N: r = |S ∩ N|. This is about eligibility as a separate negative, not a locked positive changing sign.</dd>
@@ -28,13 +32,14 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <p>Pool sizes are weapon-specific. Disposition changes the stat ranges, not these trait-selection probabilities. Primary and Secondary Kitguns are separate entries for their different ranges and dispositions.</p>
 
   <h3>3. Deriving the per-roll odds</h3>
+  <p>The first formulas below apply when every desired positive belongs to P. A pre-existing combined positive uses the separate formula at the end of this section.</p>
   <h4>No lock, kP1N</h4>
   <p>There are C(p, k) equally likely positive sets. Once S is selected, exactly d compatible negatives remain, of which a are acceptable. Multiply the target-layout probability by those two conditional probabilities:</p>
   <div class="formula">q₀ = w × 1 / C(p, k) × a / d</div>
   <h4>Positive lock, kP1N</h4>
   <p>The locked positive already satisfies one member of S. The remaining k − 1 positives are chosen from p − 1 candidates. After completing the positive set, the compatible negative pool is still N ∖ S:</p>
   <div class="formula">q₊ = w × 1 / C(p − 1, k − 1) × a / d</div>
-  <p>Every eligible positive in the same target has the same lock probability in this model. Locking an element is not intrinsically better or worse than locking another selected positive. What matters for the final negative step is the entire completed positive set.</p>
+  <p>Every ordinary eligible positive in an ordinary target has the same lock probability in this model. Locking a basic element is not intrinsically better or worse than locking another selected ordinary positive. What matters for the final negative step is the entire completed positive set.</p>
   <h4>Negative lock, kP1N</h4>
   <p>The required negative is already retained. Exclude its positive counterpart if eligible, leaving p − δ candidates for the k positives. There is no additional factor a/d because the negative is not drawn again:</p>
   <div class="formula">q₋ = u × 1 / C(p − δ, k)</div>
@@ -42,13 +47,20 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <h4>Targets with no negative</h4>
   <div class="formula">q₀ = w / C(p, k) &nbsp;;&nbsp; q₊ = w / C(p − 1, k − 1) &nbsp;;&nbsp; q₋ = 0</div>
   <p>A negative lock cannot produce a 0N target. An invalid trait, a repeated positive, or a positive/negative conflict makes that exact target impossible rather than changing the size of a valid target's denominator.</p>
+  <h4>One combined positive already created and locked</h4>
+  <p>A combined line L is not in P, so retaining it removes no ordinary positive candidate. Choose the remaining k − 1 positives from all p ordinary candidates, then draw a compatible negative if requested. The combined line itself removes no negative candidate:</p>
+  <div class="formula">q₊ = w × 1 / C(p, k − 1) × a / d &nbsp; (kP1N)<br>q₊ = w / C(p, k − 1) &nbsp; (kP0N)</div>
+  <p>Without retaining that combined line, q₀ = q₋ = 0 for the final target <em>through cycling alone</em>. Locking an ordinary positive instead also gives zero. This does not mean the target cannot be created by combining traits. Combining routes and their costs are outside this calculation. The combined element and either of its basic ingredients are distinct traits, so selecting one does not forbid the other.</p>
+  <p>A target containing multiple combined positives cannot be retained by a single lock through a cycle. The calculator supplies no acquisition estimate for it and does not assume that a proposed cap on combined stats is a finalized game rule.</p>
 
   <h3>4. Why the positive set matters</h3>
   <p>A positive trait that cannot be a negative, such as an element in the applicable pool, removes no candidate from N. Under positives-first sampling, two targets with equal positive-set probability can therefore have different chances of a <em>particular</em> negative. A larger remaining negative pool means a lower chance for that one negative. It does not make the positive element itself less likely.</p>
   <p>If every compatible negative is accepted, a = d and the final negative factor cancels. Counting all valid final combinations and assigning them equal probability is a different model and is not used here.</p>
+  <p>For an ordinary target with nonzero q₀:</p>
   <div class="formula">q₊ / q₀ = C(p, k) / C(p − 1, k − 1) = p / k</div>
 
   <h3>5. When is a positive lock better?</h3>
+  <p>The crossover below compares ordinary targets. If the target includes one combined positive, retaining that combined line is the only modeled cycling strategy with a nonzero chance, regardless of how many negatives are acceptable.</p>
   <p>Both locked strategies use the same per-roll Kuva cost, so the one with the larger success probability also has the lower expected Kuva cost. Solve q₊ &gt; q₋:</p>
   <div class="formula">a &gt; (u / w) × d × C(p − 1, k − 1) / C(p − δ, k)</div>
   <p>With a positive counterpart for the locked negative (δ = 1), this simplifies to:</p>
@@ -60,14 +72,17 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <h3>6. Your current selection</h3>
   <p><strong>${esc(variant.name)}</strong> · ${format.toUpperCase()} · disposition ${variant.disposition.toFixed(2)}<br>Positives: ${positives}.<br>${target.hasNegative ? `Acceptable negatives: ${negatives || 'none selected'}. Negative-lock comparison: ${esc(nameOf(target.heldNegative) || 'none')}.` : 'No negative requested.'}</p>
   <p>p = ${intervalText(research.p)}, n = ${intervalText(research.n)}, k = ${target.positives.length}.${single ? ` r = ${row.r}, d = ${row.d}, a = ${row.a}, δ = ${row.delta}.` : ' Unresolved eligibility produces multiple possible pools. Bounds cover those possibilities without assigning probabilities to them.'}</p>
-  <table><thead><tr><th>Strategy</th><th>Current target odds</th></tr></thead><tbody><tr><td>No lock</td><td>${esc(oddsText(research.results.none.probability))}</td></tr><tr><td>Positive lock</td><td>${esc(oddsText(research.results.positive.probability))}</td></tr><tr><td>Negative lock</td><td>${target.hasNegative ? esc(oddsText(research.results.negative.probability)) : 'Not applicable'}</td></tr></tbody></table>
+  ${combined.length ? `<p>Combined positives: ${combined.map(nameOf).map(esc).join(', ')}. Positive-lock comparison: ${esc(nameOf(row.heldPositive))}. Pool sizes above still count ordinary traits only.</p>` : ''}
+  <table><thead><tr><th>Strategy</th><th>Current target odds</th></tr></thead><tbody><tr><td>No lock</td><td>${esc(chance(research.results.none.probability))}</td></tr><tr><td>Positive lock</td><td>${esc(chance(research.results.positive.probability))}</td></tr><tr><td>Negative lock</td><td>${target.hasNegative ? esc(chance(research.results.negative.probability)) : 'Not applicable'}</td></tr></tbody></table>
   ${single && target.hasNegative && row.a > 0 && row.qNegative > 0 ? `<div class="formula selection-formula">q₀ = ${row.a} / [4 × C(${row.p}, ${row.k}) × ${row.d}]<br>q₊ = ${row.a} / [4 × C(${row.p - 1}, ${row.k - 1}) × ${row.d}]<br>q₋ = 1 / [2 × C(${row.p - row.delta}, ${row.k})]</div>` : ''}
+  ${single && combined.length === 1 && row.qPositive > 0 ? `<div class="formula selection-formula">q₊ = ${target.hasNegative ? `${row.a} / [4 × C(${row.p}, ${row.k - 1}) × ${row.d}]` : `1 / [4 × C(${row.p}, ${row.k - 1})]`}</div>` : ''}
 
   <h3>7. Kuva reduction and planning</h3>
   <p>At the capped cost, an unlocked roll costs c₀ = ${number(catalog.assumptions.kuvaPerRoll)} Kuva. The stated 50% surcharge gives cᴸ = ${number(catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier)} for a locked roll. Expected attempts are 1/q, so:</p>
   <div class="formula">E[K₀] = c₀ / q₀ &nbsp;;&nbsp; E[Kᴸ] = cᴸ / qᴸ</div>
   <div class="formula">Kuva reduction = 1 − E[Kᴸ] / E[K₀] = 1 − 1.5 q₀ / qᴸ</div>
-  <p>The comparison always uses the <em>same</em> desired positive set and acceptable negative set on both sides. A negative percentage means more expected Kuva, not a saving. For a positive lock the reduction simplifies to 1 − 1.5k/p under the same layout weights.</p>
+  <p>The comparison always uses the <em>same</em> desired positive set and acceptable negative set on both sides. A negative percentage means more expected Kuva, not a saving. For an ordinary positive target the positive-lock reduction simplifies to 1 − 1.5k/p under the same layout weights.</p>
+  <p>A combination-only target has no attainable no-lock cycling baseline. Its Kuva reduction is therefore shown as Not applicable, not 100%. A finite locked estimate covers only subsequent cycling, excluding the creation of the combined stat and any later combining steps.</p>
   <p>These totals exclude obtaining the first suitable trait, setup costs, and changes to strategy along the way. Early rolls below the Kuva cap follow a different price schedule. Farming time also depends on acquisition rate and is not calculated here.</p>
   <h4>Cumulative success</h4>
   <p>For independent attempts with fixed probability q, all m attempts fail with probability (1 − q)ᵐ. Therefore:</p>
@@ -82,6 +97,7 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <table><thead><tr><th>Layout</th><th>Positive F</th><th>Negative magnitude F</th></tr></thead><tbody><tr><td>2P0N</td><td>0.9900</td><td>None</td></tr><tr><td>3P0N</td><td>0.7500</td><td>None</td></tr><tr><td>2P1N</td><td>1.2375</td><td>0.4950</td></tr><tr><td>3P1N</td><td>0.9375</td><td>0.7500</td></tr></tbody></table>
   <p>Percentage traits multiply this result by 100. Faction damage is displayed as a multiplier around 1. Range and Punch Through use meters; Combo Duration uses seconds. Positive and negative refer to beneficial traits and curses, not the literal sign: beneficial Weapon Recoil has a minus sign.</p>
   <p>Red ranges are reference values for vintage or otherwise unrollable traits. Their display does not add them to the selectable current pool. Amber ranges are conditional on unresolved eligibility. Reference values do not establish when a historical Riven was generated. Dispositions are shown to two decimals without snapping to 0.05 steps.</p>
+  <p>The sidebar lists ordinary trait ranges. Combined-stat options do not inherit an ordinary cycling coefficient, and no unconfirmed numerical ranges are supplied for them.</p>
   <p>Requiring numerical values or grades is a different target. If g is the conditional probability of satisfying all remaining value requirements after obtaining the desired trait identities, then q(full target) = q(trait identities) × g. That identity does not assume the values are independent.</p>
 
   <h3>9. Sources and research status</h3>

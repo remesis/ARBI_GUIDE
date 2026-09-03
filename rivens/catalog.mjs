@@ -2,6 +2,20 @@
 const states = ['excluded', 'allowed', 'unresolved'];
 const slug = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+// Combination-only targets are separate from every ordinary cycling pool.
+export const COMBINED_TRAITS = Object.freeze([
+  {id: 'blast', name: 'Blast', recipe: 'Cold + Heat'},
+  {id: 'corrosive', name: 'Corrosive', recipe: 'Electricity + Toxin'},
+  {id: 'gas', name: 'Gas', recipe: 'Heat + Toxin'},
+  {id: 'magnetic', name: 'Magnetic', recipe: 'Cold + Electricity'},
+  {id: 'radiation', name: 'Radiation', recipe: 'Heat + Electricity'},
+  {id: 'viral', name: 'Viral', recipe: 'Cold + Toxin'},
+  {id: 'weakpoint-damage', name: 'Weakpoint Damage'},
+  {id: 'status-damage', name: 'Status Damage'},
+].map(Object.freeze));
+const combinedIds = new Set(COMBINED_TRAITS.map(trait => trait.id));
+export const isCombinedTrait = id => combinedIds.has(id);
+
 export function unpackCatalog(data) {
   if (data.schemaVersion !== 2 || !data.weapons?.length) throw new Error('Unsupported Riven catalog.');
   const families = data.families.map(([name, definition, profile]) => {
