@@ -6,3 +6,9 @@
 # Local Python build/test artifacts.
 __pycache__/
 *.py[cod]
+
+# Riven development helpers are not part of the published calculator.
+/rivens/tools/
+/rivens/tests/
+/rivens/preview.mjs
+/rivens/README.md
