@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260901-137\.js/);
+  assert.match(html, /analyzer-20260903-138\.js/);
   assert.match(html, /analyzer\.css\?v=20260901-99/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -359,7 +359,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260901-137.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260903-138.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -450,12 +450,16 @@ test("fresh client Blessing override lasts three hours from mission start", () =
     ${copySource}
     const shortRun = { clientFreshBlessing: true, startTime: 100, totalDuration: 8100, droneKills: 3, droneTimestamps: [200, 1000, 8000] };
     const longRun = { clientFreshBlessing: true, startTime: 100, totalDuration: 14400, droneKills: 3, droneTimestamps: [200, 10900, 10901] };
+    const markerlessLongRun = { clientFreshBlessing: false, startTime: 100, endTime: 15160, totalDuration: 15060, droneKills: 4, droneTimestamps: [200, 10900, 10901, 15000] };
     const expiredBeforeRun = { clientFreshBlessing: false, startTime: 11000, endTime: 12000, resourceBlessingExpiresAt: 10900 };
     result = {
       shortKills: effectiveBlessedDroneKills(shortRun),
       shortExpiry: effectiveBlessingExpiry(shortRun),
       longKills: effectiveBlessedDroneKills(longRun),
       longExpiry: effectiveBlessingExpiry(longRun),
+      markerlessLongKills: effectiveBlessedDroneKills(markerlessLongRun),
+      markerlessLongExpiry: effectiveBlessingExpiry(markerlessLongRun),
+      markerlessLongCopy: vitusAssumptionCopy(markerlessLongRun),
       expiredBeforeRunExpiry: effectiveBlessingExpiry(expiredBeforeRun),
       expiredBeforeRunEligible: canUseClientFreshBlessing(expiredBeforeRun),
       expiredBeforeRunCopy: vitusAssumptionCopy(expiredBeforeRun),
@@ -468,6 +472,11 @@ test("fresh client Blessing override lasts three hours from mission start", () =
   assert.equal(context.result.longKills, 2);
   assert.equal(context.result.longExpiry.elapsed, 10800);
   assert.equal(context.result.longExpiry.timestamp, 10900);
+  assert.equal(context.result.markerlessLongKills, 2);
+  assert.equal(context.result.markerlessLongExpiry.elapsed, 10800);
+  assert.equal(context.result.markerlessLongExpiry.timestamp, 10900);
+  assert.equal(context.result.markerlessLongExpiry.assumedFromMissionStart, true);
+  assert.equal(context.result.markerlessLongCopy, "Both Boosters, Resourceful Retriever, and Drop Blessing assumed fresh at mission start until 3h 0m 0s.");
   assert.equal(context.result.expiredBeforeRunExpiry.elapsed, 0);
   assert.equal(context.result.expiredBeforeRunExpiry.timestamp, 11000);
   assert.equal(context.result.expiredBeforeRunExpiry.expiredBeforeRun, true);
@@ -475,6 +484,8 @@ test("fresh client Blessing override lasts three hours from mission start", () =
   assert.equal(context.result.expiredBeforeRunCopy, "Both Boosters and Resourceful Retriever.");
   assert.equal(context.result.shortCopy, "Blessing, Both Boosters and Resourceful Retriever.");
   assert.equal(context.result.threeHourLabel, "3h 0m 0s");
+  assert.match(js, /force: runs\.some\(\(run\) => !Number\.isFinite\(run\.blessedDroneKills\)[\s\S]*?Number\(run\.totalDuration\) > RESOURCE_BLESSING_SECONDS\)/);
+  assert.match(js, /Parser\.buildContribution\(target, \{ blessedDroneKills: effectiveBlessedDroneKills\(target\) \}\)/);
 });
 
 test("Actual Vitus input accepts only the first four numeric digits", () => {
