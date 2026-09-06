@@ -17,7 +17,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260825-7\.js/);
-  assert.match(html, /analyzer-20260904-139\.js/);
+  assert.match(html, /analyzer-20260905-140\.js/);
   assert.match(html, /analyzer\.css\?v=20260901-99/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
@@ -350,16 +350,16 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260901-83"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260905-84"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(parser, /scanner-worker\.js\?v=20260901-16/);
-  assert.match(html, /parser\.js\?v=20260901-83/);
+  assert.match(parser, /scanner-worker\.js\?v=20260905-17/);
+  assert.match(html, /parser\.js\?v=20260905-84/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260904-139.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260905-140.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -462,6 +462,10 @@ test("fresh client Blessing override lasts three hours from mission start", () =
       markerlessLongCopy: vitusAssumptionCopy(markerlessLongRun),
       expiredBeforeRunExpiry: effectiveBlessingExpiry(expiredBeforeRun),
       expiredBeforeRunEligible: canUseClientFreshBlessing(expiredBeforeRun),
+      pendingEligible: canUseClientFreshBlessing({ resourceBlessingRefreshUnconfirmed: true }),
+      pendingCopy: vitusAssumptionCopy({ resourceBlessingRefreshUnconfirmed: true }),
+      pendingWithOldTimerCopy: vitusAssumptionCopy({ resourceBlessingRefreshUnconfirmed: true, resourceBlessingConfirmedAt: 10 }),
+      pendingOverrideCopy: vitusAssumptionCopy({ ...shortRun, resourceBlessingRefreshUnconfirmed: true }),
       expiredBeforeRunCopy: vitusAssumptionCopy(expiredBeforeRun),
       shortCopy: vitusAssumptionCopy({ ...shortRun, blessedDroneKills: 0 }),
       threeHourLabel: blessingDuration(RESOURCE_BLESSING_SECONDS),
@@ -481,11 +485,45 @@ test("fresh client Blessing override lasts three hours from mission start", () =
   assert.equal(context.result.expiredBeforeRunExpiry.timestamp, 11000);
   assert.equal(context.result.expiredBeforeRunExpiry.expiredBeforeRun, true);
   assert.equal(context.result.expiredBeforeRunEligible, true);
+  assert.equal(context.result.pendingEligible, true);
+  assert.match(context.result.pendingCopy, /not confirmed before launch; Drop Blessing assumed/);
+  assert.match(context.result.pendingWithOldTimerCopy, /previous confirmed timer/);
+  assert.equal(context.result.pendingOverrideCopy, "Blessing, Both Boosters and Resourceful Retriever.");
   assert.equal(context.result.expiredBeforeRunCopy, "Both Boosters and Resourceful Retriever.");
   assert.equal(context.result.shortCopy, "Blessing, Both Boosters and Resourceful Retriever.");
   assert.equal(context.result.threeHourLabel, "3h 0m 0s");
-  assert.match(js, /force: runs\.some\(\(run\) => !Number\.isFinite\(run\.blessedDroneKills\)[\s\S]*?Number\(run\.totalDuration\) > RESOURCE_BLESSING_SECONDS\)/);
+  assert.match(js, /force: runs\.some\(\(run\) => run\.resourceBlessingRefreshUnconfirmed[\s\S]*?!Number\.isFinite\(run\.blessedDroneKills\)[\s\S]*?Number\(run\.totalDuration\) > RESOURCE_BLESSING_SECONDS\)/);
   assert.match(js, /Parser\.buildContribution\(target, \{ blessedDroneKills: effectiveBlessedDroneKills\(target\) \}\)/);
+});
+
+test("unconfirmed refresh warnings keep one status line and expose the PNG-hidden override", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const renderSource = js.match(/function renderCorrelationCard\(data\) \{[\s\S]*?\n  \}/)[0];
+  const durationSource = js.match(/function blessingDuration\(seconds\) \{[\s\S]*?\n  \}/)[0];
+  const context = {};
+  vm.runInNewContext(`
+    const h = text => String(text).replaceAll("&", "&amp;").replaceAll("<", "&lt;");
+    const correlationTimestampPosition = () => 0;
+    ${durationSource}
+    ${renderSource}
+    const data = {
+      phases: [{ from: 100, to: 200 }], metrics: [],
+      resourceBlessingRefreshUnconfirmed: true, clientFreshBlessing: false,
+      canUseClientFreshBlessing: true,
+      blessingExpiry: { timestamp: 150, elapsed: 50, assumedFromMissionStart: false }
+    };
+    result = {
+      pending: renderCorrelationCard(data),
+      assumed: renderCorrelationCard({ ...data, blessingExpiry: { timestamp: 10900, elapsed: 10800, assumedFromMissionStart: true } }),
+      override: renderCorrelationCard({ ...data, clientFreshBlessing: true, blessingExpiry: null })
+    };
+  `, context);
+  assert.match(context.result.pending, /Refresh unconfirmed · Blessing ran out at:/);
+  assert.equal((context.result.pending.match(/class="correlation-blessing-expiry-label"/g) || []).length, 1);
+  assert.match(context.result.pending, /data-html2canvas-ignore="true">Click this button if Client had Fresher Blessing/);
+  assert.match(context.result.assumed, /Assumed Blessing expiry at: 3h 0m 0s/);
+  assert.doesNotMatch(context.result.override, /Refresh unconfirmed/);
+  assert.match(context.result.override, /aria-pressed="true"/);
 });
 
 test("Actual Vitus input accepts only the first four numeric digits", () => {

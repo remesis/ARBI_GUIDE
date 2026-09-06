@@ -25,7 +25,7 @@
   const COMPANION_JOIN_RESOLUTION_SECONDS = 30;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260901-16";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260905-17";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "VOID CASCADE"]);
   const EXPANDED_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE", "VOID CASCADE"]);
@@ -173,7 +173,7 @@
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|Mission name:|ShowMissionVote|_EliteAlert|enemySpec=\/Lotus\/Types\/Game\/EnemySpecs\/Zariman\/|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|PurifyMission\.lua: ModeState =|Survival: Starting survival|Survival: Gave reward tier|Zariman Survival \(Void Cascade\): State Change: ENDLESS|ZarimanSurvivalMission\.lua: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|setting owner player to|SentinelAvatar: registering|LotusSentinelAvatar with ID|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|LotusProfileData::OnRequestHubBlessings|Mission name:|ShowMissionVote|_EliteAlert|enemySpec=\/Lotus\/Types\/Game\/EnemySpecs\/Zariman\/|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|PurifyMission\.lua: ModeState =|Survival: Starting survival|Survival: Gave reward tier|Zariman Survival \(Void Cascade\): State Change: ENDLESS|ZarimanSurvivalMission\.lua: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|setting owner player to|SentinelAvatar: registering|LotusSentinelAvatar with ID|MonitoredTicking|Live /g;
 
   const UTC_MONTH_INDEX = Object.freeze({
     Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
@@ -451,6 +451,7 @@
       let hasAgent = false;
       let hasDroneDespawn = false;
       let hasResourceBlessing = false;
+      let hasBlessingConfirmation = false;
       let hasMission = false;
       let hasMissionVote = false;
       let hasArbitrationSelection = false;
@@ -493,6 +494,7 @@
         hasAgent = line.includes("OnAgentCreated");
         hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
         hasResourceBlessing = line.includes("ResourceDropChanceBlessingStoreItem");
+        hasBlessingConfirmation = line.includes("LotusProfileData::OnRequestHubBlessings");
         hasMission = line.includes("Mission name:");
         hasMissionVote = line.includes("ShowMissionVote");
         hasArbitrationSelection = P_ARBITRATION_SELECTION.test(line);
@@ -535,6 +537,7 @@
             hasDroneDespawn = line.includes("Arbitration.lua: Destroying CorpusEliteShieldDroneAvatar");
             break;
           case "ResourceDropChanceBlessingStoreItem": hasResourceBlessing = true; break;
+          case "LotusProfileData::OnRequestHubBlessings": hasBlessingConfirmation = true; break;
           case "Mission name:": hasMission = true; break;
           case "ShowMissionVote":
             hasMissionVote = true;
@@ -589,12 +592,19 @@
           default: break;
         }
       }
-      if (!(hasAgent || hasDroneDespawn || hasResourceBlessing || hasMission || hasMissionVote || hasArbitrationSelection || hasZarimanEnemySpec || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasPurifyState || hasSurvivalStart || hasSurvivalReward || hasVoidCascadeStart || hasVoidCascadeReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasCompanionOwnerDirect || hasCompanionRegister || hasCompanionOwnerReplicated || hasLiveCount)) return;
+      if (!(hasAgent || hasDroneDespawn || hasResourceBlessing || hasBlessingConfirmation || hasMission || hasMissionVote || hasArbitrationSelection || hasZarimanEnemySpec || hasSpawnPoint || hasAgentInitialize || hasEliteAlert || hasLevel || hasLevelComponent || hasSleep || hasReward || hasCountdown || hasWaveStart || hasWaveDef || hasLoopWave || hasTerritory || hasPurifyState || hasSurvivalStart || hasSurvivalReward || hasVoidCascadeStart || hasVoidCascadeReward || hasDisruptionRoundStart || hasDisruptionRoundDone || hasDisruptionReward || hasExtraction || hasPlayerJoin || hasPlayerLeave || hasNamedJoin || hasNamedLeave || hasSquadAdd || hasLocalInProgress || hasCompanionOwnerDirect || hasCompanionRegister || hasCompanionOwnerReplicated || hasLiveCount)) return;
 
       const lineTimestamp = Number((line.match(P_TIMESTAMP) || [])[1]) || 0;
       if (hasResourceBlessing) {
         const match = line.match(P_RESOURCE_BLESSING);
-        if (match) this.resourceBlessings.push(Number(match[1]));
+        if (match) this.resourceBlessings.push({ acquired: Number(match[1]), confirmedAt: null });
+        return;
+      }
+      if (hasBlessingConfirmation) {
+        const pending = this.resourceBlessings.at(-1);
+        if (pending && pending.confirmedAt === null
+          && /LotusProfileData::OnRequestHubBlessings success\b/.test(line)
+          && lineTimestamp >= pending.acquired) pending.confirmedAt = lineTimestamp;
         return;
       }
       const selectionMatch = hasArbitrationSelection ? line.match(P_ARBITRATION_SELECTION) : null;
@@ -1287,11 +1297,16 @@
     return fallback;
   }
 
-  function attachResourceBlessing(run, timestamps) {
-    const acquired = (timestamps || [])
-      .filter((timestamp) => Number.isFinite(timestamp) && timestamp <= run.startTime)
-      .at(-1);
-    if (!Number.isFinite(acquired)) return;
+  function attachResourceBlessing(run, blessings) {
+    // Loading directly from the receiving relay can apply a pending refresh
+    // too late for that mission. Use launch time, not a later wave/rejoin start.
+    const launch = run.missionStart || run.startTime;
+    const received = (blessings || []).filter((item) => item.acquired <= launch);
+    const active = received.filter((item) => Number.isFinite(item.confirmedAt) && item.confirmedAt < launch).at(-1);
+    if (received.length && received.at(-1) !== active) run.resourceBlessingRefreshUnconfirmed = true;
+    if (!active) return;
+    const acquired = active.acquired;
+    run.resourceBlessingConfirmedAt = active.confirmedAt;
     const expiresAt = acquired + RESOURCE_BLESSING_SECONDS;
     const blessedDroneKills = expiresAt <= run.startTime
       ? 0

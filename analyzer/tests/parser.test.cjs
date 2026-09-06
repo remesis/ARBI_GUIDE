@@ -942,6 +942,7 @@ test("splits drone-drop odds when a logged Resource Drop Chance Blessing expires
 test("retains a relay blessing timestamp and locates its mid-mission expiry", () => {
   const lines = [
     "100.0 Sys [Info]: LotusProfileData::AddPendingHubBlessing /Lotus/Types/StoreItems/Boosters/ResourceDropChanceBlessingStoreItem",
+    "150.0 Sys [Info]: LotusProfileData::OnRequestHubBlessings success",
     "200.0 Game [Info]: EliteAlertMission at SolNode130",
     "201.0 ThemedSquadOverlay.lua: Mission name: Lares (Mercury) - Arbitration",
     "300.0 WaveDefend.lua: Starting wave 1, spawning a total of 40 tier-0 enemies (29 simultaneous, 0% chance of eximus)",
@@ -960,6 +961,99 @@ test("retains a relay blessing timestamp and locates its mid-mission expiry", ()
   assert.equal(run.resourceBlessingExpiryElapsed, 10699);
   assert.equal(run.blessedDroneKills, 5);
   assert.equal(run.droneKills - run.blessedDroneKills, 5);
+});
+
+test("both Orbiter and relay travel confirm the latest pending Drop Blessing", () => {
+  const resource = "/Lotus/Types/StoreItems/Boosters/ResourceDropChanceBlessingStoreItem";
+  for (const travel of [
+    [
+      "120.0 Sys [Info]: LotusProfileData::OnRequestHubBlessings success",
+      "120.1 Game [Info]: Level=/Lotus/Levels/Proc/PlayerShip/Return.lp",
+    ],
+    [
+      "120.0 ThemedSquadOverlay.lua: Mission name: Kronia Relay (Saturn)",
+      "120.1 Game [Info]: Level=/Lotus/Levels/Proc/Hub/RelayStationHubMain/Return.lp",
+      "120.2 Sys [Info]: LotusProfileData::OnRequestHubBlessings success",
+    ],
+  ]) {
+    const lines = [
+      "10.0 Game [Info]: Level=/Lotus/Levels/Proc/Hub/RelayStationHubTwoB/Start.lp",
+      `90.0 Sys [Info]: LotusProfileData::AddPendingHubBlessing ${resource}`,
+      `100.0 Sys [Info]: LotusProfileData::AddPendingHubBlessing ${resource} being replaced with a newer blessing`,
+      ...travel,
+      "130.0 Sys [Info]: LotusProfileData::AddPendingHubBlessing /Lotus/Types/StoreItems/Boosters/AffinityBlessingStoreItem",
+      "140.0 Sys [Info]: LotusProfileData::OnRequestHubBlessings success",
+    ];
+    addRun(lines, { offset: 200, node: "SolNode130", name: "Lares (Mercury) - Arbitration", level: "/Lotus/Levels/GrineerAsteroidRelight/GrnDefenseOne.level" });
+    const parsed = Parser.parseText(lines.join("\n"));
+    const direct = new Parser.Parser();
+    lines.forEach((line) => direct.feedLine(line));
+    const scanned = new Parser.Parser();
+    Parser.forEachRelevantLine(lines.join("\n"), (line, token) => scanned.feedLine(line, token));
+    assert.deepEqual(direct.finish(), parsed);
+    assert.deepEqual(scanned.finish(), parsed, "large-file filtering must retain confirmation messages");
+    const [run] = parsed;
+    assert.equal(run.resourceBlessingAt, 100);
+    assert.equal(run.resourceBlessingExpiresAt, 10900, "travel does not restart the received timer");
+    assert.ok(run.resourceBlessingConfirmedAt >= 120 && run.resourceBlessingConfirmedAt < 121);
+    assert.equal(run.blessedDroneKills, run.droneKills);
+    assert.ok(!run.resourceBlessingRefreshUnconfirmed);
+  }
+});
+
+test("a direct relay launch cannot use a refresh confirmed during loading or after the run", async () => {
+  for (const confirmation of [210, 500]) {
+    const lines = [
+      "10.0 Sys [Info]: LotusProfileData::AddPendingHubBlessing /Lotus/Types/StoreItems/Boosters/ResourceDropChanceBlessingStoreItem",
+      "20.0 Sys [Info]: LotusProfileData::OnRequestHubBlessings success",
+      "100.0 Sys [Info]: LotusProfileData::AddPendingHubBlessing /Lotus/Types/StoreItems/Boosters/ResourceDropChanceBlessingStoreItem",
+    ];
+    addRun(lines, { offset: 200, node: "SolNode130", name: "Lares (Mercury) - Arbitration", level: "/Lotus/Levels/GrineerAsteroidRelight/GrnDefenseOne.level" });
+    lines.push(`${confirmation}.0 Sys [Info]: LotusProfileData::OnRequestHubBlessings success`);
+    addRun(lines, { offset: 600, node: "SolNode130", name: "Lares (Mercury) - Arbitration", level: "/Lotus/Levels/GrineerAsteroidRelight/GrnDefenseOne.level" });
+    lines.sort((a, b) => parseFloat(a) - parseFloat(b));
+    const [first, second] = Parser.parseText(lines.join("\n"));
+    assert.equal(first.resourceBlessingAt, 10, "retain the previous confirmed timer");
+    assert.equal(first.resourceBlessingRefreshUnconfirmed, true);
+    assert.equal(second.resourceBlessingAt, 100, "the confirmation may apply to a subsequent launch");
+    assert.ok(!second.resourceBlessingRefreshUnconfirmed);
+    const before = await Parser.buildContribution(first);
+    const corrected = await Parser.buildContribution(first, { blessedDroneKills: 0 });
+    assert.equal(before.run_hash, corrected.run_hash);
+    assert.equal(corrected.run_metrics.blessed_drone_kills, 0);
+  }
+});
+
+test("missing, failed and unrelated confirmations cannot establish a new blessing", () => {
+  for (const extra of [
+    [],
+    ["120.0 Sys [Info]: LotusProfileData::OnRequestHubBlessings failure"],
+    ["90.0 Sys [Info]: LotusProfileData::OnRequestHubBlessings success"],
+  ]) {
+    const lines = [
+      "100.0 Sys [Info]: LotusProfileData::AddPendingHubBlessing /Lotus/Types/StoreItems/Boosters/ResourceDropChanceBlessingStoreItem",
+      ...extra,
+    ];
+    addRun(lines, { offset: 200, node: "SolNode130", name: "Lares (Mercury) - Arbitration", level: "/Lotus/Levels/GrineerAsteroidRelight/GrnDefenseOne.level" });
+    lines.sort((a, b) => parseFloat(a) - parseFloat(b));
+    const [run] = Parser.parseText(lines.join("\n"));
+    assert.equal(run.resourceBlessingRefreshUnconfirmed, true);
+    assert.equal(run.resourceBlessingAt, undefined);
+    assert.equal(run.blessedDroneKills, undefined, "unknown activation is not proof of no blessing");
+  }
+});
+
+test("confirmation after launch is not rescued by a later Survival start", () => {
+  const [run] = Parser.parseText([
+    "100.0 Sys [Info]: LotusProfileData::AddPendingHubBlessing /Lotus/Types/StoreItems/Boosters/ResourceDropChanceBlessingStoreItem",
+    "200.0 ThemedSquadOverlay.lua: Mission name: Gabii (Ceres) - Arbitration",
+    "210.0 Sys [Info]: LotusProfileData::OnRequestHubBlessings success",
+    "300.0 SurvivalMission.lua: Survival: Starting survival",
+    ...Array.from({ length: 6 }, (_, index) => `${310 + index}.0 AI [Info]: OnAgentCreated /Npc/CorpusEliteShieldDroneAgent${index} AI [Info]: MonitoredTicking ${index}`),
+  ].join("\n"));
+  assert.equal(run.startTime, 300);
+  assert.equal(run.resourceBlessingRefreshUnconfirmed, true);
+  assert.equal(run.resourceBlessingAt, undefined);
 });
 
 test("advances actual Vitus luck at the 1st, 10th, 25th, 75th, 90th, and 99th percentiles", () => {
