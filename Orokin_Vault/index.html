@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b0d10">
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="noindex, nofollow">
-  <title>Orokin Vault — sealed</title>
+  <title>Orokin Vault - sealed</title>
   <link rel="icon" type="image/png" href="/logo.png">
   <style>
     html, body { background:#0b0d10; color:#72c7ff; margin:0; padding:40px 20px; font-family:ui-monospace,monospace; }
@@ -36,7 +36,7 @@
 </head>
 <body>
   <div class="frame">
-    <div class="step-badge">STEP 5 / 7 &mdash; SEALED</div>
+    <div class="step-badge">STEP 5 / 7 - SEALED</div>
     <h1>Orokin Vault</h1>
     <p class="sub">The seal answers only to its bearer.</p>
     <form id="vaultForm" autocomplete="off">
@@ -48,7 +48,7 @@
     </form>
     <div id="result" class="result" hidden></div>
     <div id="pow" class="pow" hidden>
-      <div class="pow-title">STEP 6 / 7 &mdash; PROOF OF WORK</div>
+      <div class="pow-title">STEP 6 / 7 - PROOF OF WORK</div>
       <div class="pow-stat">
         challenge: <b id="powChallenge"></b><br>
         difficulty: <b id="powDifficulty"></b> leading zero bits<br>
@@ -60,7 +60,7 @@
       <div class="pow-stat" id="powHint" style="margin-top:10px;font-style:italic;"></div>
     </div>
     <div id="reveal" class="reveal" hidden>
-      <div class="reveal-title">STEP 6 COMPLETE &mdash; STEP 7 / 7 AWAITS</div>
+      <div class="reveal-title">STEP 6 COMPLETE - STEP 7 / 7 AWAITS</div>
       <div class="reveal-body" id="revealBody"></div>
       <div class="reveal-body" id="activateInstr" style="margin-top:18px;"></div>
       <pre id="activateLine" style="background:#000;border:1px solid #FFD228;color:#FFD228;padding:12px;margin-top:10px;white-space:pre-wrap;user-select:all;font-size:13px;" hidden></pre>
@@ -93,7 +93,7 @@
       function buildInput(challenge, nonce) {
         var buf = new Uint8Array(challenge.length + 8);
         buf.set(challenge, 0);
-        // big-endian uint64 — must match setup_v2_payload.py's nonce.to_bytes(8, "big").
+        // big-endian uint64 - must match setup_v2_payload.py's nonce.to_bytes(8, "big").
         // Use Math instead of BigInt for compatibility; nonces won't exceed 2^53.
         var hi = Math.floor(nonce / 0x100000000);
         var lo = nonce >>> 0;
@@ -103,7 +103,7 @@
         return buf;
       }
 
-      // Per-visitor bind input: SHA-256(challenge || tenno_id || N || M) — must match
+      // Per-visitor bind input: SHA-256(challenge || tenno_id || N || M) - must match
       // handleVoidActivate's layout in tenno.js. tenno_id is the UUID string as UTF-8.
       function buildBindInput(challenge, tennoIdBytes, nonce, bind) {
         var buf = new Uint8Array(challenge.length + tennoIdBytes.length + 16);
