@@ -304,7 +304,7 @@ established the same procedural transform with 219-282 authored matches. All
 seven rows now match their complete 283-350 point sets against the resulting
 406-reference catalog. Live D1 never feeds the browser
 catalog directly. The page loads the byte-identical immutable
-`minimaps/catalog-20260823-6.js` asset while `catalog.js` remains the maintained
+`minimaps/catalog-20260908-8.js` asset while `catalog.js` remains the maintained
 generated source. At least 24 reference matches and 90% observed-point coverage
 are still required before the recovered transform maps any future points beyond
 that reviewed set. This prevents valid runtime extras from hiding the whole
@@ -354,6 +354,24 @@ cave left of B, and the two upper caves right of C while excluding unrelated
 roof and prop components. The clockwise affine transform and authored spawn
 catalog are unchanged; the 3D spawn markers used during local validation are
 not baked into the published WebP.
+
+The alternate Settlement Defense entrance adds 27 repeatable spawn positions
+beyond that arena. `minimaps/kadesh-entrance-spawns.json` supplies the reviewed
+positions to the generator, bringing the shared catalog to 239 references.
+All eight affected Kadesh runs agree on these positions after main-arena
+alignment. Strict position matching is unchanged, and all 19 Kadesh plus
+13 Spear saved coordinate runs now pass.
+
+This layout opts into `fitObservedSpawns`. `minimapDisplayFrame()` expands the
+display bounds only for verified positions, with 32 pixels of marker clearance;
+the complete entrance uses a 1316x1000 frame. The base image keeps its original
+affine calibration through a proportional inset. Unmapped entrance geometry is
+left blank and identified beneath the map, while the observed dots remain
+visible in the report, enlarged map, and PNG export. Ordinary arena runs retain
+their 1000x1000 frame, and explicit `elevationBands` preserve the original arena
+colours after adding the new references. Other layouts, parser behavior, counts,
+submissions, and stored records do not change. The UI bundle for this fix is
+`analyzer-20260908-141.js`.
 
 The shared Rhea / Lares / Sangeru minimap uses reviewed 1 m and 4 m walkable
 surface slices instead of the generic median derived from its nearly continuous

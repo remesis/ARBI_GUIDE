@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260825-7.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20260908-8.js"
 
 
 GROUP_NODES = {
@@ -213,6 +213,15 @@ CORPUS_SHIP_VIEWER_HIDDEN_SPAWN_REFERENCES = {
 # Analyzer-only references separate from the 3D viewer overlay so the approved
 # minimap artwork and public tileset data remain unchanged.
 ANALYZER_SPAWN_SUPPLEMENTS = {
+    # The alternate Settlement Defense entrance repeats these same 27
+    # positions across eight recorded runs after exact main-arena alignment.
+    "alator+kadesh+spear": {
+        f"entrance-{index:02d}": [position]
+        for index, position in enumerate(json.loads(
+            (Path(__file__).resolve().parents[1] / "minimaps"
+             / "kadesh-entrance-spawns.json").read_text(encoding="utf-8")
+        ), start=1)
+    },
     "callisto+sinai+io": {
         # Reviewed canonical projections from three Io coordinate rows. The
         # authored GasSpawn04 overlay clips these procedural edge-room points.
@@ -1725,6 +1734,7 @@ def render_map(
         "interceptionMarkers": len(territory),
         "levelPaths": overlay.get("levelPaths", []),
         "spawnPoints": mapped_spawns,
+        **({"fitObservedSpawns": True} if group_id == KADESH_DEFENSE_GROUP else {}),
         **({
             "proceduralSpawnExtras": {
                 "minMatchedPoints": 24,
@@ -1782,6 +1792,12 @@ def main() -> None:
         )
         if group_id == GAS_SPAWN_04_GROUP:
             gas_spawn_04_geometry = (positions, faces)
+        if group_id == KADESH_DEFENSE_GROUP:
+            # Preserve the main arena's elevation colours when adding the
+            # entrance references, including for Spear's unchanged layout.
+            heights = sorted(p[1] for values in entry["spawnPoints"].values() for p in values)
+            entry["elevationBands"] = [heights[(len(heights) * part + 4) // 5 - 1]
+                                       for part in range(1, 5)]
         entry["spawnPoints"] = merge_spawn_supplements(
             entry["spawnPoints"],
             ANALYZER_SPAWN_SUPPLEMENTS.get(group_id, {}),
