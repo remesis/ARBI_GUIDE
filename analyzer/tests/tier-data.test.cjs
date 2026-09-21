@@ -37,5 +37,20 @@ test("exports tier data to the browser before the Analyzer app loads", () => {
   assert.equal(context.window.ArbitrationTierData.findTier("Larzac").name, "B-Tier");
 
   const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
-  assert.ok(html.indexOf("tier-data.js") < html.indexOf("analyzer-20260914-142.js"));
+  assert.ok(html.indexOf("tier-data.js") < html.indexOf("analyzer-20260921-143.js"));
+});
+
+test("tier pill uses a single decorative outline with optical text centering", () => {
+  const css = fs.readFileSync(path.join(__dirname, "..", "analyzer.css"), "utf8");
+  const js = fs.readFileSync(path.join(__dirname, "..", "analyzer.js"), "utf8");
+  const badge = css.match(/\.tier-badge \{([^}]+)\}/)[1];
+  assert.match(css, /\.report-title-row \{[^}]*align-items: center/);
+  assert.match(badge, /top: 3px/);
+  assert.match(badge, /padding: 4px 12px 9px/);
+  assert.doesNotMatch(badge, /border:|border-radius:/);
+  assert.match(js, /class="tier-badge-frame"[^>]*aria-hidden="true"[^>]*focusable="false"/);
+  assert.match(js, /<rect x="0\.5" y="0\.5" width="calc\(100% - 1px\)" height="calc\(100% - 1px\)" rx="11\.5"/);
+  assert.match(css, /\.tier-badge-frame \{[^}]*pointer-events: none/);
+  assert.match(js, /class="tier-badge-label"/);
+  assert.match(js, /data-tooltip="\$\{h\(tier\.subname\)\}"/);
 });
