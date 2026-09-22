@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="apple-touch-icon" href="/logo.png">
   <link rel="stylesheet" href="./guide-shell.css">
-  <link rel="stylesheet" href="./rivens.css?v=20260903-vintage-lock-swap">
+  <link rel="stylesheet" href="./rivens.css?v=20260922-fixed-format">
 </head>
 <body class="rivens-page">
   <a class="skip-link" href="#content">Skip to Riven calculator</a>
@@ -186,11 +186,11 @@
                 <div class="planning-stats" id="planningStats"><div><span>Average Kuva</span><strong>301.84M</strong></div><div><span>50% success</span><strong>59,777 rolls</strong></div><div><span>95% success</span><strong>258,351 rolls</strong></div></div>
               </aside>
               </div>
-              <div class="strategy-table-wrap"><table class="strategy-table"><thead><tr><th scope="col">Strategy</th><th scope="col">Odds per roll</th><th scope="col">Kuva reduction</th></tr></thead><tbody id="strategyRows"><tr><th scope="row">No lock <small>Previous odds</small></th><td>1 / 86,240</td><td class="muted">0%</td></tr><tr><th scope="row">Lock positive</th><td>1 / 11,760</td><td class="positive-text">79.55%</td></tr><tr class="best-row"><th scope="row">Lock negative</th><td>1 / 2,660</td><td class="positive-text">95.37%</td></tr></tbody></table></div>
-              <p class="cost-caption">Includes <strong>50% extra Kuva per locked roll</strong>: 3,500 → 5,250 at the capped cost. Acquiring the starting trait and any setup costs are excluded.</p>
+              <div class="strategy-table-wrap"><table class="strategy-table"><thead><tr><th scope="col">Strategy</th><th scope="col">Odds per roll</th><th scope="col">Kuva reduction</th></tr></thead><tbody id="strategyRows"><tr><th scope="row">No lock <small>Previous odds</small></th><td>1 / 86,240</td><td class="muted">0%</td></tr><tr><th scope="row">Lock positive</th><td>1 / 2,940</td><td class="positive-text">94.89%</td></tr><tr class="best-row"><th scope="row">Lock negative</th><td>1 / 1,330</td><td class="positive-text">97.69%</td></tr></tbody></table></div>
+              <p class="cost-caption">Includes <strong>50% extra Kuva per locked roll</strong>: 3,500 → 5,250 at the capped cost. Locking keeps the selected 2p/3p and 0n/1n format. Locked estimates require a starting Riven in that format; acquiring it and other setup costs are excluded.</p>
             </section>
 
-          <section class="crossover-section" aria-labelledby="crossoverTitle"><div class="section-heading"><h2 id="crossoverTitle">When is locking a positive better?</h2><span>Same positive target, more acceptable negatives</span></div><p id="crossoverSummary">For this 3P1N target, a positive lock wins from 5 compatible negatives.</p><div class="crossover-scroll"><table class="crossover-table"><thead><tr><th scope="col">Acceptable negatives</th><th scope="col">Lock positive</th><th scope="col">Lock negative</th><th scope="col">Better lock</th></tr></thead><tbody id="crossoverRows"></tbody></table></div></section>
+          <section class="crossover-section" aria-labelledby="crossoverTitle"><div class="section-heading"><h2 id="crossoverTitle">When is locking a positive better?</h2><span>Same positive target, more acceptable negatives</span></div><p id="crossoverSummary">For this 3P1N target, a positive lock wins from 3 compatible negatives.</p><div class="crossover-scroll"><table class="crossover-table"><thead><tr><th scope="col">Acceptable negatives</th><th scope="col">Lock positive</th><th scope="col">Lock negative</th><th scope="col">Better lock</th></tr></thead><tbody id="crossoverRows"></tbody></table></div></section>
           </div>
         </div>
 
@@ -202,6 +202,6 @@
   <div id="rivenStatus" class="sr-only" role="status" aria-live="polite"></div>
   <noscript><p class="noscript-notice">Enable JavaScript to select a weapon and calculate Riven odds.</p></noscript>
   <script type="module" src="./shell.mjs"></script>
-  <script type="module" src="./app.mjs?v=20260903-vintage-lock-swap"></script>
+  <script type="module" src="./app.mjs?v=20260922-fixed-format"></script>
 </body>
 </html>

@@ -13,7 +13,7 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <h3>1. Scope and assumptions</h3>
   <p>This reference models <strong>trait identities</strong>, not numerical grades, mastery rank, polarity, or the cost of obtaining a starting Riven. A target is one exact unordered set of two or three positive traits, with either no negative or one negative from a set of acceptable alternatives.</p>
   <div class="math-callout"><strong>Working model: positives first.</strong> Positives are sampled uniformly without replacement. The negative is then sampled uniformly from its compatible pool. This is a modeling assumption, not a published probability guarantee. Different sampling weights or a different generation procedure would require different formulas.</div>
-  <p>Without a lock, and with a positive locked, each of 2P0N, 3P0N, 2P1N, and 3P1N is assigned probability 1/4. A positive lock retains that positive line; it does not force the Riven to keep the same layout. A negative lock retains a negative line, excludes both 0N layouts, and assigns probability 1/2 to each of 2P1N and 3P1N. Its positive counterpart is excluded if that counterpart belongs to the positive pool.</p>
+  <p>Without a lock, each of 2P0N, 3P0N, 2P1N, and 3P1N is assigned probability 1/4. Locking either sign preserves the starting format, so the target-format probability is 1 when that starting format matches the target, and 0 otherwise. Locked estimates start with a Riven already in the selected format; the cost of obtaining it is excluded. For a negative lock, its positive counterpart is excluded if that counterpart belongs to the positive pool.</p>
   <p>Only one line may be locked. The locked line is assumed to be available before the modeled rolling begins. No trait may appear as both a positive and a negative in the same target.</p>
   <p>Blast, Corrosive, Gas, Magnetic, Radiation, Viral, Weakpoint Damage, and Status Damage are treated as <strong>combination-only targets</strong>, not additions to the ordinary cycling pool. Calculations for these entries are conditional on the combined line being obtainable for the selected weapon, already created, and retained by the lock. Recipes, category availability, and the final combination system remain subject to the update.</p>
   <p>A <strong>vintage trait</strong> is likewise excluded from the current cycling pool. It can be selected only to model a line that already exists on the Riven and is retained by the matching positive or negative lock. Obtaining that vintage line is outside these estimates.</p>
@@ -28,7 +28,7 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
     <dt>T, a</dt><dd>The acceptable negative set and the number currently rollable after choosing S: a = |T ∩ (N ∖ S)|. A selected vintage negative belongs to T but not N.</dd>
     <dt>L, v</dt><dd>The pre-existing positive line L ∈ S, or compatible negative line v ∈ T, chosen for locking. Either line may be vintage.</dd>
     <dt>δ</dt><dd>1 if the locked negative's trait also belongs to P, otherwise 0. A genuinely negative-only trait does not remove a positive candidate.</dd>
-    <dt>w, u</dt><dd>The target-layout probabilities: w = 1/4 without a lock or with a positive lock; u = 1/2 with a negative lock.</dd>
+    <dt>w</dt><dd>The unlocked target-format probability, assumed to be 1/4. Either lock preserves an already-correct format with probability 1; it cannot reach a different format.</dd>
   </dl>
   <p>C(b, c) counts the unordered ways to select c distinct items from b:</p>
   <div class="formula">C(b, c) = b! / [c! (b − c)!]</div>
@@ -41,20 +41,20 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <div class="formula">q₀ = w × 1 / C(p, k) × a / d</div>
   <h4>Positive lock, kP1N</h4>
   <p>The locked positive already satisfies one member of S. The remaining k − 1 positives are chosen from p − 1 candidates. After completing the positive set, the compatible negative pool is still N ∖ S:</p>
-  <div class="formula">q₊ = w × 1 / C(p − 1, k − 1) × a / d</div>
+  <div class="formula">q₊ = 1 / C(p − 1, k − 1) × a / d</div>
   <p>Every ordinary eligible positive in an ordinary target has the same lock probability in this model. Locking a basic element is not intrinsically better or worse than locking another selected ordinary positive. What matters for the final negative step is the entire completed positive set.</p>
   <h4>Negative lock, kP1N</h4>
   <p>The required negative is already retained. Exclude its positive counterpart if eligible, leaving p − δ candidates for the k positives. There is no additional factor a/d because the negative is not drawn again:</p>
-  <div class="formula">q₋ = u × 1 / C(p − δ, k)</div>
+  <div class="formula">q₋ = 1 / C(p − δ, k)</div>
   <p>This formula also applies when v is a vintage negative that is not in N. The vintage line is retained rather than redrawn. Without that negative lock, the vintage line contributes nothing to a or to the no-lock chance.</p>
   <p>Accepting more negative alternatives improves the no-lock and positive-lock chances, but does not improve the chance while keeping one particular negative locked.</p>
   <h4>Targets with no negative</h4>
-  <div class="formula">q₀ = w / C(p, k) &nbsp;;&nbsp; q₊ = w / C(p − 1, k − 1) &nbsp;;&nbsp; q₋ = 0</div>
+  <div class="formula">q₀ = w / C(p, k) &nbsp;;&nbsp; q₊ = 1 / C(p − 1, k − 1) &nbsp;;&nbsp; q₋ = 0</div>
   <p>A negative lock cannot produce a 0N target. An invalid trait, a repeated positive, or a positive/negative conflict makes that exact target impossible rather than changing the size of a valid target's denominator.</p>
   <h4>One non-rollable positive already present and locked</h4>
   <p>A combined or vintage positive line L is not in P, so retaining it removes no currently rollable positive candidate. Choose the remaining k − 1 positives from all p ordinary candidates, then draw a compatible negative if requested. A vintage positive can still exclude its matching negative if that negative remains currently rollable.</p>
   <p><strong>Ingredients stay in the pool.</strong> Locking Blast leaves Heat and Cold available. Locking Weakpoint Damage leaves Damage and Multishot available. Locking Status Damage leaves Damage and Status Chance available. Normal weapon eligibility still applies. The combined lock does not remove those traits from either eligible pool; selecting an ingredient itself as another positive is what excludes its matching negative.</p>
-  <div class="formula">q₊ = w × 1 / C(p, k − 1) × a / d &nbsp; (kP1N)<br>q₊ = w / C(p, k − 1) &nbsp; (kP0N)</div>
+  <div class="formula">q₊ = 1 / C(p, k − 1) × a / d &nbsp; (kP1N)<br>q₊ = 1 / C(p, k − 1) &nbsp; (kP0N)</div>
   <p>Without retaining that line, q₀ = q₋ = 0 for the final target <em>through cycling alone</em>. Locking an ordinary positive instead also gives zero. A combined target may still be created through combining, while a vintage target must already exist. Those acquisition routes and their costs are outside this calculation. A combined element and either of its basic ingredients are distinct traits, so selecting one does not forbid the other.</p>
   <p>A target containing multiple combined or vintage positives cannot be retained by a single lock through one cycle. The calculator supplies no acquisition estimate for it and does not assume that a proposed cap on combined stats is a finalized game rule.</p>
 
@@ -62,16 +62,16 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <p>A positive trait that cannot be a negative, such as an element in the applicable pool, removes no candidate from N. Under positives-first sampling, two targets with equal positive-set probability can therefore have different chances of a <em>particular</em> negative. A larger remaining negative pool means a lower chance for that one negative. It does not make the positive element itself less likely.</p>
   <p>If every compatible negative is accepted, a = d and the final negative factor cancels. Counting all valid final combinations and assigning them equal probability is a different model and is not used here.</p>
   <p>For an ordinary target with nonzero q₀:</p>
-  <div class="formula">q₊ / q₀ = C(p, k) / C(p − 1, k − 1) = p / k</div>
+  <div class="formula">q₊ / q₀ = 4 × C(p, k) / C(p − 1, k − 1) = 4p / k</div>
 
   <h3>5. When is a positive lock better?</h3>
   <p>The crossover below compares ordinary targets. If the target includes one combined or vintage positive, retaining that line is the only modeled cycling strategy with a nonzero chance, regardless of how many negatives are acceptable. A vintage negative can likewise be preserved only by locking that negative.</p>
   <p>Both locked strategies use the same per-roll Kuva cost, so the one with the larger success probability also has the lower expected Kuva cost. Solve q₊ &gt; q₋:</p>
-  <div class="formula">a &gt; (u / w) × d × C(p − 1, k − 1) / C(p − δ, k)</div>
+  <div class="formula">a &gt; d × C(p − 1, k − 1) / C(p − δ, k)</div>
   <p>With a positive counterpart for the locked negative (δ = 1), this simplifies to:</p>
-  <div class="formula">a &gt; 2k(n − r) / (p − k)</div>
+  <div class="formula">a &gt; k(n − r) / (p − k)</div>
   <p>For a negative-only trait (δ = 0), it becomes:</p>
-  <div class="formula">a &gt; 2k(n − r) / p</div>
+  <div class="formula">a &gt; k(n − r) / p</div>
   <p>The first winning integer is the floor of the threshold plus one. Equality is a tie. If the threshold exceeds the number of compatible negative alternatives, a positive lock cannot win within that target. Changing the desired positives can change the threshold.</p>
 
   <h3>6. Your current selection</h3>
@@ -80,15 +80,15 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   ${retainedPositives.length ? `<p>Retained positive lines: ${retainedPositives.map(nameOf).map(esc).join(', ')}. Positive-lock comparison: ${esc(nameOf(row.heldPositive))}. Pool sizes above still count currently rollable ordinary traits only.</p>` : ''}
   ${vintageNegatives.length ? `<p>Selected vintage negatives: ${vintageNegatives.map(nameOf).map(esc).join(', ')}. Negative-lock comparison: ${esc(nameOf(target.heldNegative))}.</p>` : ''}
   <table><thead><tr><th>Strategy</th><th>Current target odds</th></tr></thead><tbody><tr><td>No lock</td><td>${esc(chance(research.results.none.probability))}</td></tr><tr><td>Positive lock</td><td>${esc(chance(research.results.positive.probability))}</td></tr><tr><td>Negative lock</td><td>${target.hasNegative ? esc(chance(research.results.negative.probability)) : 'Not applicable'}</td></tr></tbody></table>
-  ${single && target.hasNegative && row.a > 0 && row.qNegative > 0 ? `<div class="formula selection-formula">q₀ = ${row.a} / [4 × C(${row.p}, ${row.k}) × ${row.d}]<br>q₊ = ${row.a} / [4 × C(${row.p - 1}, ${row.k - 1}) × ${row.d}]<br>q₋ = 1 / [2 × C(${row.p - row.delta}, ${row.k})]</div>` : ''}
-  ${single && retainedPositives.length === 1 && row.qPositive > 0 ? `<div class="formula selection-formula">q₊ = ${target.hasNegative ? `${row.a} / [4 × C(${row.p}, ${row.k - 1}) × ${row.d}]` : `1 / [4 × C(${row.p}, ${row.k - 1})]`}</div>` : ''}
-  ${single && row.retainedNegative && row.qNegative > 0 ? `<div class="formula selection-formula">q₋ = 1 / [2 × C(${row.p - row.delta}, ${row.k})]</div>` : ''}
+  ${single && target.hasNegative && row.a > 0 && row.qNegative > 0 ? `<div class="formula selection-formula">q₀ = ${row.a} / [4 × C(${row.p}, ${row.k}) × ${row.d}]<br>q₊ = ${row.a} / [C(${row.p - 1}, ${row.k - 1}) × ${row.d}]<br>q₋ = 1 / C(${row.p - row.delta}, ${row.k})</div>` : ''}
+  ${single && retainedPositives.length === 1 && row.qPositive > 0 ? `<div class="formula selection-formula">q₊ = ${target.hasNegative ? `${row.a} / [C(${row.p}, ${row.k - 1}) × ${row.d}]` : `1 / C(${row.p}, ${row.k - 1})`}</div>` : ''}
+  ${single && row.retainedNegative && row.qNegative > 0 ? `<div class="formula selection-formula">q₋ = 1 / C(${row.p - row.delta}, ${row.k})</div>` : ''}
 
   <h3>7. Kuva reduction and planning</h3>
   <p>At the capped cost, an unlocked roll costs c₀ = ${number(catalog.assumptions.kuvaPerRoll)} Kuva. The stated 50% surcharge gives cᴸ = ${number(catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier)} for a locked roll. Expected attempts are 1/q, so:</p>
   <div class="formula">E[K₀] = c₀ / q₀ &nbsp;;&nbsp; E[Kᴸ] = cᴸ / qᴸ</div>
   <div class="formula">Kuva reduction = 1 − E[Kᴸ] / E[K₀] = 1 − 1.5 q₀ / qᴸ</div>
-  <p>The comparison always uses the <em>same</em> desired positive set and acceptable negative set on both sides. A negative percentage means more expected Kuva, not a saving. For an ordinary positive target the positive-lock reduction simplifies to 1 − 1.5k/p under the same layout weights.</p>
+  <p>The comparison always uses the <em>same</em> desired positive set and acceptable negative set on both sides. A negative percentage means more expected Kuva, not a saving. For an ordinary positive target the positive-lock reduction simplifies to 1 − 1.5k/(4p), with an unlocked format weight of 1/4 and a preserved locked format.</p>
   <p>A target that requires retaining a combined or vintage line has no equivalent no-lock cycling baseline. Its Kuva reduction is therefore shown as Not applicable, not 100%. A finite locked estimate covers only subsequent cycling, excluding acquisition of that retained line and any later combining steps.</p>
   <p>These totals exclude obtaining the first suitable trait, setup costs, and changes to strategy along the way. Early rolls below the Kuva cap follow a different price schedule. Farming time also depends on acquisition rate and is not calculated here.</p>
   <h4>Cumulative success</h4>
@@ -109,6 +109,7 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
 
   <h3>9. Sources and research status</h3>
   <p><strong>Implementation source.</strong> <a href="https://forums.warframe.com/topic/1521438-devshorts-115-116-a-look-at-riven-changes/" target="_blank" rel="noopener noreferrer">Digital Extremes, Devshorts #115 &amp; #116: A look at Riven Changes</a>, including the 31 August 2026 follow-up. Reviewed 2 September 2026. The announcement describes retaining one locked trait and the change to Kuva, while leaving details subject to change. It is not a probability disclosure.</p>
+  <p><strong>Format retention.</strong> <a href="https://x.com/Rottangor/status/2102222698952659303" target="_blank" rel="noopener noreferrer">Pablo (@PabloMakes), replying to Creed (@Rottangor) on X</a>; screenshot reviewed 22 September 2026. The reply confirms that locking the negative on a 2P1N Riven keeps two positives. This reference applies format preservation to either lock across 2P0N, 3P0N, 2P1N, and 3P1N. Uniform trait sampling and the unlocked 1/4 format weights remain modeling assumptions.</p>
   <p><strong>Pricing basis.</strong> <a href="https://www.youtube.com/live/6QjnVIj3gr0?t=681s" target="_blank" rel="noopener noreferrer">Devshorts #115 (11:21 to 11:35)</a> discusses a 50% locking charge in the original resource. <a href="https://www.youtube.com/watch?v=4CA3pSWhDmg&amp;t=568s" target="_blank" rel="noopener noreferrer">Devshorts #116 (9:28 to 10:09)</a> replaces that resource with Kuva. This reference carries the quoted ratio into the revised currency, using cᴸ = 1.5c₀; confirm the final rate at release.</p>
   <p><strong>Trait-pool background.</strong> <a href="https://wiki.warframe.com/w/Riven_Mods" target="_blank" rel="noopener noreferrer">Warframe Wiki, Riven Mods</a>, a community-maintained reference. Check individual weapon eligibility before substituting a pool into the formulas.</p>
   <p><strong>Mathematical results.</strong> Counts, probabilities, crossover thresholds and expected values are derived here from the stated assumptions. Numerical stat requirements, acquisition strategy and full farming-time optimization need additional inputs.</p>
