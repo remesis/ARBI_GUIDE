@@ -2,19 +2,31 @@
 const states = ['excluded', 'allowed', 'unresolved'];
 const slug = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-// Combination-only targets are separate from every ordinary cycling pool.
+// Spliced targets are separate from every ordinary cycling pool.
 export const COMBINED_TRAITS = Object.freeze([
-  {id: 'blast', name: 'Blast', recipe: 'Cold + Heat'},
-  {id: 'corrosive', name: 'Corrosive', recipe: 'Electricity + Toxin'},
-  {id: 'gas', name: 'Gas', recipe: 'Heat + Toxin'},
-  {id: 'magnetic', name: 'Magnetic', recipe: 'Cold + Electricity'},
-  {id: 'radiation', name: 'Radiation', recipe: 'Heat + Electricity'},
-  {id: 'viral', name: 'Viral', recipe: 'Cold + Toxin'},
-  {id: 'weakpoint-damage', name: 'Weakpoint Damage'},
-  {id: 'status-damage', name: 'Status Damage'},
+  {id: 'blast', name: 'Blast', group: 'all', recipe: 'Cold + Heat'},
+  {id: 'corrosive', name: 'Corrosive', group: 'all', recipe: 'Electricity + Toxin'},
+  {id: 'gas', name: 'Gas', group: 'all', recipe: 'Heat + Toxin'},
+  {id: 'magnetic', name: 'Magnetic', group: 'all', recipe: 'Cold + Electricity'},
+  {id: 'radiation', name: 'Radiation', group: 'all', recipe: 'Heat + Electricity'},
+  {id: 'viral', name: 'Viral', group: 'all', recipe: 'Cold + Toxin'},
+  {id: 'damage-to-orokin', name: 'Damage to Orokin', group: 'all', recipe: 'Damage to Corpus + Damage to Grineer'},
+  {id: 'damage-to-techrot', name: 'Damage to Techrot', group: 'all', recipe: 'Damage to Corpus + Damage to Infested'},
+  {id: 'damage-to-scaldra', name: 'Damage to Scaldra', group: 'all', recipe: 'Damage to Infested + Damage to Grineer'},
+  {id: 'weakpoint-damage', name: 'Weakpoint Damage', group: 'ranged', recipe: 'Damage + Zoom; or Damage + Multishot'},
+  {id: 'weakpoint-critical-chance', name: 'Weakpoint Critical Chance', group: 'ranged', recipe: 'Critical Chance + Zoom; or Critical Chance + Multishot'},
+  {id: 'ammo-efficiency', name: 'Ammo Efficiency', group: 'ranged', recipe: 'Magazine Capacity + Reload Speed; or Weapon Recoil + Ammo Maximum'},
+  {id: 'magazine-reload-while-holstered', name: 'Magazine Reload While Holstered', group: 'ranged', recipe: 'Ammo Maximum + Reload Speed; or Ammo Maximum + Magazine Capacity'},
+  {id: 'status-damage', name: 'Status Damage', group: 'ranged', recipe: 'Damage + Status Chance'},
+  {id: 'heavy-attack-damage', name: 'Heavy Attack Damage', group: 'melee', recipe: 'Heavy Attack Efficiency + Additional Combo Count'},
+  {id: 'heavy-attack-windup-speed', name: 'Heavy Attack Windup Speed', group: 'melee', recipe: 'Heavy Attack Efficiency + Combo Duration'},
+  {id: 'parry-angle', name: 'Parry Angle', group: 'melee', recipe: 'Attack Speed + Range'},
+  {id: 'slam-damage', name: 'Slam Damage', group: 'melee', recipe: 'Damage + Attack Speed'},
 ].map(Object.freeze));
 const combinedIds = new Set(COMBINED_TRAITS.map(trait => trait.id));
 export const isCombinedTrait = id => combinedIds.has(id);
+export const splicedTraitsFor = definition => COMBINED_TRAITS.filter(trait => trait.group === 'all'
+  || trait.group === (['Melee', 'Zaw'].includes(definition) ? 'melee' : 'ranged'));
 
 export function unpackCatalog(data) {
   if (data.schemaVersion !== 2 || !data.weapons?.length) throw new Error('Unsupported Riven catalog.');

@@ -1,5 +1,5 @@
 // Exact combinatorial calculations under the stated positives-first model.
-import {isCombinedTrait} from './catalog.mjs';
+import {isCombinedTrait} from './catalog.mjs?v=20260922-splicing';
 
 export function choose(n, k) {
   if (!Number.isInteger(n) || !Number.isInteger(k) || n < 0 || k < 0 || k > n) return 0;
@@ -30,33 +30,36 @@ export function enumeratePools(family) {
 export function evaluate(pool, target, assumptions) {
   const {positives, negatives, hasNegative, heldNegative} = target;
   const combined = positives.filter(isCombinedTrait);
-  const retainedPositiveSet = new Set([...(target.retainedPositives || []), ...combined]);
+  const retainedPositiveSet = new Set((target.retainedPositives || []).filter(id => !isCombinedTrait(id)));
   const retainedNegativeSet = new Set(target.retainedNegatives || []);
   const retainedPositives = positives.filter(id => retainedPositiveSet.has(id));
-  const ordinary = positives.filter(id => !retainedPositiveSet.has(id));
-  const heldPositive = target.heldPositive ?? combined[0] ?? positives[0];
+  const manualCandidates = positives.filter(id => !isCombinedTrait(id));
+  const ordinary = manualCandidates.filter(id => !retainedPositiveSet.has(id));
+  const heldPositive = target.heldPositive ?? retainedPositives[0] ?? manualCandidates[0];
   const k = positives.length;
+  const m = k - combined.length;
   const p = pool.positive.size, n = pool.negative.size;
   const r = positives.filter(id => pool.negative.has(id)).length;
   const d = n - r;
   const compatible = [...pool.negative].filter(id => !positives.includes(id));
   const a = new Set(negatives.filter(id => compatible.includes(id))).size;
   const delta = pool.positive.has(heldNegative) ? 1 : 0;
-  const validTarget = [2, 3].includes(k) && new Set(positives).size === k && ordinary.every(id => pool.positive.has(id));
+  const validTarget = [2, 3].includes(k) && combined.length <= 1 && new Set(positives).size === k && ordinary.every(id => pool.positive.has(id));
   const validPositive = validTarget && !retainedPositives.length;
-  const validPositiveLock = validTarget && positives.includes(heldPositive) && (retainedPositives.length === 1
+  const validPositiveLock = validTarget && manualCandidates.includes(heldPositive) && (retainedPositives.length === 1
     ? heldPositive === retainedPositives[0] : !retainedPositives.length && pool.positive.has(heldPositive));
   const positiveCandidates = p - (retainedPositiveSet.has(heldPositive) ? 0 : pool.positive.has(heldPositive) ? 1 : 0);
   const validNegative = hasNegative && negatives.includes(heldNegative) && !positives.includes(heldNegative)
     && (compatible.includes(heldNegative) || retainedNegativeSet.has(heldNegative));
   const negativeFactor = hasNegative ? (d > 0 ? a / d : 0) : 1;
-  const q0 = validPositive ? assumptions.unlockedLayoutWeight / choose(p, k) * negativeFactor : 0;
-  const qPositive = validPositiveLock ? assumptions.positiveLockLayoutWeight / choose(positiveCandidates, k - 1) * negativeFactor : 0;
-  const qNegative = validPositive && validNegative ? assumptions.negativeLockLayoutWeight / choose(p - delta, k) : 0;
+  const inverseChoose = (count, draws) => { const ways = choose(count, draws); return ways ? 1 / ways : 0; };
+  const q0 = validPositive ? (combined.length ? 1 : assumptions.unlockedLayoutWeight) * inverseChoose(p, m) * negativeFactor : 0;
+  const qPositive = validPositiveLock ? assumptions.positiveLockLayoutWeight * inverseChoose(positiveCandidates, m - 1) * negativeFactor : 0;
+  const qNegative = validPositive && validNegative ? assumptions.negativeLockLayoutWeight * inverseChoose(p - delta, m) : 0;
   const threshold = validPositive && validNegative
-    ? assumptions.negativeLockLayoutWeight / assumptions.positiveLockLayoutWeight * d * choose(p - 1, k - 1) / choose(p - delta, k)
+    ? assumptions.negativeLockLayoutWeight / assumptions.positiveLockLayoutWeight * d * choose(p - 1, m - 1) / choose(p - delta, m)
     : null;
-  return {p, n, k, r, d, a, delta, compatible, heldPositive, positiveCandidates, combinedCount: combined.length,
+  return {p, n, k, m, r, d, a, delta, compatible, heldPositive, positiveCandidates, positiveDraws: m - 1, combinedCount: combined.length,
     retainedPositiveCount: retainedPositives.length, retainedNegative: retainedNegativeSet.has(heldNegative), q0, qPositive, qNegative, threshold,
     winsFrom: threshold === null ? null : Math.floor(threshold + 1e-10) + 1};
 }
@@ -66,7 +69,7 @@ export function bounds(values) {
   return valid.length ? {min: Math.min(...valid), max: Math.max(...valid)} : null;
 }
 
-export function reduction(baseProbability, lockedProbability, surcharge = 1.5) {
+export function reduction(baseProbability, lockedProbability, surcharge = 2) {
   if (!(baseProbability > 0)) return null;
   if (!(lockedProbability > 0)) return -Infinity;
   return 1 - surcharge * baseProbability / lockedProbability;

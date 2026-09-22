@@ -106,6 +106,8 @@
 .lock-button:hover { color: #e9cafa; border-color: #6b4f7e; background: #372641; }
 .lock-button[aria-pressed="true"] { color: #a0e3ff; background: #1c3545; border-color: #50879e; }
 .lock-button:disabled { opacity: .3; cursor: not-allowed; }
+.stat-row.is-spliced .lock-button:disabled { opacity: 1; cursor: default; color: #d1a3ec; background: #30213c; border-color: #9a6cb5; }
+.stat-row.is-spliced .stat-combo .combo-trigger { border-color: #aa79c6; color: #e7c6fb; background: #30213c; }
 .stat-row.is-locked .stat-combo .combo-trigger { border-color: #589bb7; color: #bdeaff; background: #193040; }
 .stat-row.is-vintage .stat-combo .combo-trigger { border-color: #9b626b; color: var(--bad); }
 .card-footer { color: var(--riven); text-align: center; line-height: 1.3; }
