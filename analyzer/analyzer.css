@@ -791,6 +791,8 @@ body.minimap-lightbox-open { overflow: hidden; }
   pointer-events: none;
 }
 .export-stage .report-sheet { margin: 0 !important; transform: none !important; }
+/* Match the capture viewport before SVG dimensions are frozen by the exporter. */
+.export-stage .tier-badge { font-size: 22px; }
 .export-stage .report-header { grid-template-columns: auto 1fr auto; gap: 19px; }
 .export-stage .report-logo { display: block; width: 78px; height: 78px; }
 .export-stage .run-identity { display: block; grid-column: auto; min-width: 230px; text-align: right; }

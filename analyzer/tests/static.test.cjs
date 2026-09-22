@@ -6,6 +6,17 @@ const vm = require("node:vm");
 
 const analyzerDir = path.resolve(__dirname, "..");
 
+test("export tier label and SVG frame use the same size at every browser width", () => {
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  // html2canvas freezes computed SVG sizes before applying its capture viewport.
+  // The HTML label must already have its final export size at that point.
+  assert.match(css, /\.tier-badge\s*\{[^}]*font-size:\s*clamp\(16px,\s*1\.25vw,\s*22px\)/);
+  assert.match(css, /\.export-stage \.tier-badge\s*\{\s*font-size:\s*22px;\s*\}/);
+  assert.match(js, /windowWidth:\s*2022/);
+  assert.ok(css.indexOf(".export-stage .tier-badge") > css.indexOf(".tier-badge {"));
+});
+
 test("local page includes guide navigation, log-folder helper, and PNG clipboard action", () => {
   const html = fs.readFileSync(path.join(analyzerDir, "index.html"), "utf8");
   const guideHtml = fs.readFileSync(path.resolve(analyzerDir, "..", "index.html"), "utf8");
@@ -18,7 +29,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260908-8\.js/);
   assert.match(html, /analyzer-20260921-143\.js/);
-  assert.match(html, /analyzer\.css\?v=20260921-100/);
+  assert.match(html, /analyzer\.css\?v=20260922-101/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260825-40/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
