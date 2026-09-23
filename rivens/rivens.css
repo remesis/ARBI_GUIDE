@@ -227,12 +227,13 @@
 .splice-steps .splice-total { display: grid; gap: 6px; background: rgba(114,199,255,.05); padding: 10px 12px; margin: 14px 0 0; font-size: calc(12px * var(--riven-text-scale)); }
 .splice-total strong { color: var(--accent); font-size: inherit; font-weight: 600; }
 .splice-setup .cost-caption { margin: 8px 0 0; }
-.lock-grade-intro { margin: 0 0 12px; font-size: calc(12px * var(--riven-text-scale)); }
-.lock-grade-scroll { overflow-x: auto; }
-.lock-grade-table { width: 100%; border-collapse: collapse; font-size: calc(12px * var(--riven-text-scale)); font-variant-numeric: tabular-nums; }
-.lock-grade-table th, .lock-grade-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #1d2a37; }
+.selected-lock-body .splice-recipe { margin-bottom: 8px; }
+.lock-grade-intro { margin: 0 0 8px; font-size: calc(12px * var(--riven-text-scale)); }
+.lock-grade-scroll { max-width: 560px; overflow-x: auto; }
+.lock-grade-table { width: 100%; border-collapse: collapse; font-size: calc(12px * var(--riven-text-scale)); line-height: 1.35; font-variant-numeric: tabular-nums; }
+.lock-grade-table th, .lock-grade-table td { padding: 3px 8px; text-align: left; border-bottom: 1px solid #1d2a37; }
 .lock-grade-table thead th { color: var(--muted); font-weight: 400; border-bottom-color: #2c3948; }
-.lock-grade-table thead small { font-size: calc(10px * var(--riven-text-scale)); }
+.lock-grade-table td { white-space: nowrap; }
 .lock-grade-table tbody th { color: var(--accent); font-weight: 600; }
 .lock-grade-table th:last-child, .lock-grade-table td:last-child { text-align: right; }
 .lock-grade-table tbody tr:nth-child(odd) { background: rgba(114,199,255,.035); }
