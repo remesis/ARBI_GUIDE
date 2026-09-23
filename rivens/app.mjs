@@ -1,6 +1,6 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-setup-totals';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup} from './odds.mjs?v=20260923-setup-totals';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-partner-copy';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup} from './odds.mjs?v=20260923-partner-copy';
 import {FORMATS, traitRange, formatRange} from './ranges.mjs';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
@@ -277,17 +277,17 @@ function renderSpliceSetup() {
   const hasNegativePartner = partnerPools.some(pool => pool.negative.size);
   let partnerInstruction;
   if (partnerEligibilityUnresolved) {
-    partnerInstruction = 'Use a partner eligible for the matching recipe in this weapon’s pool; some partner eligibility is unresolved.';
+    partnerInstruction = 'in this weapon’s eligible pool; some partner eligibility is unresolved.';
   } else if (!hasNegativePartner) {
-    partnerInstruction = `Roll its partner as a positive. ${state.hasNegative ? 'These recipe partners cannot roll as negatives on this weapon.' : `${format()} has no negative slot.`}`;
+    partnerInstruction = `as a positive. ${state.hasNegative ? 'These recipe partners cannot roll as negatives on this weapon.' : `${format()} has no negative slot.`}`;
   } else if (!hasPositivePartner) {
-    partnerInstruction = 'Roll its partner as a negative.';
+    partnerInstruction = 'as a negative.';
   } else if ([...partnerPools[0].positive].every(id => partnerPools[0].negative.has(id))
     && partnerPools[0].positive.size === partnerPools[0].negative.size) {
-    partnerInstruction = 'Accept its matching partner as either a positive or a negative.';
+    partnerInstruction = 'as either a positive or a negative.';
   } else {
     const negatives = [...partnerPools[0].negative].map(nameOf);
-    partnerInstruction = `Accept its matching partner in an eligible positive or negative slot. Eligible negative partners: ${negatives.join(', ')}.`;
+    partnerInstruction = `in an eligible positive or negative slot. Eligible negative partners: ${negatives.join(', ')}.`;
   }
   const replacementSlot = hasPositivePartner && hasNegativePartner ? 'positive or negative' : hasNegativePartner ? 'negative' : 'positive';
   const choices = alternatives.length > 1 ? `<details class="splice-lock-choices"><summary>${alternatives.length} equally optimal starting locks</summary>${['negative', 'positive'].map(polarity => {
@@ -296,8 +296,8 @@ function renderSpliceSetup() {
   }).join('')}</details>` : '';
   section.innerHTML = heading + `
     <div class="splice-steps">
-      <div><h3>1. Find an S-grade ingredient</h3><strong>${rolls(result.first)} <small>rolls on average</small></strong><p>Start with a ${format()} Riven and manually lock ${esc(lockInstruction)}. Locking preserves ${format()}. Keep rolling until a usable positive ingredient is S-grade.</p>${choices}<span class="small-muted">${esc(oddsText(result.chance))} per roll</span></div>
-      <div><h3>2. Lock the S-grade, find its partner</h3><strong>${rolls(result.ifMissing)} <small>rolls if missing</small></strong><p>Move the lock to the S-grade positive. ${esc(partnerInstruction)}</p><span class="small-muted">Already together on ${percentText(result.ready)} of S-grade finds. That makes this step ${rolls(result.additional)} extra rolls on average.</span>
+      <div><h3>1. Find an S-grade ingredient</h3><strong>${rolls(result.first)} <small>rolls on average</small></strong><p>Start with a ${format()} Riven and manually lock ${esc(lockInstruction)}. Locking preserves ${format()}. Keep rolling until a usable positive ingredient is S-grade.</p>${choices}</div>
+      <div><h3>2. Lock the S-grade, find its partner</h3><strong>${rolls(result.ifMissing)} <small>rolls if missing</small></strong><p>Already together on ${percentText(result.ready)} of S-grade finds. If not, move the lock to the S-grade positive. ${rolls(result.additional)} extra rolls on average to find its matching partner ${esc(partnerInstruction)}</p>
         <p class="splice-total"><span>Splice ready: <strong>${rolls(result.total)} rolls on average</strong></span><span>Average setup Kuva: <strong>${intervalText(kuva, magnitude)}</strong></span></p>
       </div>
     </div>
@@ -371,13 +371,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-setup-totals');
+  const {renderMath} = await import('./math.mjs?v=20260923-partner-copy');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-setup-totals');
+  const response = await fetch('./data.json?v=20260923-partner-copy');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); selectCategory('Primary');

@@ -1,5 +1,5 @@
 import {escapeHTML as esc, number, oddsText, intervalText} from './format.mjs';
-import {isCombinedTrait, splicedTraitsFor} from './catalog.mjs?v=20260923-setup-totals';
+import {isCombinedTrait, splicedTraitsFor} from './catalog.mjs?v=20260923-partner-copy';
 
 export function renderMath({catalog, research, target, variant, format, nameOf}) {
   const single = research.scenarios.length === 1, row = research.scenarios[0];
