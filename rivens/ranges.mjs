@@ -5,6 +5,22 @@ export const FORMATS = {
   '3p1n': {positives: 3, negative: true, name: '3 positives, 1 negative'},
 };
 
+// Grade bands relative to the mean. Curses reverse the grade direction so
+// higher grades represent a smaller penalty, regardless of the displayed sign.
+export const GRADES = Object.freeze([
+  ['S', 9.5, 10], ['A+', 7.5, 9.5], ['A', 5.5, 7.5], ['A-', 3.5, 5.5],
+  ['B+', 1.5, 3.5], ['B', -1.5, 1.5], ['B-', -3.5, -1.5],
+  ['C+', -5.5, -3.5], ['C', -7.5, -5.5], ['C-', -9.5, -7.5], ['F', -10, -9.5],
+].map(([name, min, max]) => Object.freeze({name, min, max, atLeastChance: (10 - min) / 20})));
+
+export function traitGradeRange(trait, disposition, format, polarity, model, grade, rank = 8) {
+  if (!trait || !Number.isFinite(trait.value)) return null;
+  const variation = polarity === 'negative'
+    ? [1 - grade.max / 100, 1 - grade.min / 100]
+    : [1 + grade.min / 100, 1 + grade.max / 100];
+  return traitRange(trait, disposition, format, polarity, {...model, variation}, rank);
+}
+
 export function traitRange(trait, disposition, format, polarity, model, rank = 8) {
   const layout = FORMATS[format];
   if (!layout || !['positive', 'negative'].includes(polarity)) throw new RangeError('Invalid Riven layout or polarity.');

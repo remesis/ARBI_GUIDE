@@ -1,5 +1,5 @@
 // Exact combinatorial calculations under the stated positives-first model.
-import {isCombinedTrait} from './catalog.mjs?v=20260923-partner-copy';
+import {isCombinedTrait} from './catalog.mjs?v=20260923-lock-grades';
 
 export const S_GRADE_CHANCE = .025;
 
@@ -135,6 +135,37 @@ export function enumeratePools(family) {
     scenarios.push(pool);
   }
   return scenarios;
+}
+
+/** Acquire one ordinary trait before applying its manual lock. A pre-existing
+ * splice occupies one positive slot and fixes the format; otherwise cycling
+ * is unlocked and must also produce the requested format. Other traits are free.
+ */
+export function selectedLockChance(pool, {id, polarity, positives, hasNegative, hasSplice = false}, assumptions) {
+  if (![2, 3].includes(positives) || !['positive', 'negative'].includes(polarity)
+    || isCombinedTrait(id) || !pool[polarity].has(id) || polarity === 'negative' && !hasNegative) return 0;
+  const p = pool.positive.size, n = pool.negative.size, draws = positives - Number(hasSplice);
+  const denominator = choose(p, draws);
+  if (!denominator) return 0;
+  const shared = [...pool.positive].filter(trait => pool.negative.has(trait)).length;
+  let probability = 0;
+  if (polarity === 'positive') {
+    if (!hasNegative) probability = choose(p - 1, draws - 1) / denominator;
+    else {
+      const delta = Number(pool.negative.has(id)), remainingShared = shared - delta;
+      for (let j = 0; j <= draws - 1; j++) {
+        if (n - delta - j > 0) probability += choose(remainingShared, j) * choose(p - 1 - remainingShared, draws - 1 - j) / denominator;
+      }
+    }
+  } else {
+    // The target negative must not occur among the positives. Marginalize the
+    // compatible negative pool for every possible overlap count, not 1 / n.
+    const delta = Number(pool.positive.has(id)), remainingShared = shared - delta;
+    for (let j = 0; j <= draws; j++) {
+      if (n > j) probability += choose(remainingShared, j) * choose(p - delta - remainingShared, draws - j) / denominator / (n - j);
+    }
+  }
+  return Math.min(1, probability * (hasSplice ? 1 : assumptions.unlockedLayoutWeight));
 }
 
 export function evaluate(pool, target, assumptions) {
