@@ -210,6 +210,9 @@
 .splice-disclosure { margin-top: 0; }
 .splice-disclosure > summary { margin-bottom: 0; }
 .splice-disclosure > summary h2 { color: inherit; font-size: inherit; }
+.setup-collapsed-summary { display: none; margin-left: 10px; color: var(--muted); font-size: .85em; font-weight: 400; }
+.splice-disclosure:not([open]) > summary .setup-collapsed-summary { display: inline; }
+.setup-collapsed-summary strong { color: var(--accent); font-weight: 600; white-space: nowrap; }
 .splice-disclosure > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .splice-disclosure .splice-toggle { flex: 0 0 20px; }
 .splice-body, .selected-lock-body { padding: 16px; }

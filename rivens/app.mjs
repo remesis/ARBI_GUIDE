@@ -1,7 +1,7 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-lock-grade-default';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-lock-grade-default';
-import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-lock-grade-default';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-collapsed-estimates';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-collapsed-estimates';
+import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-collapsed-estimates';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -65,6 +65,10 @@ function saveSetupGrade(key, grade) {
 function gradeSelector(key, label) {
   const selected = setupGrade(key);
   return `<select id="setupGrade-${key}" class="setup-grade-select" data-riven-grade="${key}" aria-label="${esc(label)}">${GRADES.map(grade => `<option value="${esc(grade.name)}"${grade === selected ? ' selected' : ''}>${esc(grade.name)}</option>`).join('')}</select>`;
+}
+function collapsedSetupSummary(grade, rolls, unavailable = 'Not possible') {
+  const estimate = rolls ? `${intervalText(rolls, n => number(n, 1))} avg rolls` : unavailable;
+  return `<span class="setup-collapsed-summary"><span>≥${esc(grade.name)} - </span><strong>${esc(estimate)}</strong></span>`;
 }
 function rememberSection(key, expanded) {
   if (sectionPreferences.get(key) === expanded) return;
@@ -358,7 +362,8 @@ function renderSpliceSetup() {
   if (!spliceSetupCache.has(key)) spliceSetupCache.set(key, optimalSpliceSetup(pools, recipes, target().positives.length, state.hasNegative, grade.atLeastChance));
   const result = spliceSetupCache.get(key);
   const recipeText = recipes.map(pair => pair.map(nameOf).join(' + ')).join('; or ');
-  const heading = `<details class="math-details splice-disclosure" data-riven-section="splice"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><div class="splice-recipe-row">${gradeSelector('splice', 'Splice minimum grade')}<p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p></div>`;
+  const summary = collapsedSetupSummary(grade, result.available ? result.total : null, result.uncertain ? 'Estimate unavailable' : 'Not possible');
+  const heading = `<details class="math-details splice-disclosure" data-riven-section="splice"${expanded ? ' open' : ''}><summary class="section-heading"><h2><span id="spliceSetupTitle">Getting Optimal Splice</span> ${summary}</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><div class="splice-recipe-row">${gradeSelector('splice', 'Splice minimum grade')}<p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p></div>`;
   if (!result.available) {
     section.innerHTML = heading + `<p class="research-notice">${result.uncertain ? 'Unresolved ingredient eligibility changes which setup route is possible or best. No single optimal route is shown until that pool is confirmed.' : 'No complete recipe can be rolled in this weapon’s eligible pools and selected format. Existing vintage ingredients are outside this setup estimate.'}</p></div></details>`;
     return;
@@ -429,7 +434,6 @@ function renderSelectedLockSetup() {
   const expanded = sectionExpanded('selected-lock', section);
   section.hidden = state.lock === null;
   if (section.hidden) { section.replaceChildren(); return; }
-  const heading = `<details class="math-details splice-disclosure" data-riven-section="selected-lock"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="selectedLockTitle">Getting Selected Lock Stat</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="selected-lock-body">`;
   const polarity = state.lock === 'negative' ? 'negative' : 'positive';
   const id = polarity === 'negative' ? state.heldNegative : state.positives[Number(state.lock)];
   const trait = definitions.find(row => row.id === id), [splice] = combinedTargets();
@@ -442,6 +446,9 @@ function renderSelectedLockSetup() {
   const grade = setupGrade('selected-lock');
   const range = formatRange(traitGradeRange(trait, variant.disposition, format(), polarity, catalog.rangeModel, grade));
   const chance = {min: probability.min * grade.atLeastChance, max: probability.max * grade.atLeastChance};
+  const average = !vintage && chance.max > 0 ? {min: 1 / chance.max, max: 1 / chance.min} : null;
+  const summary = collapsedSetupSummary(grade, average, vintage ? 'Not rollable' : 'Not possible');
+  const heading = `<details class="math-details splice-disclosure" data-riven-section="selected-lock"${expanded ? ' open' : ''}><summary class="section-heading"><h2><span id="selectedLockTitle">Getting Selected Lock Stat</span> ${summary}</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="selected-lock-body">`;
   const rows = `<tr><th scope="row">${gradeSelector('selected-lock', 'Selected lock minimum grade')}</th><td>${esc(range || 'Baseline not confirmed')}</td><td>${vintage ? 'Not rollable' : esc(oddsText(chance))}</td></tr>`;
   section.innerHTML = heading + `
     <p class="splice-recipe">${esc(nameOf(id))} · ${polarity === 'positive' ? 'Positive' : 'Negative'} · ${esc(variant.name)} · ${format()}</p>
@@ -518,13 +525,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-lock-grade-default');
+  const {renderMath} = await import('./math.mjs?v=20260923-collapsed-estimates');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-lock-grade-default');
+  const response = await fetch('./data.json?v=20260923-collapsed-estimates');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); if (!restoreSelection()) selectCategory('Primary');

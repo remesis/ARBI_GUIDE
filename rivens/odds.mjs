@@ -1,5 +1,5 @@
 // Exact combinatorial calculations under the stated positives-first model.
-import {isCombinedTrait} from './catalog.mjs?v=20260923-lock-grade-default';
+import {isCombinedTrait} from './catalog.mjs?v=20260923-collapsed-estimates';
 
 export const S_GRADE_CHANCE = .025;
 
