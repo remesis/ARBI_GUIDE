@@ -1,7 +1,7 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-splice-substeps';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-splice-substeps';
-import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-splice-substeps';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-grade-selectors';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-grade-selectors';
+import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-grade-selectors';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -46,6 +46,23 @@ function restoreSelection() {
 }
 const infoPreferences = new Map();
 const sectionPreferences = new Map();
+const gradePreferences = new Map();
+function setupGrade(key) {
+  if (!gradePreferences.has(key)) {
+    let saved;
+    try { saved = window.localStorage.getItem(`riven-grade-${key}`); } catch {}
+    gradePreferences.set(key, GRADES.find(grade => grade.name === saved) || GRADES[0]);
+  }
+  return gradePreferences.get(key);
+}
+function saveSetupGrade(key, grade) {
+  gradePreferences.set(key, grade);
+  try { window.localStorage.setItem(`riven-grade-${key}`, grade.name); } catch {}
+}
+function gradeSelector(key, label) {
+  const selected = setupGrade(key);
+  return `<select id="setupGrade-${key}" class="setup-grade-select" data-riven-grade="${key}" aria-label="${esc(label)}">${GRADES.map(grade => `<option value="${esc(grade.name)}"${grade === selected ? ' selected' : ''}>${esc(grade.name)}</option>`).join('')}</select>`;
+}
 function rememberSection(key, expanded) {
   if (sectionPreferences.get(key) === expanded) return;
   sectionPreferences.set(key, expanded);
@@ -192,6 +209,18 @@ function selectBestLock() {
 }
 
 function connectControls() {
+  document.addEventListener('change', event => {
+    const key = event.target.dataset?.rivenGrade;
+    if (!['splice', 'selected-lock'].includes(key)) return;
+    const grade = GRADES.find(row => row.name === event.target.value);
+    if (!grade) return;
+    saveSetupGrade(key, grade);
+    if (key === 'splice') renderSpliceSetup(); else renderSelectedLockSetup();
+    numberSections();
+    $(`[data-riven-grade="${key}"]`)?.focus({preventScroll: true});
+    $('#rivenStatus').textContent = `${key === 'splice' ? 'Splice setup' : 'Selected lock'} estimates updated for ${grade.name} or better.`;
+    document.dispatchEvent(new window.Event('riven:render'));
+  });
   document.addEventListener('toggle', event => {
     const details = event.target, key = details.dataset?.rivenInfo;
     if (!details.isConnected) return;
@@ -230,6 +259,7 @@ function connectControls() {
     $('#strategyRows').querySelector(`[data-strategy="${strategy}"]`).focus({preventScroll: true});
   });
   $('#resetTarget').addEventListener('click', () => {
+    for (const key of ['splice', 'selected-lock']) saveSetupGrade(key, GRADES[0]);
     Object.assign(state, {positives: [CC, CD, MS], negatives: ['weapon-recoil'], hasNegative: true, heldNegative: 'weapon-recoil', lock: null, variant: null});
     $('#rangeSearch').value = ''; selectCategory('Primary');
   });
@@ -317,11 +347,15 @@ function renderSpliceSetup() {
   if (!splice) { section.replaceChildren(); return; }
   const recipes = spliceRecipes(splice, family.definition).filter(pair => pools.some(pool =>
     pair.every(id => pool.positive.has(id) || state.hasNegative && pool.negative.has(id))));
-  const key = `${family.id}:${splice}:${format()}`;
-  if (!spliceSetupCache.has(key)) spliceSetupCache.set(key, optimalSpliceSetup(pools, recipes, target().positives.length, state.hasNegative));
+  const grade = setupGrade('splice');
+  const gradeName = grade.name === 'S' ? 'S-grade' : `${grade.name} or better`;
+  const findsLabel = grade.name === 'S' ? 'S-grade' : `${grade.name}-or-better`;
+  const heldLabel = grade.name === 'S' ? 'S-grade' : 'qualifying';
+  const key = `${family.id}:${splice}:${format()}:${grade.name}`;
+  if (!spliceSetupCache.has(key)) spliceSetupCache.set(key, optimalSpliceSetup(pools, recipes, target().positives.length, state.hasNegative, grade.atLeastChance));
   const result = spliceSetupCache.get(key);
   const recipeText = recipes.map(pair => pair.map(nameOf).join(' + ')).join('; or ');
-  const heading = `<details class="math-details splice-disclosure" data-riven-section="splice"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p>`;
+  const heading = `<details class="math-details splice-disclosure" data-riven-section="splice"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><div class="splice-recipe-row"><p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p><label class="setup-grade-control" for="setupGrade-splice">Grade or better ${gradeSelector('splice', 'Splice minimum grade')}</label></div>`;
   if (!result.available) {
     section.innerHTML = heading + `<p class="research-notice">${result.uncertain ? 'Unresolved ingredient eligibility changes which setup route is possible or best. No single optimal route is shown until that pool is confirmed.' : 'No complete recipe can be rolled in this weapon’s eligible pools and selected format. Existing vintage ingredients are outside this setup estimate.'}</p></div></details>`;
     return;
@@ -377,12 +411,12 @@ function renderSpliceSetup() {
   }).join('')}</details>` : '';
   section.innerHTML = heading + `
     <div class="splice-steps">
-      <div><h3>1a. Find an S-grade ingredient</h3><strong>${rolls(result.first)} <small>rolls on average</small></strong><p>Start with a ${format()} Riven and manually lock ${esc(lockInstruction)}. Locking preserves ${format()}. Keep rolling until a usable positive ingredient is S-grade.</p>${choices}</div>
-      <div><h3>1b. Lock the S-grade, find its partner</h3><strong>${rolls(result.ifMissing)} <small>rolls if missing</small></strong><p>Already together on ${percentText(result.ready)} of S-grade finds. If not, move the lock to the S-grade positive. ${rolls(result.additional)} extra rolls on average to find its matching partner ${esc(partnerInstruction)}</p>
+      <div><h3>1a. Find ${grade.name === 'S' ? 'an S-grade ingredient' : `an ingredient at ${esc(gradeName)}`}</h3><strong>${rolls(result.first)} <small>rolls on average</small></strong><p>Start with a ${format()} Riven and manually lock ${esc(lockInstruction)}. Locking preserves ${format()}. Keep rolling until a usable positive ingredient is ${esc(gradeName)}.</p>${choices}</div>
+      <div><h3>1b. Lock the ${grade.name === 'S' ? 'S-grade' : 'qualifying ingredient'}, find its partner</h3><strong>${rolls(result.ifMissing)} <small>rolls if missing</small></strong><p>Already together on ${percentText(result.ready)} of ${esc(findsLabel)} finds. If not, move the lock to the ${heldLabel} positive. ${rolls(result.additional)} extra rolls on average to find its matching partner ${esc(partnerInstruction)}</p>
         <p class="splice-total"><span>Splice ready: <strong>${rolls(result.total)} rolls on average</strong></span><span>Average setup Kuva: <strong>${intervalText(kuva, magnitude)}</strong></span></p>
       </div>
     </div>
-    ${setupInfo('splice', `<p class="cost-caption">S-grade here means +9.5% or better relative to the stat’s mean, modeled as a 2.5% independent chance. Best two-stage route among existing ordinary locks in ${format()}; assumes no S-grade ingredient yet. Both steps use ${number(catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier)} Kuva per roll at the cap. ${result.uncertain ? 'Ranges reflect unresolved pool eligibility. ' : ''}Excludes the starting Riven, splicer acquisition and the final target below. Other target traits, including vintage lines, are not preserved during setup.</p>
+    ${setupInfo('splice', `<p class="cost-caption">${esc(gradeName)} here means ${grade.min >= 0 ? '+' : '−'}${number(Math.abs(grade.min), 1)}% or better relative to the stat’s mean, modeled as a ${number(grade.atLeastChance * 100, 1)}% independent chance across the uniform ±10% band. Best two-stage route among existing ordinary locks in ${format()}; assumes no qualifying positive ingredient yet. Both steps use ${number(catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier)} Kuva per roll at the cap. ${result.uncertain ? 'Ranges reflect unresolved pool eligibility. ' : ''}Excludes the starting Riven, splicer acquisition and the final target below. Other target traits, including vintage lines, are not preserved during setup.</p>
     <p class="cost-caption">Splice the pair to keep the higher grade permanently as a positive. The replacement uses the other ingredient’s ${replacementSlot} slot, and either ingredient can appear again if eligible. The final-roll odds below start after this step.</p>`)}
     </div></details>`;
 }
@@ -402,11 +436,10 @@ function renderSelectedLockSetup() {
   const acquisition = splice
     ? `${nameOf(splice)} stays retained for free, preserving ${format()}.`
     : `No manual lock is held while searching; odds include rolling the selected ${format()} format.`;
-  const rows = GRADES.map(grade => {
-    const range = formatRange(traitGradeRange(trait, variant.disposition, format(), polarity, catalog.rangeModel, grade));
-    const chance = {min: probability.min * grade.atLeastChance, max: probability.max * grade.atLeastChance};
-    return `<tr><th scope="row">${esc(grade.name)}</th><td>${esc(range || 'Baseline not confirmed')}</td><td>${vintage ? 'Not rollable' : esc(oddsText(chance))}</td></tr>`;
-  }).join('');
+  const grade = setupGrade('selected-lock');
+  const range = formatRange(traitGradeRange(trait, variant.disposition, format(), polarity, catalog.rangeModel, grade));
+  const chance = {min: probability.min * grade.atLeastChance, max: probability.max * grade.atLeastChance};
+  const rows = `<tr><th scope="row">${gradeSelector('selected-lock', 'Selected lock minimum grade')}</th><td>${esc(range || 'Baseline not confirmed')}</td><td>${vintage ? 'Not rollable' : esc(oddsText(chance))}</td></tr>`;
   section.innerHTML = heading + `
     <p class="splice-recipe">${esc(nameOf(id))} · ${polarity === 'positive' ? 'Positive' : 'Negative'} · ${esc(variant.name)} · ${format()}</p>
     <p class="lock-grade-intro">${vintage ? 'This vintage stat cannot roll anew. The ranges below are reference values for an existing line, not acquisition opportunities.' : `Find this stat before applying its manual lock. ${esc(acquisition)} Other selected ordinary traits are not required.`}</p>
@@ -482,13 +515,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-splice-substeps');
+  const {renderMath} = await import('./math.mjs?v=20260923-grade-selectors');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-splice-substeps');
+  const response = await fetch('./data.json?v=20260923-grade-selectors');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); if (!restoreSelection()) selectCategory('Primary');

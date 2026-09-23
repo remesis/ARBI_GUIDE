@@ -214,6 +214,10 @@
 .splice-disclosure .splice-toggle { flex: 0 0 20px; }
 .splice-body, .selected-lock-body { padding: 16px; }
 .splice-recipe { margin: 0 0 14px; color: var(--muted); font-size: calc(12px * var(--riven-text-scale)); }
+.splice-recipe-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; margin-bottom: 14px; }
+.splice-recipe-row .splice-recipe { margin: 0; flex: 1 1 240px; }
+.setup-grade-control { display: flex; align-items: center; gap: 8px; margin-left: auto; color: var(--muted); font-size: calc(11px * var(--riven-text-scale)); }
+.setup-grade-select { min-width: 62px; max-width: 100%; padding: 5px 8px; border: 1px solid var(--border); border-radius: 5px; background: #172532; color: var(--accent); font-size: calc(12px * var(--riven-text-scale)); cursor: pointer; color-scheme: dark; }
 .splice-steps { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
 .splice-steps > div + div { border-left: 1px solid #273545; padding-left: 20px; }
 .splice-steps h3 { font-size: calc(13px * var(--riven-text-scale)); margin: 0 0 8px; color: var(--text); }

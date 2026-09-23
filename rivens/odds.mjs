@@ -1,5 +1,5 @@
 // Exact combinatorial calculations under the stated positives-first model.
-import {isCombinedTrait} from './catalog.mjs?v=20260923-splice-substeps';
+import {isCombinedTrait} from './catalog.mjs?v=20260923-grade-selectors';
 
 export const S_GRADE_CHANCE = .025;
 
@@ -23,7 +23,7 @@ function* setupOutcomes(pool, k, hasNegative, lock) {
   }
 }
 
-/** Positive S line held, any recipe partner accepted in either eligible sign. */
+/** Qualifying positive line held, any recipe partner accepted in either eligible sign. */
 export function splicePartnerChance(pool, recipes, k, hasNegative, held) {
   const partners = new Set(recipes.flatMap(([a, b]) => a === held ? [b] : b === held ? [a] : []));
   let chance = 0;
@@ -33,14 +33,17 @@ export function splicePartnerChance(pool, recipes, k, hasNegative, held) {
   return Math.min(1, chance);
 }
 
-/** Two-stage route: stop on the first usable positive S, then retain it.
- * The starting lock exists already and is not itself assumed S-grade.
- * Multiple S lines: splice immediately if possible, otherwise keep the line
+/** Two-stage route: stop on the first qualifying positive, then retain it.
+ * The starting lock exists already and is below the requested grade threshold.
+ * Multiple qualifying lines: splice immediately if possible, otherwise keep the line
  * with the shortest partner search. Grades are independent uniform draws.
  */
 export function spliceSetupRoute(pool, recipes, k, hasNegative, lock, gradeChance = S_GRADE_CHANCE, partnerChances) {
   if (![2, 3].includes(k) || !(gradeChance > 0 && gradeChance <= 1)) return null;
   const ingredients = [...new Set(recipes.flat())].filter(id => pool.positive.has(id));
+  // At F-or-better every ingredient qualifies, so a held positive ingredient
+  // would contradict this route's starting assumption of no qualifying line yet.
+  if (gradeChance === 1 && lock.polarity === 'positive' && ingredients.includes(lock.id)) return null;
   const qPartner = partnerChances || new Map(ingredients.map(id => [id, splicePartnerChance(pool, recipes, k, hasNegative, id)]));
   const partners = new Map(ingredients.map(id => [id, new Set(recipes.flatMap(([a,b]) => a === id ? [b] : b === id ? [a] : []))]));
   let q = 0, weightedExtra = 0, needsPartner = 0;
@@ -49,9 +52,9 @@ export function spliceSetupRoute(pool, recipes, k, hasNegative, lock, gradeChanc
     for (let mask = 1; mask < 2 ** eligible.length; mask++) {
       let gradeWeight = 1, extra = Infinity;
       eligible.forEach((id, bit) => {
-        const isS = Boolean(mask & (1 << bit));
-        gradeWeight *= isS ? gradeChance : 1 - gradeChance;
-        if (isS) {
+        const qualifies = Boolean(mask & (1 << bit));
+        gradeWeight *= qualifies ? gradeChance : 1 - gradeChance;
+        if (qualifies) {
           const ready = outcome.positives.some(trait => partners.get(id).has(trait)) || partners.get(id).has(outcome.negative);
           extra = Math.min(extra, ready ? 0 : 1 / qPartner.get(id));
         }
@@ -72,7 +75,7 @@ export function spliceSetupRoute(pool, recipes, k, hasNegative, lock, gradeChanc
  * Unresolved pools stay separate. Do not invent a single optimal route when
  * different eligibility scenarios prefer different starting locks.
  */
-export function optimalSpliceSetup(pools, recipes, k, hasNegative) {
+export function optimalSpliceSetup(pools, recipes, k, hasNegative, gradeChance = S_GRADE_CHANCE) {
   const recipeIds = [...new Set(recipes.flat())];
   const routeCache = new Map(), partnerCache = new Map();
   const scenarios = pools.map(pool => {
@@ -88,7 +91,7 @@ export function optimalSpliceSetup(pools, recipes, k, hasNegative) {
       ...[...pool.positive].map(id => ({id, polarity: 'positive'})) ];
     const routes = locks.map(lock => {
       const key = `${signature}:${lock.polarity}:${recipeIds.includes(lock.id) ? lock.id : membership(lock.id)}`;
-      if (!routeCache.has(key)) routeCache.set(key, spliceSetupRoute(pool, recipes, k, hasNegative, lock, S_GRADE_CHANCE, partnerChances));
+      if (!routeCache.has(key)) routeCache.set(key, spliceSetupRoute(pool, recipes, k, hasNegative, lock, gradeChance, partnerChances));
       const route = routeCache.get(key);
       return route && {...route, lock};
     }).filter(Boolean);

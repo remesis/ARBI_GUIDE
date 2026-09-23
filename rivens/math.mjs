@@ -1,5 +1,5 @@
 import {escapeHTML as esc, number, oddsText, intervalText} from './format.mjs';
-import {isCombinedTrait, splicedTraitsFor} from './catalog.mjs?v=20260923-splice-substeps';
+import {isCombinedTrait, splicedTraitsFor} from './catalog.mjs?v=20260923-grade-selectors';
 
 export function renderMath({catalog, research, target, variant, format, nameOf}) {
   const single = research.scenarios.length === 1, row = research.scenarios[0];
