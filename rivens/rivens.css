@@ -215,6 +215,9 @@
 .splice-steps strong small { font-size: calc(12px * var(--riven-text-scale)); color: var(--muted); font-weight: 400; }
 .splice-steps p { margin: 8px 0; font-size: calc(12px * var(--riven-text-scale)); }
 .splice-steps .small-muted { display: block; font-size: calc(11px * var(--riven-text-scale)); color: var(--muted); }
+.splice-lock-choices { margin: 8px 0; font-size: calc(12px * var(--riven-text-scale)); }
+.splice-lock-choices > summary { color: var(--accent); cursor: pointer; }
+.splice-lock-choices strong { font-size: inherit; color: var(--text); font-weight: 600; }
 .splice-total { display: flex; flex-wrap: wrap; gap: 8px 26px; background: rgba(114,199,255,.05); padding: 10px 12px; margin: 16px 0 10px; font-size: calc(12px * var(--riven-text-scale)); }
 .splice-total strong { color: var(--accent); }
 .splice-setup .cost-caption { margin: 8px 0 0; }

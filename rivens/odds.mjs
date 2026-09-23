@@ -1,5 +1,5 @@
 // Exact combinatorial calculations under the stated positives-first model.
-import {isCombinedTrait} from './catalog.mjs?v=20260923-vintage-slots';
+import {isCombinedTrait} from './catalog.mjs?v=20260923-starting-locks';
 
 export const S_GRADE_CHANCE = .025;
 
@@ -96,11 +96,19 @@ export function optimalSpliceSetup(pools, recipes, k, hasNegative) {
     return routes.filter(route => Math.abs(route.total - min) < 1e-8);
   });
   if (scenarios.some(routes => !routes.length)) return {available: false, uncertain: pools.length > 1};
-  const common = scenarios[0].find(route => scenarios.every(routes => routes.some(other => other.lock.id === route.lock.id && other.lock.polarity === route.lock.polarity)));
+  const commonRoutes = scenarios[0].filter(route => scenarios.every(routes => routes.some(other => other.lock.id === route.lock.id && other.lock.polarity === route.lock.polarity)));
+  const [common] = commonRoutes;
   if (!common) return {available: false, uncertain: true};
   const routes = scenarios.map(rows => rows.find(route => route.lock.id === common.lock.id && route.lock.polarity === common.lock.polarity));
-  return {available: true, uncertain: pools.length > 1, lock: common.lock,
-    ...Object.fromEntries(['chance', 'first', 'additional', 'total', 'ready', 'ifMissing'].map(key => [key, bounds(routes.map(route => route[key]))]))};
+  const metrics = ['chance', 'first', 'additional', 'total', 'ready', 'ifMissing'];
+  // Alternatives must match every displayed stage, not merely tie on total rolls.
+  // For uncertain pools, they must do so separately in every scenario.
+  const equivalentLocks = commonRoutes.filter(candidate => scenarios.every((rows, i) => {
+    const alternative = rows.find(row => row.lock.id === candidate.lock.id && row.lock.polarity === candidate.lock.polarity);
+    return metrics.every(key => Math.abs(alternative[key] - routes[i][key]) < 1e-8);
+  })).map(route => route.lock);
+  return {available: true, uncertain: pools.length > 1, lock: common.lock, equivalentLocks,
+    ...Object.fromEntries(metrics.map(key => [key, bounds(routes.map(route => route[key]))]))};
 }
 
 export function choose(n, k) {
