@@ -1,7 +1,7 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-numbered-steps';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-numbered-steps';
-import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-numbered-steps';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-section-preferences';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-section-preferences';
+import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-section-preferences';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -45,6 +45,23 @@ function restoreSelection() {
   return true;
 }
 const infoPreferences = new Map();
+const sectionPreferences = new Map();
+function rememberSection(key, expanded) {
+  if (sectionPreferences.get(key) === expanded) return;
+  sectionPreferences.set(key, expanded);
+  try { window.localStorage.setItem(`riven-section-${key}`, expanded ? 'open' : 'closed'); } catch {}
+}
+function sectionExpanded(key, section) {
+  const details = section.querySelector('[data-riven-section]');
+  // Capture the current state before replacing or hiding a section, even before its toggle event fires.
+  if (details) rememberSection(key, details.hasAttribute('open'));
+  if (!sectionPreferences.has(key)) {
+    let expanded = true;
+    try { expanded = window.localStorage.getItem(`riven-section-${key}`) !== 'closed'; } catch {}
+    sectionPreferences.set(key, expanded);
+  }
+  return sectionPreferences.get(key);
+}
 function setupInfo(key, body) {
   if (!infoPreferences.has(key)) {
     let expanded = true;
@@ -177,8 +194,11 @@ function selectBestLock() {
 function connectControls() {
   document.addEventListener('toggle', event => {
     const details = event.target, key = details.dataset?.rivenInfo;
-    if (!['splice', 'selected-lock'].includes(key) || !details.isConnected) return;
+    if (!details.isConnected) return;
     const expanded = details.hasAttribute('open');
+    const sectionKey = details.dataset?.rivenSection;
+    if (['splice', 'selected-lock'].includes(sectionKey)) rememberSection(sectionKey, expanded);
+    if (!['splice', 'selected-lock'].includes(key)) return;
     infoPreferences.set(key, expanded);
     try { window.localStorage.setItem(`riven-info-${key}`, expanded ? 'open' : 'closed'); } catch {}
   }, true);
@@ -292,6 +312,7 @@ function numberSections() {
 
 function renderSpliceSetup() {
   const section = $('#spliceSetup'), [splice] = combinedTargets();
+  const expanded = sectionExpanded('splice', section);
   section.hidden = !splice;
   if (!splice) { section.replaceChildren(); return; }
   const recipes = spliceRecipes(splice, family.definition).filter(pair => pools.some(pool =>
@@ -299,9 +320,8 @@ function renderSpliceSetup() {
   const key = `${family.id}:${splice}:${format()}`;
   if (!spliceSetupCache.has(key)) spliceSetupCache.set(key, optimalSpliceSetup(pools, recipes, target().positives.length, state.hasNegative));
   const result = spliceSetupCache.get(key);
-  const expanded = section.querySelector('.splice-disclosure')?.hasAttribute('open') ?? true;
   const recipeText = recipes.map(pair => pair.map(nameOf).join(' + ')).join('; or ');
-  const heading = `<details class="math-details splice-disclosure"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p>`;
+  const heading = `<details class="math-details splice-disclosure" data-riven-section="splice"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p>`;
   if (!result.available) {
     section.innerHTML = heading + `<p class="research-notice">${result.uncertain ? 'Unresolved ingredient eligibility changes which setup route is possible or best. No single optimal route is shown until that pool is confirmed.' : 'No complete recipe can be rolled in this weapon’s eligible pools and selected format. Existing vintage ingredients are outside this setup estimate.'}</p></div></details>`;
     return;
@@ -369,10 +389,10 @@ function renderSpliceSetup() {
 
 function renderSelectedLockSetup() {
   const section = $('#selectedLockSetup');
+  const expanded = sectionExpanded('selected-lock', section);
   section.hidden = state.lock === null;
   if (section.hidden) { section.replaceChildren(); return; }
-  const expanded = section.querySelector('details')?.hasAttribute('open') ?? true;
-  const heading = `<details class="math-details splice-disclosure"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="selectedLockTitle">Getting Selected Lock Stat</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="selected-lock-body">`;
+  const heading = `<details class="math-details splice-disclosure" data-riven-section="selected-lock"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="selectedLockTitle">Getting Selected Lock Stat</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="selected-lock-body">`;
   const polarity = state.lock === 'negative' ? 'negative' : 'positive';
   const id = polarity === 'negative' ? state.heldNegative : state.positives[Number(state.lock)];
   const trait = definitions.find(row => row.id === id), [splice] = combinedTargets();
@@ -408,7 +428,7 @@ function renderResults() {
   const description = incomplete ? 'Select at least one alternative, or choose No negative.'
     : combiningOnly ? 'One manual lock cannot retain multiple vintage lines through cycling. A splice is retained separately for free.'
     : retainedPositive ? 'This vintage line is not currently rollable. These odds start with it already present and manually locked; obtaining it is excluded.'
-    : spliced ? `The splice is automatically retained for free, with its ingredients still eligible. ${research.winningLock === 'negative' ? `Add a manual lock on ${nameOf(state.heldNegative)}.` : 'Add a manual lock on another selected positive.'} These estimates start with the splice already made in this format; splicing launches later with Glacial Defiance.`
+    : spliced ? `The splice is automatically retained for free, with its ingredients still eligible. ${research.winningLock === 'negative' ? `Add a manual lock on ${nameOf(state.heldNegative)}.` : 'Add a manual lock on another selected positive.'}`
     : !state.hasNegative ? 'A locked negative cannot produce a 0N target.'
     : research.winningLock === 'negative' ? `Keep ${nameOf(state.heldNegative)}${retainedNegative.includes(state.heldNegative) ? ', a vintage line,' : ''} while rolling the ${target().positives.length} positives.`
     : research.winningLock === 'positive' ? 'Keep any selected positive and accept the chosen negative alternatives.' : 'Compare the probability ranges below. Both locked strategies use the same Kuva cost.';
@@ -462,13 +482,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-numbered-steps');
+  const {renderMath} = await import('./math.mjs?v=20260923-section-preferences');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-numbered-steps');
+  const response = await fetch('./data.json?v=20260923-section-preferences');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); if (!restoreSelection()) selectCategory('Primary');
