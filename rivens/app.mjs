@@ -1,7 +1,7 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-compact-grades';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-compact-grades';
-import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-compact-grades';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-lock-grade-default';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-lock-grade-default';
+import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-lock-grade-default';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -47,11 +47,14 @@ function restoreSelection() {
 const infoPreferences = new Map();
 const sectionPreferences = new Map();
 const gradePreferences = new Map();
+function defaultSetupGrade(key) {
+  return key === 'selected-lock' ? GRADES.find(grade => grade.name === 'F') : GRADES[0];
+}
 function setupGrade(key) {
   if (!gradePreferences.has(key)) {
     let saved;
     try { saved = window.localStorage.getItem(`riven-grade-${key}`); } catch {}
-    gradePreferences.set(key, GRADES.find(grade => grade.name === saved) || GRADES[0]);
+    gradePreferences.set(key, GRADES.find(grade => grade.name === saved) || defaultSetupGrade(key));
   }
   return gradePreferences.get(key);
 }
@@ -259,7 +262,7 @@ function connectControls() {
     $('#strategyRows').querySelector(`[data-strategy="${strategy}"]`).focus({preventScroll: true});
   });
   $('#resetTarget').addEventListener('click', () => {
-    for (const key of ['splice', 'selected-lock']) saveSetupGrade(key, GRADES[0]);
+    for (const key of ['splice', 'selected-lock']) saveSetupGrade(key, defaultSetupGrade(key));
     Object.assign(state, {positives: [CC, CD, MS], negatives: ['weapon-recoil'], hasNegative: true, heldNegative: 'weapon-recoil', lock: null, variant: null});
     $('#rangeSearch').value = ''; selectCategory('Primary');
   });
@@ -515,13 +518,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-compact-grades');
+  const {renderMath} = await import('./math.mjs?v=20260923-lock-grade-default');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-compact-grades');
+  const response = await fetch('./data.json?v=20260923-lock-grade-default');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); if (!restoreSelection()) selectCategory('Primary');
