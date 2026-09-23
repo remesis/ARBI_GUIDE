@@ -1,6 +1,6 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-splice-setup';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup} from './odds.mjs?v=20260923-splice-setup';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-vintage-slots';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup} from './odds.mjs?v=20260923-vintage-slots';
 import {FORMATS, traitRange, formatRange} from './ranges.mjs';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
@@ -74,7 +74,7 @@ function statOptions(polarity, row = null) {
     const excluded = status[polarity] === 'excluded', vintage = excluded && status.vintage;
     return {value: trait.id, label: trait.name, search: aliases[trait.id], disabled: !vintage && excluded || polarity === 'negative' && conflict,
       uncertain: status[polarity] === 'unresolved', vintage,
-      description: vintage ? 'Vintage stat: select only when this line already exists and will be locked'
+      description: vintage ? `Vintage ${polarity} stat: select only when this line already exists and will be locked`
         : conflict ? 'Selected in another positive slot: choosing it swaps the two stats'
         : excluded ? 'Not rollable on this weapon' : status[polarity] === 'unresolved' ? 'Eligibility under research' : ''};
   });
@@ -323,13 +323,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-splice-setup');
+  const {renderMath} = await import('./math.mjs?v=20260923-vintage-slots');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-splice-setup');
+  const response = await fetch('./data.json?v=20260923-vintage-slots');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); selectCategory('Primary');

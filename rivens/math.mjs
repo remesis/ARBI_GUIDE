@@ -1,5 +1,5 @@
 import {escapeHTML as esc, number, oddsText, intervalText} from './format.mjs';
-import {isCombinedTrait, splicedTraitsFor} from './catalog.mjs?v=20260923-splice-setup';
+import {isCombinedTrait, splicedTraitsFor} from './catalog.mjs?v=20260923-vintage-slots';
 
 export function renderMath({catalog, research, target, variant, format, nameOf}) {
   const single = research.scenarios.length === 1, row = research.scenarios[0];
@@ -19,12 +19,12 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <p>One trait may be manually locked at double Kuva cost. A spliced trait is automatically retained at no extra cost and does not use this manual lock. There is a limit of one spliced trait per Riven. All retained traits are assumed to be available before the modeled cycling begins. No trait may appear as both a positive and a negative in the same target.</p>
   <p><strong>Splicing</strong> creates a positive trait from an announced recipe. An S-grade positive ingredient can use a positive or negative partner wherever eligible. The splice retains the higher grade on future cycles; the ordinary replacement takes the other consumed ingredient’s polarity and can be either ingredient again if eligible. The layout is preserved. A retained splice then preserves that format on every cycle, even with no manual lock. The final-roll comparison starts with this splice already made; the separate setup section estimates reaching the ingredient pair. Splicing launches later with Glacial Defiance.</p>
   <details><summary>Spliced traits and recipes for this weapon type</summary><table><thead><tr><th>Spliced trait</th><th>Recipe</th></tr></thead><tbody>${recipes.map(t => `<tr><td>${esc(t.name)}</td><td>${esc(t.recipe)}</td></tr>`).join('')}</tbody></table><p>Normal ingredient eligibility still applies. Companion weapons use their ranged or melee weapon type. The splice is not an ordinary cycling candidate.</p></details>
-  <p>A <strong>vintage trait</strong> is likewise excluded from the current cycling pool. It can be selected only to model a line that already exists on the Riven and is retained by the matching positive or negative lock. Obtaining that vintage line is outside these estimates.</p>
+  <p><strong>Vintage or no-longer-rollable traits can exist in either positive or negative slots.</strong> Select an existing vintage line in its original slot and retain it with the matching manual lock. It stays outside the current cycling pool for that sign; locking does not make it newly rollable or change its sign. Obtaining that vintage line is outside these estimates.</p>
 
   <h3>2. Notation</h3>
   <dl>
     <dt>P, p</dt><dd>The currently eligible ordinary positive-trait set and its size, p = |P|. Spliced and vintage positive traits are not members of P.</dd>
-    <dt>N, n</dt><dd>The eligible negative-trait set and its size, n = |N|.</dd>
+    <dt>N, n</dt><dd>The eligible negative-trait set and its size, n = |N|. Vintage negative traits are not members of N.</dd>
     <dt>S, k</dt><dd>The desired positive set and its size, k = 2 or 3.</dd>
     <dt>m</dt><dd>The non-spliced positive count: m = k − 1 with a splice, otherwise m = k.</dd>
     <dt>r</dt><dd>The number of desired positives that also belong to N: r = |S ∩ N|. This is about eligibility as a separate negative, not a locked positive changing sign.</dd>
@@ -61,8 +61,8 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <div class="formula">qˢ₀ = 1 / C(p, m) × a / d<br>qˢ₊ = 1 / C(p − 1, m − 1) × a / d<br>qˢ₋ = 1 / C(p − δ, m)</div>
   <p>qˢ₀ is splice only, at normal Kuva cost. qˢ₊ adds a manual lock on an ordinary positive, and qˢ₋ adds a manual lock on the chosen negative, each at double cost. For 0N omit a/d and disallow a negative lock. There is no 1/4 format penalty in any spliced case. The splice cannot be selected as the extra manual lock.</p>
   <p>A 2P0N target with its splice and only other positive both retained already meets the trait-identity target. Every subsequent cycle would preserve it, but no further reroll is necessary.</p>
-  <h4>Vintage lines require the manual lock</h4>
-  <p>A vintage positive L is not in P. Unlike a splice it is not automatically retained for free. Retain it with the one manual positive lock and choose the remaining m − 1 positives from all p candidates:</p>
+  <h4>Vintage positives and negatives require the manual lock</h4>
+  <p>A vintage line can occupy a positive or negative slot. Unlike a splice, neither sign is automatically retained for free; use the matching manual lock. For a vintage positive L, which is not in P, choose the remaining m − 1 positives from all p candidates:</p>
   <div class="formula">qᵛ₊ = 1 / C(p, m − 1) × a / d</div>
   <p>Use m = k without a splice or m = k − 1 alongside a splice; omit a/d for 0N. Include the vintage line in r if its negative counterpart is currently rollable. A vintage negative uses q₋ = 1 / C(p − δ, m), with or without the free splice. Without its matching manual lock, a vintage line cannot be regenerated.</p>
   <p>One splice and one manually locked vintage line may coexist. Two spliced traits are not allowed; multiple vintage lines cannot all be retained by the single manual lock. Vintage-only acquisition costs and splicing setup are excluded, and recipes do not enlarge either ordinary trait pool.</p>
@@ -115,7 +115,7 @@ export function renderMath({catalog, research, target, variant, format, nameOf})
   <p>b is the category-specific coefficient, before percentage conversion. F includes the 1.5 specific-fit factor and the layout factors:</p>
   <table><thead><tr><th>Layout</th><th>Positive F</th><th>Negative magnitude F</th></tr></thead><tbody><tr><td>2P0N</td><td>0.9900</td><td>None</td></tr><tr><td>3P0N</td><td>0.7500</td><td>None</td></tr><tr><td>2P1N</td><td>1.2375</td><td>0.4950</td></tr><tr><td>3P1N</td><td>0.9375</td><td>0.7500</td></tr></tbody></table>
   <p>Percentage traits multiply this result by 100. Faction damage is displayed as a multiplier around 1. Range and Punch Through use meters; Combo Duration uses seconds. Positive and negative refer to beneficial traits and curses, not the literal sign: beneficial Weapon Recoil has a minus sign.</p>
-  <p>Red ranges are reference values for vintage or otherwise unrollable traits. A vintage entry can be selected to model retaining an existing line, but it is never added to the current cycling pool. Other unrollable entries remain unavailable. Amber ranges are conditional on unresolved eligibility. Reference values do not establish when a historical Riven was generated. Dispositions are shown to two decimals without snapping to 0.05 steps.</p>
+  <p>Red ranges are reference values for vintage or otherwise unrollable traits. Vintage lines can be positive or negative: select the matching slot to model retaining an existing line, without adding it to the current cycling pool for that sign. Other unrollable entries remain unavailable. Amber ranges are conditional on unresolved eligibility. Reference values do not establish when a historical Riven was generated. Dispositions are shown to two decimals without snapping to 0.05 steps.</p>
   <p>The sidebar lists ordinary trait ranges. Spliced-trait options do not inherit an ordinary cycling coefficient, and no unconfirmed numerical ranges are supplied for them.</p>
   <p>Requiring numerical values or grades is a different target. If g is the conditional probability of satisfying all remaining value requirements after obtaining the desired trait identities, then q(full target) = q(trait identities) × g. That identity does not assume the values are independent.</p>
 
