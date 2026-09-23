@@ -1,5 +1,5 @@
 // Exact combinatorial calculations under the stated positives-first model.
-import {isCombinedTrait} from './catalog.mjs?v=20260923-section-preferences';
+import {isCombinedTrait} from './catalog.mjs?v=20260923-splice-substeps';
 
 export const S_GRADE_CHANCE = .025;
 

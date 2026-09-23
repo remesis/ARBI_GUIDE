@@ -1,7 +1,7 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-section-preferences';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-section-preferences';
-import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-section-preferences';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-splice-substeps';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-splice-substeps';
+import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-splice-substeps';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -377,8 +377,8 @@ function renderSpliceSetup() {
   }).join('')}</details>` : '';
   section.innerHTML = heading + `
     <div class="splice-steps">
-      <div><h3>1. Find an S-grade ingredient</h3><strong>${rolls(result.first)} <small>rolls on average</small></strong><p>Start with a ${format()} Riven and manually lock ${esc(lockInstruction)}. Locking preserves ${format()}. Keep rolling until a usable positive ingredient is S-grade.</p>${choices}</div>
-      <div><h3>2. Lock the S-grade, find its partner</h3><strong>${rolls(result.ifMissing)} <small>rolls if missing</small></strong><p>Already together on ${percentText(result.ready)} of S-grade finds. If not, move the lock to the S-grade positive. ${rolls(result.additional)} extra rolls on average to find its matching partner ${esc(partnerInstruction)}</p>
+      <div><h3>1a. Find an S-grade ingredient</h3><strong>${rolls(result.first)} <small>rolls on average</small></strong><p>Start with a ${format()} Riven and manually lock ${esc(lockInstruction)}. Locking preserves ${format()}. Keep rolling until a usable positive ingredient is S-grade.</p>${choices}</div>
+      <div><h3>1b. Lock the S-grade, find its partner</h3><strong>${rolls(result.ifMissing)} <small>rolls if missing</small></strong><p>Already together on ${percentText(result.ready)} of S-grade finds. If not, move the lock to the S-grade positive. ${rolls(result.additional)} extra rolls on average to find its matching partner ${esc(partnerInstruction)}</p>
         <p class="splice-total"><span>Splice ready: <strong>${rolls(result.total)} rolls on average</strong></span><span>Average setup Kuva: <strong>${intervalText(kuva, magnitude)}</strong></span></p>
       </div>
     </div>
@@ -482,13 +482,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-section-preferences');
+  const {renderMath} = await import('./math.mjs?v=20260923-splice-substeps');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-section-preferences');
+  const response = await fetch('./data.json?v=20260923-splice-substeps');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); if (!restoreSelection()) selectCategory('Primary');
