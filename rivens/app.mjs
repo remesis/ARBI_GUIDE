@@ -1,7 +1,7 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-grade-selectors';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-grade-selectors';
-import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-grade-selectors';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-compact-grades';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-compact-grades';
+import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-compact-grades';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -355,7 +355,7 @@ function renderSpliceSetup() {
   if (!spliceSetupCache.has(key)) spliceSetupCache.set(key, optimalSpliceSetup(pools, recipes, target().positives.length, state.hasNegative, grade.atLeastChance));
   const result = spliceSetupCache.get(key);
   const recipeText = recipes.map(pair => pair.map(nameOf).join(' + ')).join('; or ');
-  const heading = `<details class="math-details splice-disclosure" data-riven-section="splice"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><div class="splice-recipe-row"><p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p><label class="setup-grade-control" for="setupGrade-splice">Grade or better ${gradeSelector('splice', 'Splice minimum grade')}</label></div>`;
+  const heading = `<details class="math-details splice-disclosure" data-riven-section="splice"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><div class="splice-recipe-row">${gradeSelector('splice', 'Splice minimum grade')}<p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p></div>`;
   if (!result.available) {
     section.innerHTML = heading + `<p class="research-notice">${result.uncertain ? 'Unresolved ingredient eligibility changes which setup route is possible or best. No single optimal route is shown until that pool is confirmed.' : 'No complete recipe can be rolled in this weapon’s eligible pools and selected format. Existing vintage ingredients are outside this setup estimate.'}</p></div></details>`;
     return;
@@ -515,13 +515,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-grade-selectors');
+  const {renderMath} = await import('./math.mjs?v=20260923-compact-grades');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-grade-selectors');
+  const response = await fetch('./data.json?v=20260923-compact-grades');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); if (!restoreSelection()) selectCategory('Primary');
