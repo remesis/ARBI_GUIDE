@@ -207,6 +207,12 @@
 .strategy-table tbody td:last-child { white-space: normal; }.active-strategy .active-range { font-size: calc(24px * var(--riven-text-scale)); }
 
 .splice-setup { border-bottom: 1px solid #273545; padding-bottom: 20px; margin-bottom: 22px; }
+.splice-disclosure > summary { align-items: center; margin-bottom: 0; cursor: pointer; list-style: none; }
+.splice-disclosure > summary::-webkit-details-marker { display: none; }
+.splice-disclosure > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.splice-disclosure[open] > summary { margin-bottom: 12px; }
+.splice-disclosure .splice-toggle { flex: 0 0 auto; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--accent); transform: rotate(-90deg); }
+.splice-disclosure[open] .splice-toggle { transform: none; }
 .splice-recipe { margin: 0 0 14px; color: var(--muted); font-size: calc(12px * var(--riven-text-scale)); }
 .splice-steps { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
 .splice-steps > div + div { border-left: 1px solid #273545; padding-left: 20px; }
@@ -218,8 +224,8 @@
 .splice-lock-choices { margin: 8px 0; font-size: calc(12px * var(--riven-text-scale)); }
 .splice-lock-choices > summary { color: var(--accent); cursor: pointer; }
 .splice-lock-choices strong { font-size: inherit; color: var(--text); font-weight: 600; }
-.splice-total { display: flex; flex-wrap: wrap; gap: 8px 26px; background: rgba(114,199,255,.05); padding: 10px 12px; margin: 16px 0 10px; font-size: calc(12px * var(--riven-text-scale)); }
-.splice-total strong { color: var(--accent); }
+.splice-steps .splice-total { display: grid; gap: 6px; background: rgba(114,199,255,.05); padding: 10px 12px; margin: 14px 0 0; font-size: calc(12px * var(--riven-text-scale)); }
+.splice-total strong { color: var(--accent); font-size: inherit; font-weight: 600; }
 .splice-setup .cost-caption { margin: 8px 0 0; }
 
 /* Stack based on the space beside the card, including the Width control. */

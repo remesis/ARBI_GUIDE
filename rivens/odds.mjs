@@ -1,5 +1,5 @@
 // Exact combinatorial calculations under the stated positives-first model.
-import {isCombinedTrait} from './catalog.mjs?v=20260923-pool-wording';
+import {isCombinedTrait} from './catalog.mjs?v=20260923-setup-totals';
 
 export const S_GRADE_CHANCE = .025;
 
