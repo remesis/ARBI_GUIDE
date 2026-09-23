@@ -206,13 +206,13 @@
 .strategy-table .has-probability-range { font-size: calc(11px * var(--riven-text-scale)); white-space: normal; max-width: 180px; }
 .strategy-table tbody td:last-child { white-space: normal; }.active-strategy .active-range { font-size: calc(24px * var(--riven-text-scale)); }
 
-.splice-setup { border-bottom: 1px solid #273545; padding-bottom: 20px; margin-bottom: 22px; }
-.splice-disclosure > summary { align-items: center; margin-bottom: 0; cursor: pointer; list-style: none; }
-.splice-disclosure > summary::-webkit-details-marker { display: none; }
+.splice-setup { margin-bottom: 22px; }
+.splice-disclosure { margin-top: 0; }
+.splice-disclosure > summary { margin-bottom: 0; }
+.splice-disclosure > summary h2 { color: inherit; font-size: inherit; }
 .splice-disclosure > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.splice-disclosure[open] > summary { margin-bottom: 12px; }
-.splice-disclosure .splice-toggle { flex: 0 0 auto; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--accent); transform: rotate(-90deg); }
-.splice-disclosure[open] .splice-toggle { transform: none; }
+.splice-disclosure .splice-toggle { flex: 0 0 20px; }
+.splice-body, .selected-lock-body { padding: 16px; }
 .splice-recipe { margin: 0 0 14px; color: var(--muted); font-size: calc(12px * var(--riven-text-scale)); }
 .splice-steps { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
 .splice-steps > div + div { border-left: 1px solid #273545; padding-left: 20px; }
@@ -237,10 +237,10 @@
 .lock-grade-table th:last-child, .lock-grade-table td:last-child { text-align: right; }
 .lock-grade-table tbody tr:nth-child(odd) { background: rgba(114,199,255,.035); }
 .setup-info { margin-top: 12px; }
-.setup-info > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--accent); cursor: pointer; list-style: none; font-size: calc(11px * var(--riven-text-scale)); }
+.setup-info > summary { display: flex; align-items: center; gap: 7px; color: var(--accent); cursor: pointer; list-style: none; font-size: calc(11px * var(--riven-text-scale)); }
 .setup-info > summary::-webkit-details-marker { display: none; }
-.setup-info > summary::after { content: ''; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid currentColor; transform: rotate(-90deg); flex: 0 0 auto; }
-.setup-info[open] > summary::after { transform: none; }
+.setup-info > summary::before { content: ''; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid currentColor; transform: rotate(-90deg); flex: 0 0 auto; }
+.setup-info[open] > summary::before { transform: none; }
 .setup-info > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
 /* Stack based on the space beside the card, including the Width control. */

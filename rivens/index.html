@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="apple-touch-icon" href="/logo.png">
   <link rel="stylesheet" href="./guide-shell.css">
-  <link rel="stylesheet" href="./rivens.css?v=20260923-lock-grades">
+  <link rel="stylesheet" href="./rivens.css?v=20260923-setup-boxes">
 </head>
 <body class="rivens-page">
   <a class="skip-link" href="#content">Skip to Riven calculator</a>
@@ -134,10 +134,10 @@
     <aside id="sidebar" class="sidebar" aria-label="Weapon Riven stat ranges">
       <div class="sidebar-updated"><span id="dataDate">Last updated: 2026-09-03</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
       <div id="sidebarLinks" class="sidebar-links riven-sidebar-content">
-      <div class="range-heading"><span class="section-kicker">STAT RANGES</span><div class="range-title-row"><h2 id="rangeWeapon">Soma</h2><div class="disposition"><span>Disposition</span><strong id="dispositionValue">1.15</strong><div id="dispositionDots" class="disposition-dots" aria-hidden="true"><i></i><i></i><i></i><i class="dim"></i><i class="dim"></i></div></div></div><p id="rangeSubtitle">3p1n</p></div>
+      <div class="range-heading"><span class="section-kicker">STAT RANGES</span><div class="range-title-row"><h2 id="rangeWeapon">Sobek</h2><div class="disposition"><span>Disposition</span><strong id="dispositionValue">1.33</strong><div id="dispositionDots" class="disposition-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></div></div><p id="rangeSubtitle">3p1n</p></div>
       <label class="range-search"><svg width="15" height="15"><use href="#r-search"/></svg><input id="rangeSearch" type="search" placeholder="Filter stats" aria-label="Filter stat ranges" autocomplete="off"></label>
       <div class="range-column-head"><span>Stat</span><span>Positive / negative</span></div>
-      <div id="rangeList" class="range-list" aria-live="polite"><div class="range-row"><span>Critical Chance</span><div><span class="range-positive">+145.5 to +177.9%</span><span class="range-negative">−116.4 to −142.3%</span></div></div><div class="range-row"><span>Critical Damage</span><div><span class="range-positive">+116.4 to +142.3%</span><span class="range-negative">−93.1 to −113.8%</span></div></div><div class="range-row"><span>Heat</span><div><span class="range-positive">+87.3 to +106.7%</span><span class="unrollable">Cannot roll negative</span></div></div></div>
+      <div id="rangeList" class="range-list" aria-live="polite"><div class="range-row"><span>Critical Chance</span><div><span class="range-positive">+101.0 to +123.4%</span><span class="range-negative">−80.8 to −98.8%</span></div></div><div class="range-row"><span>Critical Damage</span><div><span class="range-positive">+101.0 to +123.4%</span><span class="range-negative">−80.8 to −98.8%</span></div></div><div class="range-row"><span>Heat</span><div><span class="range-positive">+101.0 to +123.4%</span><span class="unrollable">Cannot roll negative</span></div></div></div>
       <div class="range-legend"><span><i class="legend-dot red"></i> Vintage / not rollable</span><span><i class="legend-dot amber"></i> Eligibility under research</span></div>
       </div>
     </aside>
@@ -151,19 +151,19 @@
           <div class="selection-column">
             <div class="weapon-selectors">
               <div class="selector-group"><div class="selector-label-row"><label id="categoryLabel">Category</label><button id="resetTarget" class="text-button" type="button">Reset selection</button></div><div id="categorySelect" class="combo cyan-combo" data-combo="category"><button type="button" class="combo-trigger" aria-labelledby="categoryLabel categoryValue" aria-haspopup="listbox" aria-expanded="false"><span id="categoryValue">Primary</span><svg width="19" height="19"><use href="#r-chevron"/></svg></button></div></div>
-              <div class="selector-group"><label id="weaponLabel">Weapon</label><div id="weaponSelect" class="combo cyan-combo" data-combo="weapon"><button type="button" class="combo-trigger" aria-labelledby="weaponLabel weaponValue" aria-haspopup="listbox" aria-expanded="false"><span id="weaponValue">Soma</span><svg width="19" height="19"><use href="#r-chevron"/></svg></button></div></div>
+              <div class="selector-group"><label id="weaponLabel">Weapon</label><div id="weaponSelect" class="combo cyan-combo" data-combo="weapon"><button type="button" class="combo-trigger" aria-labelledby="weaponLabel weaponValue" aria-haspopup="listbox" aria-expanded="false"><span id="weaponValue">Sobek</span><svg width="19" height="19"><use href="#r-chevron"/></svg></button></div></div>
               <div class="selector-group"><label id="variantLabel">Variant</label><div id="variantSelect" class="combo cyan-combo" data-combo="variant"><button type="button" class="combo-trigger" aria-labelledby="variantLabel variantValue" aria-haspopup="listbox" aria-expanded="false"><span id="variantValue">Base</span><svg width="19" height="19"><use href="#r-chevron"/></svg></button></div></div>
             </div>
           <section class="target-section" aria-labelledby="targetTitle">
             <div class="section-heading"><h2 id="targetTitle">Your target roll</h2></div>
             <div class="riven-card">
               <div class="riven-card-art" aria-hidden="true"><div class="card-frame-space"><img class="card-backing" src="./assets/silver-background.png" alt=""><img class="card-illustration" src="./assets/damage.jpg" alt=""><img class="card-top" src="./assets/frame-top.png" alt=""><img class="card-side card-side-right" src="./assets/side-light.png" alt=""><img class="card-side card-side-left" src="./assets/side-light.png" alt=""><img class="card-bottom" src="./assets/frame-bottom.png" alt=""><img class="card-rank-line" src="./assets/rank-complete-line.png" alt=""></div></div>
-              <div class="card-content"><span class="card-type">RIVEN MOD</span><h3 id="cardWeapon">Soma</h3>
+              <div class="card-content"><span class="card-type">RIVEN MOD</span><h3 id="cardWeapon">Sobek</h3>
                 <div id="statFields" class="stat-fields">
                   <div class="stat-row" data-row="0"><span class="stat-sign">+</span><div class="combo stat-combo" data-combo="positive0"><button class="combo-trigger" type="button" aria-label="Select first positive stat" aria-haspopup="listbox" aria-expanded="false"><span>Critical Chance</span><svg width="15" height="15"><use href="#r-chevron"/></svg></button></div><button type="button" class="lock-button" data-lock="0" aria-label="Lock first positive stat" aria-pressed="false"><svg width="19" height="19"><use href="#r-unlock"/></svg></button></div>
                   <div class="stat-row" data-row="1"><span class="stat-sign">+</span><div class="combo stat-combo" data-combo="positive1"><button class="combo-trigger" type="button" aria-label="Select second positive stat" aria-haspopup="listbox" aria-expanded="false"><span>Critical Damage</span><svg width="15" height="15"><use href="#r-chevron"/></svg></button></div><button type="button" class="lock-button" data-lock="1" aria-label="Lock second positive stat" aria-pressed="false"><svg width="19" height="19"><use href="#r-unlock"/></svg></button></div>
                   <div class="stat-row" data-row="2"><span class="stat-sign">+</span><div class="combo stat-combo" data-combo="positive2"><button class="combo-trigger" type="button" aria-label="Select optional third positive stat" aria-haspopup="listbox" aria-expanded="false"><span>Multishot</span><svg width="15" height="15"><use href="#r-chevron"/></svg></button></div><button type="button" class="lock-button" data-lock="2" aria-label="Lock third positive stat" aria-pressed="false"><svg width="19" height="19"><use href="#r-unlock"/></svg></button></div>
-                  <div class="stat-row negative-row" data-row="negative"><span class="stat-sign">−</span><div class="combo stat-combo" data-combo="negative"><button class="combo-trigger" type="button" aria-label="Select acceptable negative stats" aria-haspopup="listbox" aria-expanded="false"><span>Zoom</span><svg width="15" height="15"><use href="#r-chevron"/></svg></button></div><button type="button" class="lock-button" data-lock="negative" aria-label="Lock an acceptable negative stat" aria-pressed="false"><svg width="19" height="19"><use href="#r-unlock"/></svg></button></div>
+                  <div class="stat-row negative-row" data-row="negative"><span class="stat-sign">−</span><div class="combo stat-combo" data-combo="negative"><button class="combo-trigger" type="button" aria-label="Select acceptable negative stats" aria-haspopup="listbox" aria-expanded="false"><span>Weapon Recoil</span><svg width="15" height="15"><use href="#r-chevron"/></svg></button></div><button type="button" class="lock-button" data-lock="negative" aria-label="Lock an acceptable negative stat" aria-pressed="false"><svg width="19" height="19"><use href="#r-unlock"/></svg></button></div>
                 </div>
                 <p class="card-footer">Can select multiple acceptable Negatives.</p>
               </div>
@@ -179,16 +179,16 @@
               <div class="results-overview">
               <div class="results-intro">
                 <div class="section-heading"><h2 id="resultsTitle">Odds &amp; Kuva reduction</h2><span id="acceptableCount" class="small-muted">1 acceptable negative</span></div>
-                <div class="pool-line"><span id="poolSummary">22 positive traits · 17 negative traits</span><span class="model-label">Positives-first model</span></div>
+                <div class="pool-line"><span id="poolSummary">20 positive traits · 15 negative traits</span><span class="model-label">Positives-first model</span></div>
                 <div id="poolNotice" class="research-notice" hidden></div>
                 <div id="strategyRecommendation" class="strategy-recommendation"><span class="recommendation-label">BEST FOR THIS TARGET</span><strong>Lock a negative</strong><p>Keep one acceptable negative while rolling the three positives.</p></div>
               </div>
               <aside class="strategy-summary" aria-label="Selected strategy and planning estimates">
-                <div id="activeStrategy" class="active-strategy"><span>SELECTED STRATEGY · NO LOCK</span><strong>1 / 86,240</strong><p>Expected rolls, not a guarantee.</p></div>
-                <div class="planning-stats" id="planningStats"><div><span>Average Kuva</span><strong>301.84M</strong></div><div><span>50% success</span><strong>59,777 rolls</strong></div><div><span>95% success</span><strong>258,351 rolls</strong></div></div>
+                <div id="activeStrategy" class="active-strategy"><span>SELECTED STRATEGY · LOCK NEGATIVE</span><strong>1 / 969</strong><p>Expected rolls, not a guarantee.</p></div>
+                <div class="planning-stats" id="planningStats"><div><span>Average Kuva</span><strong>6.78M</strong></div><div><span>50% success</span><strong>672 rolls</strong></div><div><span>95% success</span><strong>2,902 rolls</strong></div></div>
               </aside>
               </div>
-              <div class="strategy-table-wrap"><table class="strategy-table"><thead><tr><th scope="col">Strategy</th><th scope="col">Odds per roll</th><th scope="col">Kuva reduction</th></tr></thead><tbody id="strategyRows"><tr><th scope="row">No lock <small>Previous odds</small></th><td>1 / 86,240</td><td class="muted">0%</td></tr><tr><th scope="row">Lock positive</th><td>1 / 2,940</td><td class="positive-text">93.18%</td></tr><tr class="best-row"><th scope="row">Lock negative</th><td>1 / 1,330</td><td class="positive-text">96.92%</td></tr></tbody></table></div>
+              <div class="strategy-table-wrap"><table class="strategy-table"><thead><tr><th scope="col">Strategy</th><th scope="col">Odds per roll</th><th scope="col">Kuva reduction</th></tr></thead><tbody id="strategyRows"><tr><th scope="row">No lock <small>Previous odds</small></th><td>1 / 54,720</td><td class="muted">0%</td></tr><tr><th scope="row">Lock positive</th><td>1 / 2,052</td><td class="positive-text">92.5%</td></tr><tr class="best-row"><th scope="row">Lock negative</th><td>1 / 969</td><td class="positive-text">96.46%</td></tr></tbody></table></div>
               <p class="cost-caption">A <strong>manual lock doubles Kuva per roll</strong>: 3,500 → 7,000 at the capped cost. A spliced trait stays fixed for free, with one extra manual lock available. Locking or retaining a splice preserves the selected format. Locked estimates require a starting Riven in that format; acquiring it and splicing setup costs are excluded.</p>
             </section>
 
@@ -204,6 +204,6 @@
   <div id="rivenStatus" class="sr-only" role="status" aria-live="polite"></div>
   <noscript><p class="noscript-notice">Enable JavaScript to select a weapon and calculate Riven odds.</p></noscript>
   <script type="module" src="./shell.mjs"></script>
-  <script type="module" src="./app.mjs?v=20260923-lock-grades"></script>
+  <script type="module" src="./app.mjs?v=20260923-setup-boxes"></script>
 </body>
 </html>

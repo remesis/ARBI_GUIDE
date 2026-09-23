@@ -1,16 +1,49 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-lock-grades';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-lock-grades';
-import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-lock-grades';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-setup-boxes';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260923-setup-boxes';
+import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260923-setup-boxes';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
 const $ = selector => document.querySelector(selector);
 const CATEGORIES = ['Primary', 'Secondary', 'Melee', 'Sentinel', 'Hound', 'Archgun'];
 const CC = 'critical-chance', CD = 'critical-damage', MS = 'multishot';
 const aliases = {[CC]: 'cc crit', [CD]: 'cd crit', [MS]: 'ms', 'melee-damage': 'dmg damage', 'damage': 'dmg', 'projectile-speed': 'pfs flight speed', 'puncture': 'ips puncture', 'impact': 'ips', 'slash': 'ips'};
-const state = {category: 'Primary', weapon: null, variant: null, positives: [CC, CD, MS], negatives: ['zoom'], hasNegative: true, heldNegative: 'zoom', lock: null};
+const state = {category: 'Primary', weapon: null, variant: null, positives: [CC, CD, MS], negatives: ['weapon-recoil'], hasNegative: true, heldNegative: 'weapon-recoil', lock: null};
 let catalog, weapon, variant, family, definitions, pools, research;
 const combos = {}, poolCache = new Map(), spliceSetupCache = new Map();
+const selectionStorageKey = 'riven-selection-v1';
+function saveSelection() {
+  try { window.localStorage.setItem(selectionStorageKey, JSON.stringify({version: 1, ...state})); } catch {}
+}
+function restoreSelection() {
+  let saved;
+  try {
+    const raw = window.localStorage.getItem(selectionStorageKey);
+    if (!raw || raw.length > 10000) return false;
+    saved = JSON.parse(raw);
+  } catch { return false; }
+  const validId = value => typeof value === 'string' && value.length > 0 && value.length < 100;
+  if (!saved || saved.version !== 1 || !validId(saved.weapon)
+    || !Array.isArray(saved.positives) || saved.positives.length !== 3
+    || !saved.positives.every((id, i) => validId(id) || i === 2 && id === null)
+    || !Array.isArray(saved.negatives) || saved.negatives.length > 100 || !saved.negatives.every(validId)
+    || typeof saved.hasNegative !== 'boolean') return false;
+  const selectedWeapon = catalog.weapons.find(row => row.id === saved.weapon && row.category === saved.category);
+  if (!selectedWeapon) return false;
+  let hasSplice = false;
+  const positives = saved.positives.map(id => {
+    if (!isCombinedTrait(id)) return id;
+    if (hasSplice) return ''; // Normalize an invalid extra splice into an ordinary stat.
+    hasSplice = true; return id;
+  });
+  Object.assign(state, {category: selectedWeapon.category, weapon: selectedWeapon.id,
+    variant: selectedWeapon.variants.some(row => row.id === saved.variant) ? saved.variant : null,
+    positives, negatives: saved.hasNegative ? saved.negatives : [], hasNegative: saved.hasNegative,
+    heldNegative: validId(saved.heldNegative) ? saved.heldNegative : null,
+    lock: [null, 'negative', '0', '1', '2'].includes(saved.lock) ? saved.lock : null});
+  selectWeapon(selectedWeapon.id, {selectBest: false, autoNegative: false});
+  return true;
+}
 const infoPreferences = new Map();
 function setupInfo(key, body) {
   if (!infoPreferences.has(key)) {
@@ -53,7 +86,7 @@ function normalize(autoNegative = false) {
   if (state.lock !== null && state.lock !== 'negative' && (!state.positives[Number(state.lock)] || isCombinedTrait(state.positives[Number(state.lock)]))) state.lock = null;
 }
 
-function selectWeapon(id) {
+function selectWeapon(id, {selectBest = true, autoNegative = true} = {}) {
   weapon = catalog.weapons.find(w => w.id === id);
   if (!weapon) throw new Error('Unknown weapon selection.');
   state.weapon = id;
@@ -64,14 +97,14 @@ function selectWeapon(id) {
   state.variant = variant.id;
   if (!poolCache.has(family.id)) poolCache.set(family.id, enumeratePools(family));
   pools = poolCache.get(family.id);
-  normalize(true);
+  normalize(autoNegative);
   $('#rangeList').scrollTop = 0;
-  render({selectBest: true});
+  render({selectBest});
 }
 
 function selectCategory(category) {
   state.category = category;
-  const defaults = {Primary: 'Soma', Secondary: 'Lex', Melee: 'Amanata', Sentinel: 'Verglas', Hound: 'Akaten', Archgun: 'Imperator'};
+  const defaults = {Primary: 'Sobek', Secondary: 'Lex', Melee: 'Amanata', Sentinel: 'Verglas', Hound: 'Akaten', Archgun: 'Imperator'};
   const choices = catalog.weapons.filter(w => w.category === category);
   selectWeapon((choices.find(w => w.name === defaults[category]) || choices[0]).id);
 }
@@ -177,7 +210,7 @@ function connectControls() {
     $('#strategyRows').querySelector(`[data-strategy="${strategy}"]`).focus({preventScroll: true});
   });
   $('#resetTarget').addEventListener('click', () => {
-    Object.assign(state, {positives: [CC, CD, MS], negatives: ['zoom'], hasNegative: true, heldNegative: 'zoom', lock: null, variant: null});
+    Object.assign(state, {positives: [CC, CD, MS], negatives: ['weapon-recoil'], hasNegative: true, heldNegative: 'weapon-recoil', lock: null, variant: null});
     $('#rangeSearch').value = ''; selectCategory('Primary');
   });
   $('#fullMath').addEventListener('toggle', () => { if ($('#fullMath').open) renderDerivation(); });
@@ -242,6 +275,7 @@ function render({selectBest = false} = {}) {
   renderRanges(); renderSpliceSetup(); renderSelectedLockSetup(); renderResults(); renderCrossovers();
   if ($('#fullMath').open) renderDerivation();
   $('#rivenStatus').textContent = `${variant.name}. ${FORMATS[format()].name}. ${combinedTargets().length ? 'Spliced trait retained for free. ' : ''}${state.lock === null ? 'No manual lock' : state.lock === 'negative' ? 'Negative locked' : 'Positive locked'}.`;
+  saveSelection();
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
@@ -256,7 +290,7 @@ function renderSpliceSetup() {
   const result = spliceSetupCache.get(key);
   const expanded = section.querySelector('.splice-disclosure')?.hasAttribute('open') ?? true;
   const recipeText = recipes.map(pair => pair.map(nameOf).join(' + ')).join('; or ');
-  const heading = `<details class="splice-disclosure"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><span class="splice-toggle" aria-hidden="true"></span></summary><div class="splice-body"><p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p>`;
+  const heading = `<details class="math-details splice-disclosure"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p>`;
   if (!result.available) {
     section.innerHTML = heading + `<p class="research-notice">${result.uncertain ? 'Unresolved ingredient eligibility changes which setup route is possible or best. No single optimal route is shown until that pool is confirmed.' : 'No complete recipe can be rolled in this weapon’s eligible pools and selected format. Existing vintage ingredients are outside this setup estimate.'}</p></div></details>`;
     return;
@@ -326,7 +360,7 @@ function renderSelectedLockSetup() {
   const section = $('#selectedLockSetup');
   section.hidden = false;
   const expanded = section.querySelector('details')?.hasAttribute('open') ?? true;
-  const heading = `<details class="splice-disclosure"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="selectedLockTitle">Getting Selected Lock Stat</h2><span class="splice-toggle" aria-hidden="true"></span></summary><div class="selected-lock-body">`;
+  const heading = `<details class="math-details splice-disclosure"${expanded ? ' open' : ''}><summary class="section-heading"><h2 id="selectedLockTitle">Getting Selected Lock Stat</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="selected-lock-body">`;
   if (state.lock === null) {
     section.innerHTML = heading + '<p class="lock-grade-intro">Select a manual positive or negative lock on the card to see its grade ranges and acquisition odds.</p></div></details>';
     return;
@@ -420,16 +454,16 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-lock-grades');
+  const {renderMath} = await import('./math.mjs?v=20260923-setup-boxes');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-lock-grades');
+  const response = await fetch('./data.json?v=20260923-setup-boxes');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
-  connectControls(); selectCategory('Primary');
+  connectControls(); if (!restoreSelection()) selectCategory('Primary');
 } catch (error) {
   $('#loadError').hidden = false;
   $('#loadError').textContent = 'The Riven data could not load. Refresh the page to try again.';

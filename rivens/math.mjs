@@ -1,5 +1,5 @@
 import {escapeHTML as esc, number, oddsText, intervalText} from './format.mjs';
-import {isCombinedTrait, splicedTraitsFor} from './catalog.mjs?v=20260923-lock-grades';
+import {isCombinedTrait, splicedTraitsFor} from './catalog.mjs?v=20260923-setup-boxes';
 
 export function renderMath({catalog, research, target, variant, format, nameOf}) {
   const single = research.scenarios.length === 1, row = research.scenarios[0];
