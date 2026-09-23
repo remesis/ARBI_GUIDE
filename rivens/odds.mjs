@@ -1,5 +1,107 @@
 // Exact combinatorial calculations under the stated positives-first model.
-import {isCombinedTrait} from './catalog.mjs?v=20260922-splicing';
+import {isCombinedTrait} from './catalog.mjs?v=20260923-splice-setup';
+
+export const S_GRADE_CHANCE = .025;
+
+function* subsets(items, count, start = 0, prefix = []) {
+  if (!count) { yield prefix; return; }
+  for (let i = start; i <= items.length - count; i++) yield* subsets(items, count - 1, i + 1, [...prefix, items[i]]);
+}
+
+// Uniform positive sets first; any negative is drawn from the completed set's
+// compatible pool. A held negative instead excludes its positive counterpart.
+function* setupOutcomes(pool, k, hasNegative, lock) {
+  const positiveLock = lock.polarity === 'positive';
+  if (!pool[lock.polarity].has(lock.id) || !positiveLock && !hasNegative) return;
+  const candidates = [...pool.positive].filter(id => id !== lock.id);
+  const draws = k - Number(positiveLock), denominator = choose(candidates.length, draws);
+  if (!denominator) return;
+  for (const rolled of subsets(candidates, draws)) {
+    const positives = positiveLock ? [lock.id, ...rolled] : rolled;
+    const negatives = !hasNegative ? [null] : !positiveLock ? [lock.id] : [...pool.negative].filter(id => !positives.includes(id));
+    for (const negative of negatives) yield {rolled, positives, negative, weight: 1 / denominator / negatives.length};
+  }
+}
+
+/** Positive S line held, any recipe partner accepted in either eligible sign. */
+export function splicePartnerChance(pool, recipes, k, hasNegative, held) {
+  const partners = new Set(recipes.flatMap(([a, b]) => a === held ? [b] : b === held ? [a] : []));
+  let chance = 0;
+  for (const outcome of setupOutcomes(pool, k, hasNegative, {id: held, polarity: 'positive'})) {
+    if (outcome.rolled.some(id => partners.has(id)) || partners.has(outcome.negative)) chance += outcome.weight;
+  }
+  return Math.min(1, chance);
+}
+
+/** Two-stage route: stop on the first usable positive S, then retain it.
+ * The starting lock exists already and is not itself assumed S-grade.
+ * Multiple S lines: splice immediately if possible, otherwise keep the line
+ * with the shortest partner search. Grades are independent uniform draws.
+ */
+export function spliceSetupRoute(pool, recipes, k, hasNegative, lock, gradeChance = S_GRADE_CHANCE, partnerChances) {
+  if (![2, 3].includes(k) || !(gradeChance > 0 && gradeChance <= 1)) return null;
+  const ingredients = [...new Set(recipes.flat())].filter(id => pool.positive.has(id));
+  const qPartner = partnerChances || new Map(ingredients.map(id => [id, splicePartnerChance(pool, recipes, k, hasNegative, id)]));
+  const partners = new Map(ingredients.map(id => [id, new Set(recipes.flatMap(([a,b]) => a === id ? [b] : b === id ? [a] : []))]));
+  let q = 0, weightedExtra = 0, needsPartner = 0;
+  for (const outcome of setupOutcomes(pool, k, hasNegative, lock)) {
+    const eligible = outcome.rolled.filter(id => qPartner.get(id) > 0);
+    for (let mask = 1; mask < 2 ** eligible.length; mask++) {
+      let gradeWeight = 1, extra = Infinity;
+      eligible.forEach((id, bit) => {
+        const isS = Boolean(mask & (1 << bit));
+        gradeWeight *= isS ? gradeChance : 1 - gradeChance;
+        if (isS) {
+          const ready = outcome.positives.some(trait => partners.get(id).has(trait)) || partners.get(id).has(outcome.negative);
+          extra = Math.min(extra, ready ? 0 : 1 / qPartner.get(id));
+        }
+      });
+      const weight = outcome.weight * gradeWeight;
+      q += weight;
+      weightedExtra += weight * extra;
+      if (extra > 0) needsPartner += weight;
+    }
+  }
+  if (!q) return null;
+  const first = 1 / q, additional = weightedExtra / q;
+  return {lock, chance: q, first, additional, total: first + additional,
+    ready: 1 - needsPartner / q, ifMissing: needsPartner ? weightedExtra / needsPartner : 0};
+}
+
+/** Compare existing ordinary starting locks, within the selected format.
+ * Unresolved pools stay separate. Do not invent a single optimal route when
+ * different eligibility scenarios prefer different starting locks.
+ */
+export function optimalSpliceSetup(pools, recipes, k, hasNegative) {
+  const recipeIds = [...new Set(recipes.flat())];
+  const routeCache = new Map(), partnerCache = new Map();
+  const scenarios = pools.map(pool => {
+    // Non-ingredients with the same polarity eligibility are interchangeable.
+    // Reuse only exact pool signatures, without averaging uncertain scenarios.
+    const membership = id => Number(pool.positive.has(id)) + 2 * Number(pool.negative.has(id));
+    const signature = [pool.positive.size, pool.negative.size, [...pool.positive].filter(id => pool.negative.has(id)).length,
+      ...recipeIds.map(membership)].join(':');
+    if (!partnerCache.has(signature)) partnerCache.set(signature, new Map(recipeIds.filter(id => pool.positive.has(id))
+      .map(id => [id, splicePartnerChance(pool, recipes, k, hasNegative, id)])));
+    const partnerChances = partnerCache.get(signature);
+    const locks = [ ...(hasNegative ? [...pool.negative].map(id => ({id, polarity: 'negative'})) : []),
+      ...[...pool.positive].map(id => ({id, polarity: 'positive'})) ];
+    const routes = locks.map(lock => {
+      const key = `${signature}:${lock.polarity}:${recipeIds.includes(lock.id) ? lock.id : membership(lock.id)}`;
+      if (!routeCache.has(key)) routeCache.set(key, spliceSetupRoute(pool, recipes, k, hasNegative, lock, S_GRADE_CHANCE, partnerChances));
+      const route = routeCache.get(key);
+      return route && {...route, lock};
+    }).filter(Boolean);
+    const min = Math.min(...routes.map(route => route.total));
+    return routes.filter(route => Math.abs(route.total - min) < 1e-8);
+  });
+  if (scenarios.some(routes => !routes.length)) return {available: false, uncertain: pools.length > 1};
+  const common = scenarios[0].find(route => scenarios.every(routes => routes.some(other => other.lock.id === route.lock.id && other.lock.polarity === route.lock.polarity)));
+  if (!common) return {available: false, uncertain: true};
+  const routes = scenarios.map(rows => rows.find(route => route.lock.id === common.lock.id && route.lock.polarity === common.lock.polarity));
+  return {available: true, uncertain: pools.length > 1, lock: common.lock,
+    ...Object.fromEntries(['chance', 'first', 'additional', 'total', 'ready', 'ifMissing'].map(key => [key, bounds(routes.map(route => route[key]))]))};
+}
 
 export function choose(n, k) {
   if (!Number.isInteger(n) || !Number.isInteger(k) || n < 0 || k < 0 || k > n) return 0;

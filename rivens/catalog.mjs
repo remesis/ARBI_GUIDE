@@ -17,7 +17,7 @@ export const COMBINED_TRAITS = Object.freeze([
   {id: 'weakpoint-critical-chance', name: 'Weakpoint Critical Chance', group: 'ranged', recipe: 'Critical Chance + Zoom; or Critical Chance + Multishot'},
   {id: 'ammo-efficiency', name: 'Ammo Efficiency', group: 'ranged', recipe: 'Magazine Capacity + Reload Speed; or Weapon Recoil + Ammo Maximum'},
   {id: 'magazine-reload-while-holstered', name: 'Magazine Reload While Holstered', group: 'ranged', recipe: 'Ammo Maximum + Reload Speed; or Ammo Maximum + Magazine Capacity'},
-  {id: 'status-damage', name: 'Status Damage', group: 'ranged', recipe: 'Damage + Status Chance'},
+  {id: 'status-damage', name: 'Status Damage', group: 'all', recipe: 'Damage + Status Chance'},
   {id: 'heavy-attack-damage', name: 'Heavy Attack Damage', group: 'melee', recipe: 'Heavy Attack Efficiency + Additional Combo Count'},
   {id: 'heavy-attack-windup-speed', name: 'Heavy Attack Windup Speed', group: 'melee', recipe: 'Heavy Attack Efficiency + Combo Duration'},
   {id: 'parry-angle', name: 'Parry Angle', group: 'melee', recipe: 'Attack Speed + Range'},
@@ -27,6 +27,29 @@ const combinedIds = new Set(COMBINED_TRAITS.map(trait => trait.id));
 export const isCombinedTrait = id => combinedIds.has(id);
 export const splicedTraitsFor = definition => COMBINED_TRAITS.filter(trait => trait.group === 'all'
   || trait.group === (['Melee', 'Zaw'].includes(definition) ? 'melee' : 'ranged'));
+
+// Ordinary trait identities, not additional entries in either cycling pool.
+const splicePairs = {
+  blast: [['cold', 'heat']], corrosive: [['electricity', 'toxin']], gas: [['heat', 'toxin']],
+  magnetic: [['cold', 'electricity']], radiation: [['heat', 'electricity']], viral: [['cold', 'toxin']],
+  'damage-to-orokin': [['damage-to-corpus', 'damage-to-grineer']],
+  'damage-to-techrot': [['damage-to-corpus', 'damage-to-infested']],
+  'damage-to-scaldra': [['damage-to-infested', 'damage-to-grineer']],
+  'weakpoint-damage': [['damage', 'zoom'], ['damage', 'multishot']],
+  'weakpoint-critical-chance': [['critical-chance', 'zoom'], ['critical-chance', 'multishot']],
+  'ammo-efficiency': [['magazine-capacity', 'reload-speed'], ['weapon-recoil', 'ammo-maximum']],
+  'magazine-reload-while-holstered': [['ammo-maximum', 'reload-speed'], ['ammo-maximum', 'magazine-capacity']],
+  'status-damage': [['damage', 'status-chance']],
+  'heavy-attack-damage': [['heavy-attack-efficiency', 'additional-combo-count-chance']],
+  'heavy-attack-windup-speed': [['heavy-attack-efficiency', 'combo-duration']],
+  'parry-angle': [['fire-rate-attack-speed', 'range']],
+  'slam-damage': [['damage', 'fire-rate-attack-speed']],
+};
+export function spliceRecipes(id, definition) {
+  if (!splicedTraitsFor(definition).some(trait => trait.id === id)) return [];
+  return (splicePairs[id] || []).map(pair => pair.map(trait =>
+    trait === 'damage' && ['Melee', 'Zaw'].includes(definition) ? 'melee-damage' : trait));
+}
 
 export function unpackCatalog(data) {
   if (data.schemaVersion !== 2 || !data.weapons?.length) throw new Error('Unsupported Riven catalog.');

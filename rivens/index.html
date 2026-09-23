@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="apple-touch-icon" href="/logo.png">
   <link rel="stylesheet" href="./guide-shell.css">
-  <link rel="stylesheet" href="./rivens.css?v=20260922-splicing">
+  <link rel="stylesheet" href="./rivens.css?v=20260923-splice-setup">
 </head>
 <body class="rivens-page">
   <a class="skip-link" href="#content">Skip to Riven calculator</a>
@@ -173,6 +173,7 @@
           </div>
 
           <div class="math-column">
+            <section id="spliceSetup" class="splice-setup" aria-labelledby="spliceSetupTitle" hidden></section>
             <section class="results-section" aria-labelledby="resultsTitle">
               <div class="results-overview">
               <div class="results-intro">
@@ -195,13 +196,13 @@
         </div>
 
         <details id="fullMath" class="math-details"><summary><span>Show all the math</span><svg width="20" height="20"><use href="#r-chevron"/></svg></summary><div id="mathContent" class="math-content"><p>The full derivation, assumptions, and current selection will appear here when the weapon catalog loads.</p></div></details>
-        <footer class="riven-footer"><span>Riven stat-locking research</span><span>Trait identities only. Not stat grades.</span></footer>
+        <footer class="riven-footer"><span>Riven stat-locking research</span><span>Final-roll odds count trait identities. Splice setup models S-grade ingredients.</span></footer>
       </article>
     </main>
   </div>
   <div id="rivenStatus" class="sr-only" role="status" aria-live="polite"></div>
   <noscript><p class="noscript-notice">Enable JavaScript to select a weapon and calculate Riven odds.</p></noscript>
   <script type="module" src="./shell.mjs"></script>
-  <script type="module" src="./app.mjs?v=20260922-splicing"></script>
+  <script type="module" src="./app.mjs?v=20260923-splice-setup"></script>
 </body>
 </html>

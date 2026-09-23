@@ -1,6 +1,6 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor} from './catalog.mjs?v=20260922-splicing';
-import {enumeratePools, analyze, bounds, choose, attemptsFor} from './odds.mjs?v=20260922-splicing';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-splice-setup';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup} from './odds.mjs?v=20260923-splice-setup';
 import {FORMATS, traitRange, formatRange} from './ranges.mjs';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
@@ -10,7 +10,7 @@ const CC = 'critical-chance', CD = 'critical-damage', MS = 'multishot';
 const aliases = {[CC]: 'cc crit', [CD]: 'cd crit', [MS]: 'ms', 'melee-damage': 'dmg damage', 'damage': 'dmg', 'projectile-speed': 'pfs flight speed', 'puncture': 'ips puncture', 'impact': 'ips', 'slash': 'ips'};
 const state = {category: 'Primary', weapon: null, variant: null, positives: [CC, CD, MS], negatives: ['zoom'], hasNegative: true, heldNegative: 'zoom', lock: null};
 let catalog, weapon, variant, family, definitions, pools, research;
-const combos = {}, poolCache = new Map();
+const combos = {}, poolCache = new Map(), spliceSetupCache = new Map();
 const format = () => `${state.positives[2] ? 3 : 2}p${state.hasNegative ? 1 : 0}n`;
 const nameOf = id => definitions.find(t => t.id === id)?.name || COMBINED_TRAITS.find(t => t.id === id)?.name || '';
 const combinedTargets = () => state.positives.filter(isCombinedTrait);
@@ -223,10 +223,38 @@ function render({selectBest = false} = {}) {
   $('#negativeLockChoice').hidden = !state.hasNegative || state.negatives.length < 2;
   $('#negativeLockChoice label').textContent = state.lock === 'negative' ? 'Negative to keep locked' : 'Negative used for lock comparison';
   $('#heldNegative').innerHTML = state.negatives.map(id => `<option value="${esc(id)}"${id === state.heldNegative ? ' selected' : ''}>${esc(nameOf(id))}</option>`).join('');
-  renderRanges(); renderResults(); renderCrossovers();
+  renderRanges(); renderSpliceSetup(); renderResults(); renderCrossovers();
   if ($('#fullMath').open) renderDerivation();
   $('#rivenStatus').textContent = `${variant.name}. ${FORMATS[format()].name}. ${combinedTargets().length ? 'Spliced trait retained for free. ' : ''}${state.lock === null ? 'No manual lock' : state.lock === 'negative' ? 'Negative locked' : 'Positive locked'}.`;
   document.dispatchEvent(new window.Event('riven:render'));
+}
+
+function renderSpliceSetup() {
+  const section = $('#spliceSetup'), [splice] = combinedTargets();
+  section.hidden = !splice;
+  if (!splice) { section.replaceChildren(); return; }
+  const recipes = spliceRecipes(splice, family.definition).filter(pair => pools.some(pool =>
+    pair.every(id => pool.positive.has(id) || state.hasNegative && pool.negative.has(id))));
+  const key = `${family.id}:${splice}:${format()}`;
+  if (!spliceSetupCache.has(key)) spliceSetupCache.set(key, optimalSpliceSetup(pools, recipes, target().positives.length, state.hasNegative));
+  const result = spliceSetupCache.get(key);
+  const heading = `<div class="section-heading"><h2 id="spliceSetupTitle">Getting Optimal Splice</h2><span>${esc(nameOf(splice))} · ${format()}</span></div>`;
+  if (!result.available) {
+    section.innerHTML = heading + `<p class="research-notice">${result.uncertain ? 'Unresolved ingredient eligibility changes which setup route is possible or best. No single optimal route is shown until that pool is confirmed.' : 'No complete recipe can be rolled in this weapon’s eligible pools and selected format. Existing vintage ingredients are outside this setup estimate.'}</p>`;
+    return;
+  }
+  const rolls = value => intervalText(value, n => number(n, 1));
+  const kuva = {min: result.total.min * catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier, max: result.total.max * catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier};
+  const recipeText = recipes.map(pair => pair.map(nameOf).join(' + ')).join('; or ');
+  section.innerHTML = heading + `
+    <p class="splice-recipe">${esc(recipeText)}</p>
+    <div class="splice-steps">
+      <div><h3>1. Find an S-grade ingredient</h3><strong>${rolls(result.first)} <small>rolls on average</small></strong><p>Start with ${esc(nameOf(result.lock.id))} manually locked as a ${result.lock.polarity}. Keep rolling until a usable positive ingredient is S-grade.</p><span class="small-muted">${esc(oddsText(result.chance))} per roll</span></div>
+      <div><h3>2. Lock the S-grade, find its partner</h3><strong>${rolls(result.ifMissing)} <small>rolls if missing</small></strong><p>Move the lock to the S-grade positive. Accept its partner as a positive or negative wherever eligible.</p><span class="small-muted">Already together on ${percentText(result.ready)} of S-grade finds. That makes this step ${rolls(result.additional)} extra rolls on average.</span></div>
+    </div>
+    <p class="splice-total"><span>Splice ready: <strong>${rolls(result.total)} rolls on average</strong></span><span>Average setup Kuva: <strong>${intervalText(kuva, magnitude)}</strong></span></p>
+    <p class="cost-caption">S-grade here means +9.5% or better relative to the stat’s mean, modeled as a 2.5% independent chance. Best two-stage route among existing ordinary locks in ${format()}; assumes no S-grade ingredient yet. Both steps use ${number(catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier)} Kuva per roll at the cap. ${result.uncertain ? 'Ranges reflect unresolved pool eligibility. ' : ''}Excludes the starting Riven, splicer acquisition and the final target below. Other target traits, including vintage lines, are not preserved during setup.</p>
+    <p class="cost-caption">Splice the pair to keep the higher grade permanently as a positive. The replacement uses the other ingredient’s positive or negative slot, and either ingredient can appear again if eligible. The final-roll odds below start after this step.</p>`;
 }
 
 function renderResults() {
@@ -295,13 +323,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260922-splicing');
+  const {renderMath} = await import('./math.mjs?v=20260923-splice-setup');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260922-splicing');
+  const response = await fetch('./data.json?v=20260923-splice-setup');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); selectCategory('Primary');
