@@ -1,6 +1,6 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-starting-locks';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup} from './odds.mjs?v=20260923-starting-locks';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, spliceRecipes} from './catalog.mjs?v=20260923-pool-wording';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup} from './odds.mjs?v=20260923-pool-wording';
 import {FORMATS, traitRange, formatRange} from './ranges.mjs';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
@@ -252,13 +252,43 @@ function renderSpliceSetup() {
     && [...pools[0][polarity]].filter(predicate).length === alternatives.length;
   let lockInstruction;
   if (completeClass('negative', id => pools[0].positive.has(id) && !ingredients.has(id))) {
-    lockInstruction = `a negative stat that can also roll as a positive, but is not an ingredient for ${nameOf(splice)}`;
+    const excluded = [...ingredients].filter(id => pools[0].negative.has(id) && pools[0].positive.has(id)).map(nameOf);
+    lockInstruction = 'a negative stat that can also roll as a positive';
+    if (excluded.length) lockInstruction += `, excluding ${excluded.join(', ')}`;
   } else if (completeClass('positive', id => !ingredients.has(id))) {
     lockInstruction = `a positive stat that is not an ingredient for ${nameOf(splice)}`;
   } else {
     lockInstruction = alternatives.length > 1 ? 'one of the equally optimal starting traits listed below'
       : `${nameOf(result.lock.id)} as a ${result.lock.polarity}`;
   }
+  const partnerPools = pools.map(pool => {
+    const positive = new Set(), negative = new Set();
+    for (const [a, b] of recipes) for (const [held, partner] of [[a, b], [b, a]]) {
+      if (!pool.positive.has(held)) continue;
+      if (pool.positive.has(partner)) positive.add(partner);
+      if (state.hasNegative && pool.negative.has(partner)) negative.add(partner);
+    }
+    return {positive, negative};
+  });
+  const signature = pool => JSON.stringify(['positive', 'negative'].map(sign => [...pool[sign]].sort()));
+  const partnerEligibilityUnresolved = partnerPools.some(pool => signature(pool) !== signature(partnerPools[0]));
+  const hasPositivePartner = partnerPools.some(pool => pool.positive.size);
+  const hasNegativePartner = partnerPools.some(pool => pool.negative.size);
+  let partnerInstruction;
+  if (partnerEligibilityUnresolved) {
+    partnerInstruction = 'Use a partner eligible for the matching recipe in this weapon’s pool; some partner eligibility is unresolved.';
+  } else if (!hasNegativePartner) {
+    partnerInstruction = `Roll its partner as a positive. ${state.hasNegative ? 'These recipe partners cannot roll as negatives on this weapon.' : `${format()} has no negative slot.`}`;
+  } else if (!hasPositivePartner) {
+    partnerInstruction = 'Roll its partner as a negative.';
+  } else if ([...partnerPools[0].positive].every(id => partnerPools[0].negative.has(id))
+    && partnerPools[0].positive.size === partnerPools[0].negative.size) {
+    partnerInstruction = 'Accept its matching partner as either a positive or a negative.';
+  } else {
+    const negatives = [...partnerPools[0].negative].map(nameOf);
+    partnerInstruction = `Accept its matching partner in an eligible positive or negative slot. Eligible negative partners: ${negatives.join(', ')}.`;
+  }
+  const replacementSlot = hasPositivePartner && hasNegativePartner ? 'positive or negative' : hasNegativePartner ? 'negative' : 'positive';
   const choices = alternatives.length > 1 ? `<details class="splice-lock-choices"><summary>${alternatives.length} equally optimal starting locks</summary>${['negative', 'positive'].map(polarity => {
     const names = alternatives.filter(lock => lock.polarity === polarity).map(lock => nameOf(lock.id)).sort((a, b) => a.localeCompare(b));
     return names.length ? `<p><strong>${polarity === 'negative' ? 'Negative' : 'Positive'}:</strong> ${esc(names.join(', '))}.</p>` : '';
@@ -267,11 +297,11 @@ function renderSpliceSetup() {
     <p class="splice-recipe">${esc(recipeText)}</p>
     <div class="splice-steps">
       <div><h3>1. Find an S-grade ingredient</h3><strong>${rolls(result.first)} <small>rolls on average</small></strong><p>Start with a ${format()} Riven and manually lock ${esc(lockInstruction)}. Locking preserves ${format()}. Keep rolling until a usable positive ingredient is S-grade.</p>${choices}<span class="small-muted">${esc(oddsText(result.chance))} per roll</span></div>
-      <div><h3>2. Lock the S-grade, find its partner</h3><strong>${rolls(result.ifMissing)} <small>rolls if missing</small></strong><p>Move the lock to the S-grade positive. Accept its partner as a positive or negative wherever eligible.</p><span class="small-muted">Already together on ${percentText(result.ready)} of S-grade finds. That makes this step ${rolls(result.additional)} extra rolls on average.</span></div>
+      <div><h3>2. Lock the S-grade, find its partner</h3><strong>${rolls(result.ifMissing)} <small>rolls if missing</small></strong><p>Move the lock to the S-grade positive. ${esc(partnerInstruction)}</p><span class="small-muted">Already together on ${percentText(result.ready)} of S-grade finds. That makes this step ${rolls(result.additional)} extra rolls on average.</span></div>
     </div>
     <p class="splice-total"><span>Splice ready: <strong>${rolls(result.total)} rolls on average</strong></span><span>Average setup Kuva: <strong>${intervalText(kuva, magnitude)}</strong></span></p>
     <p class="cost-caption">S-grade here means +9.5% or better relative to the stat’s mean, modeled as a 2.5% independent chance. Best two-stage route among existing ordinary locks in ${format()}; assumes no S-grade ingredient yet. Both steps use ${number(catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier)} Kuva per roll at the cap. ${result.uncertain ? 'Ranges reflect unresolved pool eligibility. ' : ''}Excludes the starting Riven, splicer acquisition and the final target below. Other target traits, including vintage lines, are not preserved during setup.</p>
-    <p class="cost-caption">Splice the pair to keep the higher grade permanently as a positive. The replacement uses the other ingredient’s positive or negative slot, and either ingredient can appear again if eligible. The final-roll odds below start after this step.</p>`;
+    <p class="cost-caption">Splice the pair to keep the higher grade permanently as a positive. The replacement uses the other ingredient’s ${replacementSlot} slot, and either ingredient can appear again if eligible. The final-roll odds below start after this step.</p>`;
 }
 
 function renderResults() {
@@ -340,13 +370,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260923-starting-locks');
+  const {renderMath} = await import('./math.mjs?v=20260923-pool-wording');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20260923-starting-locks');
+  const response = await fetch('./data.json?v=20260923-pool-wording');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); selectCategory('Primary');
