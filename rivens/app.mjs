@@ -298,7 +298,7 @@ function renderRanges() {
       const trait = splicedTrait(entry.id, family.definition);
       const range = formatRange(traitRange(trait, variant.disposition, format(), 'positive', catalog.rangeModel));
       const note = range ? 'Provisional wiki baseline; final values and display rounding may change.' : 'No usable baseline published for this weapon type. This does not mean the splice is unavailable.';
-      rows.push(`<div class="range-row spliced-range${range ? '' : ' unverified'}" data-splice-range="${esc(entry.id)}" title="${esc(note)}"><span>${esc(entry.name)}<small class="range-flag">${range ? 'Provisional' : 'Baseline unknown'}</small></span><div class="${range ? 'range-positive' : 'unverified'}">${esc(range || 'Unknown')}</div></div>`);
+      rows.push(`<div class="range-row spliced-range${range ? '' : ' unverified'}" data-splice-range="${esc(entry.id)}" title="${esc(note)}"><span>${esc(entry.name)}${range ? '' : '<small class="range-flag">Baseline unknown</small>'}</span><div class="${range ? 'range-positive' : 'unverified'}">${esc(range || 'Unknown')}</div></div>`);
     }
     rows.push('</section>');
   }
