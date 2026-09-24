@@ -1,6 +1,6 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, splicedTrait, SPLICE_BASELINE_SOURCE, spliceRecipes} from './catalog.mjs?v=20260924-splice-baselines';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260924-splice-baselines';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, splicedTrait, SPLICE_BASELINE_SOURCE, spliceRecipes} from './catalog.mjs?v=20260924-shared-splice-ranges';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260924-shared-splice-ranges';
 import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260924-splice-baselines';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
@@ -293,12 +293,12 @@ function renderRanges() {
   }
   const splices = splicedTraitsFor(family.definition).filter(trait => `${trait.name} ${trait.recipe} spliced`.toLowerCase().includes(query));
   if (splices.length) {
-    rows.push(`<section class="range-section" aria-label="Spliced stat ranges"><h3>Spliced stats<span>Positive only</span></h3><p class="range-empty splice-range-note">Provisional <a href="${SPLICE_BASELINE_SOURCE.url}" target="_blank" rel="noopener noreferrer">wiki baselines</a> · ${SPLICE_BASELINE_SOURCE.date}. Missing values remain unknown.</p>`);
+    rows.push(`<section class="range-section" aria-label="Spliced stat ranges"><h3>Spliced stats<span>Positive only</span></h3><p class="range-empty splice-range-note">Elemental and faction splices currently share ordinary-stat ranges. Other values use provisional <a href="${SPLICE_BASELINE_SOURCE.url}" target="_blank" rel="noopener noreferrer">wiki baselines</a> · ${SPLICE_BASELINE_SOURCE.date}. Missing values remain unknown.</p>`);
     for (const entry of splices) {
-      const trait = splicedTrait(entry.id, family.definition);
+      const trait = splicedTrait(entry.id, family.definition, definitions);
       const range = formatRange(traitRange(trait, variant.disposition, format(), 'positive', catalog.rangeModel));
-      const note = range ? 'Provisional wiki baseline; final values and display rounding may change.' : 'No usable baseline published for this weapon type. This does not mean the splice is unavailable.';
-      rows.push(`<div class="range-row spliced-range${range ? '' : ' unverified'}" data-splice-range="${esc(entry.id)}" title="${esc(note)}"><span>${esc(entry.name)}${range ? '' : '<small class="range-flag">Baseline unknown</small>'}</span><div class="${range ? 'range-positive' : 'unverified'}">${esc(range || 'Unknown')}</div></div>`);
+      const note = trait.baselineReference ? `Currently assumes the same range as ${nameOf(trait.baselineReference)} for this weapon, variant and format.` : range ? 'Provisional wiki baseline; final values and display rounding may change.' : 'No usable baseline published for this weapon type. This does not mean the splice is unavailable.';
+      rows.push(`<div class="range-row spliced-range${range ? '' : ' unverified'}" data-splice-range="${esc(entry.id)}" title="${esc(note)}"><span>${esc(entry.name)}</span><div class="${range ? 'range-positive' : 'unverified'}">${esc(range || 'Unknown')}</div></div>`);
     }
     rows.push('</section>');
   }
@@ -466,7 +466,7 @@ function renderSelectedLockSetup() {
     <p class="lock-grade-intro">${vintage ? 'This vintage stat cannot roll anew. The ranges below are reference values for an existing line, not acquisition opportunities.' : `Find this stat before applying its manual lock. ${esc(acquisition)}`}</p>
     <div class="lock-grade-scroll"><table class="lock-grade-table"><thead><tr><th scope="col">Grade</th><th scope="col">Stat range for grade</th><th scope="col" title="Per-roll odds of this stat at this grade or better">Odds (grade or better)</th></tr></thead><tbody>${rows}</tbody></table></div>
     ${setupInfo('selected-lock', `<p class="cost-caption">Rank 8. Ranges show each grade’s band; odds include finding this stat at that grade or better. ${polarity === 'negative' ? 'Higher negative grades mean a smaller penalty.' : 'Higher positive grades mean a stronger benefit.'} Rounded display ranges can overlap at grade boundaries.</p>
-    <p class="cost-caption">Uses uniform grades across the ±10% band, independent of trait selection, under the positives-first model. ${pools.length > 1 ? 'Odds are bounds across unresolved eligible pools. ' : ''}${splice ? 'Spliced traits retain their grade. Available splice ranges use provisional wiki baselines; missing values remain unknown. ' : ''}This step does not require the rest of the final target.</p>`)}
+    <p class="cost-caption">Uses uniform grades across the ±10% band, independent of trait selection, under the positives-first model. ${pools.length > 1 ? 'Odds are bounds across unresolved eligible pools. ' : ''}${splice ? 'Spliced traits retain their grade. Elemental and faction splices currently share ordinary-stat ranges; other values use provisional wiki baselines. Missing values remain unknown. ' : ''}This step does not require the rest of the final target.</p>`)}
     </div></details>`;
 }
 
@@ -536,7 +536,7 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20260924-splice-baselines');
+  const {renderMath} = await import('./math.mjs?v=20260924-shared-splice-ranges');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }

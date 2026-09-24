@@ -33,19 +33,14 @@ export const SPLICE_BASELINE_SOURCE = Object.freeze({
   date: '2026-09-24',
   status: 'provisional',
 });
-// Public base values, before disposition, format and the +/-10% grade band.
+// Temporary shared-range assumption: use the selected weapon definition's
+// ordinary ingredient coefficient, unit and rounding, not a universal base.
+const sharedRangeSplices = new Set(['blast', 'corrosive', 'gas', 'magnetic', 'radiation', 'viral',
+  'damage-to-orokin', 'damage-to-techrot', 'damage-to-scaldra']);
+// Other public base values, before disposition, format and the +/-10% grade band.
 // Columns follow the wiki: Rifle, Shotgun, Pistol, Archgun, Melee / Zaw.
 // Empty cells and unclear units remain unknown; they are not zero or ineligible.
 const spliceBaseValues = Object.freeze(Object.fromEntries(Object.entries({
-  blast: [90, 90, 90, 90, null],
-  corrosive: [90, 90, 90, 90, null],
-  gas: [90, 90, 90, 90, null],
-  magnetic: [90, 90, 90, 90, null],
-  radiation: [90, 90, 90, 90, null],
-  viral: [90, 90, 90, 90, null],
-  'damage-to-orokin': [.45, .45, .45, .45, null],
-  'damage-to-techrot': [.45, .45, .45, .45, null],
-  'damage-to-scaldra': [.45, .45, .45, .45, null],
   'weakpoint-damage': [225, 225, 90, 225, null],
   'weakpoint-critical-chance': [247.5, 247.5, 90, 247.5, null],
   'ammo-efficiency': [9, 9, 9, 9, null],
@@ -58,21 +53,26 @@ const spliceBaseValues = Object.freeze(Object.fromEntries(Object.entries({
 
 // Resolve separately from ordinary definitions so splice ranges cannot enlarge
 // the positive/negative cycling pools or alter trait-identity odds.
-export function splicedTrait(id, definition) {
+export function splicedTrait(id, definition, ordinaryTraits = []) {
   const trait = splicedTraitsFor(definition).find(row => row.id === id);
   if (!trait) return null;
   const column = ['Rifle', 'Shotgun', 'Pistol', 'Archgun', 'Melee'].indexOf(definition === 'Zaw' ? 'Melee' : definition);
-  const baseValue = spliceBaseValues[id]?.[column];
-  const known = Number.isFinite(baseValue);
   const unit = id.startsWith('damage-to-') ? 'x' : '%';
-  return {...trait, positive: true, negative: false, reverse: false, unit,
+  const reference = sharedRangeSplices.has(id) ? spliceRecipes(id, definition).flat()
+    .map(ingredient => ordinaryTraits.find(row => row.id === ingredient))
+    .find(row => row?.positive && row.unit === unit && Number.isFinite(row.value)) : null;
+  const baseValue = reference ? reference.value * 90 * (unit === '%' ? 100 : 1) : spliceBaseValues[id]?.[column];
+  const known = Number.isFinite(baseValue);
+  return {...trait, positive: true, negative: false, reverse: reference?.reverse ?? false, unit,
     baseValue: known ? baseValue : null,
     // Existing range coefficients are per rank step at strength 10. The public
     // base is rank 8 (9 steps); faction values are bonuses before adding 1x.
-    value: known ? baseValue / (90 * (unit === '%' ? 100 : 1)) : null,
-    roundTo: unit === 'x' ? .01 : .1, rounding: 'RM_ROUND',
-    baselineStatus: known ? SPLICE_BASELINE_SOURCE.status : 'unknown',
-    baselineSource: SPLICE_BASELINE_SOURCE.url,
+    value: reference ? reference.value : known ? baseValue / (90 * (unit === '%' ? 100 : 1)) : null,
+    roundTo: reference ? reference.roundTo : unit === 'x' ? .01 : .1,
+    rounding: reference ? reference.rounding : 'RM_ROUND',
+    baselineStatus: reference ? 'assumed' : known ? SPLICE_BASELINE_SOURCE.status : 'unknown',
+    baselineReference: reference?.id ?? null,
+    baselineSource: reference ? null : SPLICE_BASELINE_SOURCE.url,
   };
 }
 
