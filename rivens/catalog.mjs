@@ -28,6 +28,54 @@ export const isCombinedTrait = id => combinedIds.has(id);
 export const splicedTraitsFor = definition => COMBINED_TRAITS.filter(trait => trait.group === 'all'
   || trait.group === (['Melee', 'Zaw'].includes(definition) ? 'melee' : 'ranged'));
 
+export const SPLICE_BASELINE_SOURCE = Object.freeze({
+  url: 'https://wiki.warframe.com/w/Riven_Mods#Spliced_Values',
+  date: '2026-09-24',
+  status: 'provisional',
+});
+// Public base values, before disposition, format and the +/-10% grade band.
+// Columns follow the wiki: Rifle, Shotgun, Pistol, Archgun, Melee / Zaw.
+// Empty cells and unclear units remain unknown; they are not zero or ineligible.
+const spliceBaseValues = Object.freeze(Object.fromEntries(Object.entries({
+  blast: [90, 90, 90, 90, null],
+  corrosive: [90, 90, 90, 90, null],
+  gas: [90, 90, 90, 90, null],
+  magnetic: [90, 90, 90, 90, null],
+  radiation: [90, 90, 90, 90, null],
+  viral: [90, 90, 90, 90, null],
+  'damage-to-orokin': [.45, .45, .45, .45, null],
+  'damage-to-techrot': [.45, .45, .45, .45, null],
+  'damage-to-scaldra': [.45, .45, .45, .45, null],
+  'weakpoint-damage': [225, 225, 90, 225, null],
+  'weakpoint-critical-chance': [247.5, 247.5, 90, 247.5, null],
+  'ammo-efficiency': [9, 9, 9, 9, null],
+  'magazine-reload-while-holstered': [90, 90, 90, null, null],
+  'status-damage': [90, 90, 90, 90, null],
+  'heavy-attack-damage': [null, null, null, null, 119.7],
+  'heavy-attack-windup-speed': [null, null, null, null, 119.7],
+  'slam-damage': [null, null, null, null, 119.7],
+}).map(([id, values]) => [id, Object.freeze(values)])));
+
+// Resolve separately from ordinary definitions so splice ranges cannot enlarge
+// the positive/negative cycling pools or alter trait-identity odds.
+export function splicedTrait(id, definition) {
+  const trait = splicedTraitsFor(definition).find(row => row.id === id);
+  if (!trait) return null;
+  const column = ['Rifle', 'Shotgun', 'Pistol', 'Archgun', 'Melee'].indexOf(definition === 'Zaw' ? 'Melee' : definition);
+  const baseValue = spliceBaseValues[id]?.[column];
+  const known = Number.isFinite(baseValue);
+  const unit = id.startsWith('damage-to-') ? 'x' : '%';
+  return {...trait, positive: true, negative: false, reverse: false, unit,
+    baseValue: known ? baseValue : null,
+    // Existing range coefficients are per rank step at strength 10. The public
+    // base is rank 8 (9 steps); faction values are bonuses before adding 1x.
+    value: known ? baseValue / (90 * (unit === '%' ? 100 : 1)) : null,
+    roundTo: unit === 'x' ? .01 : .1, rounding: 'RM_ROUND',
+    baselineStatus: known ? SPLICE_BASELINE_SOURCE.status : 'unknown',
+    baselineSource: SPLICE_BASELINE_SOURCE.url,
+  };
+}
+
 // Ordinary trait identities, not additional entries in either cycling pool.
 const splicePairs = {
   blast: [['cold', 'heat']], corrosive: [['electricity', 'toxin']], gas: [['heat', 'toxin']],

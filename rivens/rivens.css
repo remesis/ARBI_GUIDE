@@ -194,6 +194,7 @@
 .range-row { min-height: 27px; padding: 4px 0; border: 0; grid-template-columns: minmax(85px,1fr) auto; gap: 6px; }
 .range-row > span { font-size: calc(11px * var(--riven-text-scale)); }.range-row > div { font-size: calc(10.5px * var(--riven-text-scale)); line-height: 1.4; }.range-row.unverified > span { color: var(--warning); }.range-row .range-flag { font-size: calc(8px * var(--riven-text-scale)); margin-top: 3px; }
 .range-empty { color: var(--muted); font-size: calc(11px * var(--riven-text-scale)); }
+.sidebar .splice-range-note a { display: inline; padding: 0; margin: 0; color: var(--accent); text-decoration: underline; }
 .strategy-label { display: flex; align-items: center; gap: 8px; }
 .strategy-copy { min-width: 0; }
 .strategy-pick { color: inherit; background: none; border: 0; padding: 0; text-align: left; font-size: inherit; }

@@ -1,5 +1,5 @@
 // Exact combinatorial calculations under the stated positives-first model.
-import {isCombinedTrait} from './catalog.mjs?v=20260923-stage-summary-copy';
+import {isCombinedTrait} from './catalog.mjs?v=20260924-splice-baselines';
 
 export const S_GRADE_CHANCE = .025;
 

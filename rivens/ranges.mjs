@@ -25,6 +25,7 @@ export function traitRange(trait, disposition, format, polarity, model, rank = 8
   const layout = FORMATS[format];
   if (!layout || !['positive', 'negative'].includes(polarity)) throw new RangeError('Invalid Riven layout or polarity.');
   if (!Number.isFinite(disposition) || disposition <= 0 || !Number.isInteger(rank) || rank < 0 || rank > model.maxRank) throw new RangeError('Invalid disposition or rank.');
+  if (!trait || !Number.isFinite(trait.value)) return null;
   if (!trait[polarity] || polarity === 'negative' && !layout.negative) return null;
   const isNegative = polarity === 'negative';
   const attenuation = isNegative
