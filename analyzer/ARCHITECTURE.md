@@ -205,6 +205,18 @@ Expected Vitus cards. It accepts only the maintained Arbitration node keys and
 returns the duration-weighted Expected VE/min plus eligible run count. It does
 not return per-run rows, coordinates, hashes, or user-entered Actual Vitus.
 
+Opening a locally saved run always requests the latest available node averages
+with `cache: "no-store"`, even if that run was already viewed in this page session.
+Only concurrent requests for the same node are shared; completed responses are
+not cached by the application. The response updates the comparison fields and
+Vitus benchmark without changing the run's recorded statistics or Actual Vitus.
+Average fields and request flags remain excluded from IndexedDB snapshots and
+are discarded when older records are revived. A failed refresh keeps the last
+available in-memory averages with a warning and retries on the next opening.
+A 404 uses the existing single-run fallback and clears any previous Vitus rate.
+Late responses update their own run only and never replace a different selected
+report. No log parsing, re-submission, or database migration is involved.
+
 D1 is sufficient. R2 is unnecessary because raw uploads and immutable log
 objects are explicitly out of scope. The collected table is a quarantine/input
 dataset for later local review, not a live source for the 3D viewer.
