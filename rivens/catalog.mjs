@@ -33,14 +33,23 @@ export const SPLICE_BASELINE_SOURCE = Object.freeze({
   date: '2026-09-24',
   status: 'provisional',
 });
-// Temporary shared-range assumption: use the selected weapon definition's
-// ordinary ingredient coefficient, unit and rounding, not a universal base.
+// Temporary fallback only when the wiki lacks a value: use the selected weapon
+// definition's ordinary ingredient coefficient, unit and rounding.
 const sharedRangeSplices = new Set(['blast', 'corrosive', 'gas', 'magnetic', 'radiation', 'viral',
   'damage-to-orokin', 'damage-to-techrot', 'damage-to-scaldra']);
-// Other public base values, before disposition, format and the +/-10% grade band.
+// Public base values take priority over the shared-range fallback.
 // Columns follow the wiki: Rifle, Shotgun, Pistol, Archgun, Melee / Zaw.
 // Empty cells and unclear units remain unknown; they are not zero or ineligible.
 const spliceBaseValues = Object.freeze(Object.fromEntries(Object.entries({
+  blast: [90, 90, 90, 90, null],
+  corrosive: [90, 90, 90, 90, null],
+  gas: [90, 90, 90, 90, null],
+  magnetic: [90, 90, 90, 90, null],
+  radiation: [90, 90, 90, 90, null],
+  viral: [90, 90, 90, 90, null],
+  'damage-to-orokin': [.45, .45, .45, .45, null],
+  'damage-to-techrot': [.45, .45, .45, .45, null],
+  'damage-to-scaldra': [.45, .45, .45, .45, null],
   'weakpoint-damage': [225, 225, 90, 225, null],
   'weakpoint-critical-chance': [247.5, 247.5, 90, 247.5, null],
   'ammo-efficiency': [9, 9, 9, 9, null],
@@ -58,10 +67,11 @@ export function splicedTrait(id, definition, ordinaryTraits = []) {
   if (!trait) return null;
   const column = ['Rifle', 'Shotgun', 'Pistol', 'Archgun', 'Melee'].indexOf(definition === 'Zaw' ? 'Melee' : definition);
   const unit = id.startsWith('damage-to-') ? 'x' : '%';
-  const reference = sharedRangeSplices.has(id) ? spliceRecipes(id, definition).flat()
+  const wikiBaseValue = spliceBaseValues[id]?.[column];
+  const reference = !Number.isFinite(wikiBaseValue) && sharedRangeSplices.has(id) ? spliceRecipes(id, definition).flat()
     .map(ingredient => ordinaryTraits.find(row => row.id === ingredient))
     .find(row => row?.positive && row.unit === unit && Number.isFinite(row.value)) : null;
-  const baseValue = reference ? reference.value * 90 * (unit === '%' ? 100 : 1) : spliceBaseValues[id]?.[column];
+  const baseValue = reference ? reference.value * 90 * (unit === '%' ? 100 : 1) : wikiBaseValue;
   const known = Number.isFinite(baseValue);
   return {...trait, positive: true, negative: false, reverse: reference?.reverse ?? false, unit,
     baseValue: known ? baseValue : null,
