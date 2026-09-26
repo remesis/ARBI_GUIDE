@@ -542,7 +542,7 @@ async function renderDerivation() {
 }
 
 try {
-  const response = await fetch('./data.json?v=20260924-splice-baselines');
+  const response = await fetch('./data.json?v=20260926-update44-catalog');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); if (!restoreSelection()) selectCategory('Primary');
