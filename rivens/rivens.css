@@ -32,6 +32,10 @@
 .legend-dot.red { background: var(--bad); }.legend-dot.amber { background: var(--warning); }
 .page-title-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
 .page-title-row h1 { margin: 0; font-size: calc(29px * var(--riven-text-scale)); font-weight: 600; letter-spacing: -.035em; line-height: 1.15; }
+.rivenlens-promo { margin-bottom: 18px; color: var(--muted); font-size: calc(12px * var(--riven-text-scale)); }
+.rivenlens-promo p { margin: 0 0 8px; }
+.rivenlens-promo a { display: inline-flex; align-items: center; gap: 7px; font-size: calc(14px * var(--riven-text-scale)); }
+.rivenlens-promo svg { flex: 0 0 auto; }
 .text-button { color: var(--muted); background: transparent; border: 0; font-size: calc(11px * var(--riven-text-scale)) !important; padding: 5px; }
 .text-button:hover { color: var(--accent); }
 .weapon-selectors { display: grid; grid-template-columns: minmax(0,1fr); gap: 11px; margin-bottom: 18px; }
