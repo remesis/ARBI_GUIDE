@@ -28,10 +28,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260908-8\.js/);
-  assert.match(html, /analyzer-20260924-144\.js/);
+  assert.match(html, /analyzer-20260928-145\.js/);
   assert.match(html, /analyzer\.css\?v=20260922-101/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
-  assert.match(html, /correlation-test\.css\?v=20260825-40/);
+  assert.match(html, /correlation-test\.css\?v=20260928-41/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
   assert.match(html, /submission\.js/);
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
@@ -361,16 +361,16 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260905-84"\)/);
+  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260928-85"\)/);
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(parser, /scanner-worker\.js\?v=20260905-17/);
-  assert.match(html, /parser\.js\?v=20260905-84/);
+  assert.match(parser, /scanner-worker\.js\?v=20260928-18/);
+  assert.match(html, /parser\.js\?v=20260928-85/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260924-144.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260928-145.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -531,7 +531,7 @@ test("unconfirmed refresh warnings keep one status line and expose the PNG-hidde
   `, context);
   assert.match(context.result.pending, /Refresh unconfirmed · Blessing ran out at:/);
   assert.equal((context.result.pending.match(/class="correlation-blessing-expiry-label"/g) || []).length, 1);
-  assert.match(context.result.pending, /data-html2canvas-ignore="true">Click this button if Client had Fresher Blessing/);
+  assert.match(context.result.pending, /data-html2canvas-ignore="true"><svg class="client-fresh-blessing-frame"/);
   assert.match(context.result.assumed, /Assumed Blessing expiry at: 3h 0m 0s/);
   assert.doesNotMatch(context.result.override, /Refresh unconfirmed/);
   assert.match(context.result.override, /aria-pressed="true"/);
@@ -1076,7 +1076,7 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(js, /force: true/);
   assert.match(js, /Parser\.buildContribution\(target, \{ blessedDroneKills \}\)/);
   assert.match(js, /sync\.pending \|\| currentBlessedDroneKills !== blessedDroneKills/);
-  assert.match(js, /data-html2canvas-ignore="true">Click this button if Client had Fresher Blessing/);
+  assert.match(js, /data-html2canvas-ignore="true"><svg class="client-fresh-blessing-frame"/);
   assert.match(fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8"), /\.export-stage \.client-fresh-blessing-button\s*\{\s*display:\s*none !important/);
   assert.match(css, /\.client-fresh-blessing-button\s*\{[^}]*color:\s*#67e8f9/);
   assert.match(css, /\.correlation-blessing-status\s*\{[^}]*position:\s*absolute/);
