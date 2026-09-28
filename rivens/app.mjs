@@ -542,7 +542,7 @@ async function renderDerivation() {
 }
 
 try {
-  const response = await fetch('./data.json?v=20260928-shotgun-zoom');
+  const response = await fetch('./data.json?v=20260928-vintage-lock');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); if (!restoreSelection()) selectCategory('Primary');
