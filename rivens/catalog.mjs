@@ -28,61 +28,50 @@ export const isCombinedTrait = id => combinedIds.has(id);
 export const splicedTraitsFor = definition => COMBINED_TRAITS.filter(trait => trait.group === 'all'
   || trait.group === (['Melee', 'Zaw'].includes(definition) ? 'melee' : 'ranged'));
 
-export const SPLICE_BASELINE_SOURCE = Object.freeze({
-  url: 'https://wiki.warframe.com/w/Riven_Mods#Spliced_Values',
-  date: '2026-09-24',
-  status: 'provisional',
-});
-// Temporary fallback only when the wiki lacks a value: use the selected weapon
-// definition's ordinary ingredient coefficient, unit and rounding.
-const sharedRangeSplices = new Set(['blast', 'corrosive', 'gas', 'magnetic', 'radiation', 'viral',
-  'damage-to-orokin', 'damage-to-techrot', 'damage-to-scaldra']);
-// Public base values take priority over the shared-range fallback.
-// Columns follow the wiki: Rifle, Shotgun, Pistol, Archgun, Melee / Zaw.
-// Empty cells and unclear units remain unknown; they are not zero or ineligible.
+export const SPLICE_BASELINE_DATE = '2026-10-07';
+// Rank-8 base values before disposition, specific fit and format attenuation.
+// Columns: Rifle, Shotgun, Pistol, Archgun, Kitgun, Melee / Zaw.
+// Empty cells remain unknown; they are not zero or ineligible.
 const spliceBaseValues = Object.freeze(Object.fromEntries(Object.entries({
-  blast: [90, 90, 90, 90, null],
-  corrosive: [90, 90, 90, 90, null],
-  gas: [90, 90, 90, 90, null],
-  magnetic: [90, 90, 90, 90, null],
-  radiation: [90, 90, 90, 90, null],
-  viral: [90, 90, 90, 90, null],
-  'damage-to-orokin': [.45, .45, .45, .45, null],
-  'damage-to-techrot': [.45, .45, .45, .45, null],
-  'damage-to-scaldra': [.45, .45, .45, .45, null],
-  'weakpoint-damage': [225, 225, 90, 225, null],
-  'weakpoint-critical-chance': [247.5, 247.5, 90, 247.5, null],
-  'ammo-efficiency': [9, 9, 9, 9, null],
-  'magazine-reload-while-holstered': [90, 90, 90, null, null],
-  'status-damage': [90, 90, 90, 90, null],
-  'heavy-attack-damage': [null, null, null, null, 119.7],
-  'heavy-attack-windup-speed': [null, null, null, null, 119.7],
-  'slam-damage': [null, null, null, null, 119.7],
+  blast: [90, 90, 90, 90, 90, 90],
+  corrosive: [90, 90, 90, 90, 90, 90],
+  gas: [90, 90, 90, 90, 90, 90],
+  magnetic: [90, 90, 90, 90, 90, 90],
+  radiation: [90, 90, 90, 90, 90, 90],
+  viral: [90, 90, 90, 90, 90, 90],
+  'damage-to-orokin': [.45, .45, .45, .45, .45, .45],
+  'damage-to-techrot': [.45, .45, .45, .45, .45, .45],
+  'damage-to-scaldra': [.45, .45, .45, .45, .45, .45],
+  'weakpoint-damage': [225, 225, 225, 225, 225, null],
+  'weakpoint-critical-chance': [247.5, 247.5, 247.5, 247.5, 247.5, null],
+  'ammo-efficiency': [45, 45, 45, 45, 45, null],
+  'magazine-reload-while-holstered': [90, 90, 90, null, 90, null],
+  'status-damage': [90, 90, 90, 90, 90, 90],
+  'heavy-attack-damage': [null, null, null, null, null, 119.7],
+  'heavy-attack-windup-speed': [null, null, null, null, null, 119.7],
+  'parry-angle': [null, null, null, null, null, 81],
+  'slam-damage': [null, null, null, null, null, 119.7],
 }).map(([id, values]) => [id, Object.freeze(values)])));
 
 // Resolve separately from ordinary definitions so splice ranges cannot enlarge
 // the positive/negative cycling pools or alter trait-identity odds.
-export function splicedTrait(id, definition, ordinaryTraits = []) {
+export function splicedTrait(id, definition) {
   const trait = splicedTraitsFor(definition).find(row => row.id === id);
   if (!trait) return null;
-  const column = ['Rifle', 'Shotgun', 'Pistol', 'Archgun', 'Melee'].indexOf(definition === 'Zaw' ? 'Melee' : definition);
-  const unit = id.startsWith('damage-to-') ? 'x' : '%';
-  const wikiBaseValue = spliceBaseValues[id]?.[column];
-  const reference = !Number.isFinite(wikiBaseValue) && sharedRangeSplices.has(id) ? spliceRecipes(id, definition).flat()
-    .map(ingredient => ordinaryTraits.find(row => row.id === ingredient))
-    .find(row => row?.positive && row.unit === unit && Number.isFinite(row.value)) : null;
-  const baseValue = reference ? reference.value * 90 * (unit === '%' ? 100 : 1) : wikiBaseValue;
+  const column = ['Rifle', 'Shotgun', 'Pistol', 'Archgun', 'Kitgun', 'Melee'].indexOf(definition === 'Zaw' ? 'Melee' : definition);
+  const unit = id === 'parry-angle' ? '' : id.startsWith('damage-to-') ? 'x' : '%';
+  const baseValue = spliceBaseValues[id]?.[column];
   const known = Number.isFinite(baseValue);
-  return {...trait, positive: true, negative: false, reverse: reference?.reverse ?? false, unit,
+  return {...trait, positive: true, negative: false, reverse: false, unit,
     baseValue: known ? baseValue : null,
     // Existing range coefficients are per rank step at strength 10. The public
     // base is rank 8 (9 steps); faction values are bonuses before adding 1x.
-    value: reference ? reference.value : known ? baseValue / (90 * (unit === '%' ? 100 : 1)) : null,
-    roundTo: reference ? reference.roundTo : unit === 'x' ? .01 : .1,
-    rounding: reference ? reference.rounding : 'RM_ROUND',
-    baselineStatus: reference ? 'assumed' : known ? SPLICE_BASELINE_SOURCE.status : 'unknown',
-    baselineReference: reference?.id ?? null,
-    baselineSource: reference ? null : SPLICE_BASELINE_SOURCE.url,
+    value: known ? baseValue / (90 * (unit === '%' ? 100 : 1)) : null,
+    roundTo: unit === 'x' ? .01 : .1,
+    rounding: 'RM_ROUND',
+    baselineStatus: known ? 'current' : 'unknown',
+    baselineReference: null,
+    baselineSource: null,
   };
 }
 
