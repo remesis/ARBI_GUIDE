@@ -5,8 +5,8 @@ export const FORMATS = {
   '3p1n': {positives: 3, negative: true, name: '3 positives, 1 negative'},
 };
 
-// Grade bands relative to the mean. Curses reverse the grade direction so
-// higher grades represent a smaller penalty, regardless of the displayed sign.
+// Grade bands measure rolled strength relative to the mean. Higher negative
+// grades represent a stronger penalty, regardless of the displayed sign.
 export const GRADES = Object.freeze([
   ['S', 9.5, 10], ['A+', 7.5, 9.5], ['A', 5.5, 7.5], ['A-', 3.5, 5.5],
   ['B+', 1.5, 3.5], ['B', -1.5, 1.5], ['B-', -3.5, -1.5],
@@ -15,9 +15,7 @@ export const GRADES = Object.freeze([
 
 export function traitGradeRange(trait, disposition, format, polarity, model, grade, rank = 8) {
   if (!trait || !Number.isFinite(trait.value)) return null;
-  const variation = polarity === 'negative'
-    ? [1 - grade.max / 100, 1 - grade.min / 100]
-    : [1 + grade.min / 100, 1 + grade.max / 100];
+  const variation = [1 + grade.min / 100, 1 + grade.max / 100];
   return traitRange(trait, disposition, format, polarity, {...model, variation}, rank);
 }
 

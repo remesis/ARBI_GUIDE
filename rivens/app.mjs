@@ -1,7 +1,7 @@
 import {SearchCombo} from './combobox.mjs';
 import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, splicedTrait, SPLICE_BASELINE_DATE, spliceRecipes} from './catalog.mjs?v=20261007-splice-values';
 import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260924-splice-range-fallback';
-import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20260924-splice-baselines';
+import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20261008-negative-grades';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -465,7 +465,7 @@ function renderSelectedLockSetup() {
     <p class="splice-recipe">${esc(nameOf(id))} · ${polarity === 'positive' ? 'Positive' : 'Negative'} · ${esc(variant.name)} · ${format()}</p>
     <p class="lock-grade-intro">${vintage ? 'This vintage stat cannot roll anew. The ranges below are reference values for an existing line, not acquisition opportunities.' : `Find this stat before applying its manual lock. ${esc(acquisition)}`}</p>
     <div class="lock-grade-scroll"><table class="lock-grade-table"><thead><tr><th scope="col">Grade</th><th scope="col">Stat range for grade</th><th scope="col" title="Per-roll odds of this stat at this grade or better">Odds (grade or better)</th></tr></thead><tbody>${rows}</tbody></table></div>
-    ${setupInfo('selected-lock', `<p class="cost-caption">Rank 8. Ranges show each grade’s band; odds include finding this stat at that grade or better. ${polarity === 'negative' ? 'Higher negative grades mean a smaller penalty.' : 'Higher positive grades mean a stronger benefit.'} Rounded display ranges can overlap at grade boundaries.</p>
+    ${setupInfo('selected-lock', `<p class="cost-caption">Rank 8. Ranges show each grade’s band; odds include finding this stat at that grade or better. ${polarity === 'negative' ? 'Higher negative grades mean a stronger penalty, not a better negative.' : 'Higher positive grades mean a stronger benefit.'} Rounded display ranges can overlap at grade boundaries.</p>
     <p class="cost-caption">Uses uniform grades across the ±10% band, independent of trait selection, under the positives-first model. ${pools.length > 1 ? 'Odds are bounds across unresolved eligible pools. ' : ''}${splice ? 'Spliced traits retain their grade. Missing baselines remain unknown. ' : ''}This step does not require the rest of the final target.</p>`)}
     </div></details>`;
 }
@@ -536,7 +536,7 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20261007-splice-values');
+  const {renderMath} = await import('./math.mjs?v=20261008-negative-grades');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
