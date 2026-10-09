@@ -10,9 +10,9 @@ function* subsets(items, count, start = 0, prefix = []) {
 
 // Uniform positive sets first; any negative is drawn from the completed set's
 // compatible pool. A held negative instead excludes its positive counterpart.
-function* setupOutcomes(pool, k, hasNegative, lock) {
+function* setupOutcomes(pool, k, hasNegative, lock, retained = false) {
   const positiveLock = lock.polarity === 'positive';
-  if (!pool[lock.polarity].has(lock.id) || !positiveLock && !hasNegative) return;
+  if ((!retained && !pool[lock.polarity].has(lock.id)) || (!positiveLock && !hasNegative)) return;
   const candidates = [...pool.positive].filter(id => id !== lock.id);
   const draws = k - Number(positiveLock), denominator = choose(candidates.length, draws);
   if (!denominator) return;
@@ -112,6 +112,31 @@ export function optimalSpliceSetup(pools, recipes, k, hasNegative, gradeChance =
   })).map(route => route.lock);
   return {available: true, uncertain: pools.length > 1, lock: common.lock, equivalentLocks,
     ...Object.fromEntries(metrics.map(key => [key, bounds(routes.map(route => route[key]))]))};
+}
+
+/** Find both ingredients on one roll while retaining, never consuming, a vintage line. */
+export function retainedSpliceSetup(pools, recipes, k, hasNegative, lock, gradeChance = S_GRADE_CHANCE) {
+  const result = {available: false, uncertain: pools.length > 1, singleStage: true};
+  if (![2, 3].includes(k) || !(gradeChance > 0 && gradeChance <= 1) || !['positive', 'negative'].includes(lock.polarity)) return result;
+  const partners = new Map();
+  for (const [a, b] of recipes) if (![a, b].includes(lock.id)) {
+    if (!partners.has(a)) partners.set(a, new Set());
+    if (!partners.has(b)) partners.set(b, new Set());
+    partners.get(a).add(b); partners.get(b).add(a);
+  }
+  const chances = pools.map(pool => {
+    let chance = 0;
+    for (const outcome of setupOutcomes(pool, k, hasNegative, lock, true)) {
+      const usable = outcome.rolled.filter(id => outcome.rolled.some(other => partners.get(id)?.has(other))
+        || partners.get(id)?.has(outcome.negative)).length;
+      chance += outcome.weight * (1 - (1 - gradeChance) ** usable);
+    }
+    return Math.min(1, chance);
+  });
+  if (!chances.length || chances.some(chance => chance <= 0)) return result;
+  const mean = bounds(chances.map(chance => 1 / chance));
+  return {...result, available: true, lock, chance: bounds(chances), first: mean, total: mean,
+    additional: bounds([0]), ifMissing: bounds([0]), ready: bounds([1])};
 }
 
 export function choose(n, k) {

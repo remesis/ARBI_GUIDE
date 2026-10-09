@@ -1,6 +1,6 @@
 import {SearchCombo} from './combobox.mjs';
 import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, splicedTrait, SPLICE_BASELINE_DATE, spliceRecipes} from './catalog.mjs?v=20261007-splice-values';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, selectedLockChance} from './odds.mjs?v=20260924-splice-range-fallback';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, retainedSpliceSetup, selectedLockChance} from './odds.mjs?v=20261009-vintage-setup';
 import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20261008-negative-grades';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
@@ -369,18 +369,38 @@ function renderSpliceSetup() {
   const gradeName = grade.name === 'S' ? 'S-grade' : `${grade.name} or better`;
   const findsLabel = grade.name === 'S' ? 'S-grade' : `${grade.name}-or-better`;
   const heldLabel = grade.name === 'S' ? 'S-grade' : 'qualifying';
-  const key = `${family.id}:${splice}:${format()}:${grade.name}`;
-  if (!spliceSetupCache.has(key)) spliceSetupCache.set(key, optimalSpliceSetup(pools, recipes, target().positives.length, state.hasNegative, grade.atLeastChance));
+  const polarity = state.lock === 'negative' ? 'negative' : 'positive';
+  const id = polarity === 'negative' ? state.heldNegative : state.positives[Number(state.lock)];
+  const retained = state.lock !== null && isVintage(id, polarity) ? {id, polarity} : null;
+  const key = `${family.id}:${splice}:${format()}:${grade.name}:${retained ? `${retained.polarity}:${retained.id}` : ''}`;
+  if (!spliceSetupCache.has(key)) spliceSetupCache.set(key, retained
+    ? retainedSpliceSetup(pools, recipes, target().positives.length, state.hasNegative, retained, grade.atLeastChance)
+    : optimalSpliceSetup(pools, recipes, target().positives.length, state.hasNegative, grade.atLeastChance));
   const result = spliceSetupCache.get(key);
   const recipeText = recipes.map(pair => pair.map(nameOf).join(' + ')).join('; or ');
   const summary = collapsedSetupSummary(grade, result.available ? result.total : null, result.uncertain ? 'Estimate unavailable' : 'Not possible');
   const heading = `<details class="math-details splice-disclosure" data-riven-section="splice"${expanded ? ' open' : ''}><summary class="section-heading"><h2><span id="spliceSetupTitle">Getting Optimal Splice</span> ${summary}</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><div class="splice-recipe-row">${gradeSelector('splice', 'Splice minimum grade')}<p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p></div>`;
   if (!result.available) {
-    section.innerHTML = heading + `<p class="research-notice">${result.uncertain ? 'Unresolved ingredient eligibility changes which setup route is possible or best. No single optimal route is shown until that pool is confirmed.' : 'No complete recipe can be rolled in this weapon’s eligible pools and selected format. Existing vintage ingredients are outside this setup estimate.'}</p></div></details>`;
+    section.innerHTML = heading + `<p class="research-notice">${retained ? 'No complete ingredient pair can be confirmed for this pool and format while retaining the selected vintage stat.' : result.uncertain ? 'Unresolved ingredient eligibility changes which setup route is possible or best. No single optimal route is shown until that pool is confirmed.' : 'No complete recipe can be rolled in this weapon’s eligible pools and selected format. Existing vintage ingredients are outside this setup estimate.'}</p></div></details>`;
     return;
   }
   const rolls = value => intervalText(value, n => number(n, 1));
   const kuva = {min: result.total.min * catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier, max: result.total.max * catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier};
+  if (retained) {
+    section.innerHTML = heading + `
+      <div class="splice-steps"><div>
+        <h3>Find both ingredients · ${esc(gradeName)}</h3>
+        <strong>${rolls(result.total)} <small>rolls on average</small></strong>
+        <p>Both ingredients must appear together on the same roll. At least one positive ingredient must be at ${esc(gradeName)}; its partner can be any grade.</p>
+        <p class="splice-total"><span>Splice ready: <strong>${rolls(result.total)} rolls on average</strong></span><span>Average setup Kuva: <strong>${intervalText(kuva, magnitude)}</strong></span></p>
+      </div><div>
+        <h3>Keep Vintage Locked</h3>
+        <p>Start with a ${format()} Riven and keep ${esc(nameOf(retained.id))} locked as a ${retained.polarity} throughout setup. Do not move the lock to an ingredient.</p>
+      </div></div>
+      ${setupInfo('splice', `<p class="cost-caption">A usable newly rolled positive ingredient has an independent ${number(grade.atLeastChance * 100, 1)}% chance of meeting the selected grade under the uniform ±10% model. The estimate counts complete pairs only, without double-counting overlapping recipes. The vintage line stays locked and is never consumed as an ingredient. ${result.uncertain ? 'Ranges reflect unresolved pool eligibility. ' : ''}Excludes acquiring the starting Riven, vintage lock and splicer, and the final target below. Every setup roll uses ${number(catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier)} Kuva at the cap.</p>`)}
+      </div></details>`;
+    return;
+  }
   const alternatives = result.equivalentLocks, ingredients = new Set(recipes.flat());
   const completeClass = (polarity, predicate) => alternatives.length > 1 && pools.length === 1
     && alternatives.every(lock => lock.polarity === polarity && predicate(lock.id))
@@ -447,8 +467,8 @@ function renderSelectedLockSetup() {
   if (section.hidden) { section.replaceChildren(); return; }
   const polarity = state.lock === 'negative' ? 'negative' : 'positive';
   const id = polarity === 'negative' ? state.heldNegative : state.positives[Number(state.lock)];
+  if (isVintage(id, polarity)) { section.hidden = true; section.replaceChildren(); return; }
   const trait = definitions.find(row => row.id === id), [splice] = combinedTargets();
-  const vintage = isVintage(id, polarity);
   const probability = bounds(pools.map(pool => selectedLockChance(pool, {id, polarity,
     positives: target().positives.length, hasNegative: state.hasNegative, hasSplice: Boolean(splice)}, catalog.assumptions)));
   const acquisition = splice
@@ -457,13 +477,13 @@ function renderSelectedLockSetup() {
   const grade = setupGrade('selected-lock');
   const range = formatRange(traitGradeRange(trait, variant.disposition, format(), polarity, catalog.rangeModel, grade));
   const chance = {min: probability.min * grade.atLeastChance, max: probability.max * grade.atLeastChance};
-  const average = !vintage && chance.max > 0 ? {min: 1 / chance.max, max: 1 / chance.min} : null;
-  const summary = collapsedSetupSummary(grade, average, vintage ? 'Not rollable' : 'Not possible');
+  const average = chance.max > 0 ? {min: 1 / chance.max, max: 1 / chance.min} : null;
+  const summary = collapsedSetupSummary(grade, average, 'Not possible');
   const heading = `<details class="math-details splice-disclosure" data-riven-section="selected-lock"${expanded ? ' open' : ''}><summary class="section-heading"><h2><span id="selectedLockTitle">Getting Selected Lock Stat</span> ${summary}</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="selected-lock-body">`;
-  const rows = `<tr><th scope="row">${gradeSelector('selected-lock', 'Selected lock minimum grade')}</th><td>${esc(range || 'Baseline not confirmed')}</td><td>${vintage ? 'Not rollable' : esc(oddsText(chance))}</td></tr>`;
+  const rows = `<tr><th scope="row">${gradeSelector('selected-lock', 'Selected lock minimum grade')}</th><td>${esc(range || 'Baseline not confirmed')}</td><td>${esc(oddsText(chance))}</td></tr>`;
   section.innerHTML = heading + `
     <p class="splice-recipe">${esc(nameOf(id))} · ${polarity === 'positive' ? 'Positive' : 'Negative'} · ${esc(variant.name)} · ${format()}</p>
-    <p class="lock-grade-intro">${vintage ? 'This vintage stat cannot roll anew. The ranges below are reference values for an existing line, not acquisition opportunities.' : `Find this stat before applying its manual lock. ${esc(acquisition)}`}</p>
+    <p class="lock-grade-intro">Find this stat before applying its manual lock. ${esc(acquisition)}</p>
     <div class="lock-grade-scroll"><table class="lock-grade-table"><thead><tr><th scope="col">Grade</th><th scope="col">Stat range for grade</th><th scope="col" title="Per-roll odds of this stat at this grade or better">Odds (grade or better)</th></tr></thead><tbody>${rows}</tbody></table></div>
     ${setupInfo('selected-lock', `<p class="cost-caption">Rank 8. Ranges show each grade’s band; odds include finding this stat at that grade or better. ${polarity === 'negative' ? 'Higher negative grades mean a stronger penalty, not a better negative.' : 'Higher positive grades mean a stronger benefit.'} Rounded display ranges can overlap at grade boundaries.</p>
     <p class="cost-caption">Uses uniform grades across the ±10% band, independent of trait selection, under the positives-first model. ${pools.length > 1 ? 'Odds are bounds across unresolved eligible pools. ' : ''}${splice ? 'Spliced traits retain their grade. Missing baselines remain unknown. ' : ''}This step does not require the rest of the final target.</p>`)}
@@ -536,7 +556,7 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20261008-negative-grades');
+  const {renderMath} = await import('./math.mjs?v=20261009-vintage-setup');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
