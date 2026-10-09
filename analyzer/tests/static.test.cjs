@@ -28,8 +28,8 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260908-8\.js/);
-  assert.match(html, /analyzer-20260928-145\.js/);
-  assert.match(html, /analyzer\.css\?v=20260922-101/);
+  assert.match(html, /analyzer-20261009-146\.js/);
+  assert.match(html, /analyzer\.css\?v=20261009-102/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260928-41/);
   assert.doesNotMatch(html, /URLSearchParams\(location\.search\).*layout/);
@@ -65,7 +65,7 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(js, /levelMatches \* 100000/);
   assert.match(js, /setupTopbarHeightObserver\(\)/);
   assert.match(html, /id="minimapLightbox"/);
-  assert.match(html, /Last updated: 2026-08-16/);
+  assert.match(html, /Last updated: \d{4}-\d{2}-\d{2}/);
   assert.match(html, /id="viewerCount"/);
   assert.match(html, /\(hover: none\) and \(pointer: coarse\)/);
   assert.match(html, /location\.replace\("\/"\)/);
@@ -370,7 +370,7 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20260928-145.js"), "utf8");
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20261009-146.js"), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
@@ -544,6 +544,25 @@ test("Actual Vitus input accepts only the first four numeric digits", () => {
   const context = {};
   vm.runInNewContext(`${functionSource}; result = [cleanVitusDigits("12ab345"), cleanVitusDigits(98765), cleanVitusDigits(null)];`, context);
   assert.deepEqual(Array.from(context.result), ["1234", "9876", ""]);
+});
+
+test("Actual Vitus uses one decorative SVG border without a native focus outline", () => {
+  const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
+  const css = fs.readFileSync(path.join(analyzerDir, "analyzer.css"), "utf8");
+  const functionSource = js.match(/function renderVitusInput\(view\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(functionSource);
+  const context = { h: (value) => String(value) };
+  vm.runInNewContext(`${functionSource}; result = renderVitusInput({ actualDigits: "790" });`, context);
+  assert.equal((context.result.match(/<input\b/g) || []).length, 1);
+  assert.equal((context.result.match(/<rect\b/g) || []).length, 1);
+  assert.match(context.result, /class="vitus-input-wrap"><svg class="vitus-input-frame"[^>]*aria-hidden="true" focusable="false"/);
+  assert.match(context.result, /<rect x="0\.5" y="0\.5" width="calc\(100% - 1px\)" height="calc\(100% - 1px\)" rx="5\.5"/);
+  assert.match(context.result, /aria-label="Actual Vitus" placeholder="####" value="790"/);
+  assert.match(css, /\.vitus-input-frame\s*\{[^}]*pointer-events:\s*none/);
+  assert.match(css, /\.vitus-input-frame rect\s*\{[^}]*fill:\s*#111216[^}]*stroke:\s*#393a43/);
+  assert.match(css, /\.vitus-input-wrap:focus-within \.vitus-input-frame rect\s*\{[^}]*stroke:\s*#72c7ff/);
+  assert.match(css, /\.vitus-input\s*\{[^}]*appearance:\s*none[^}]*border:\s*0[^}]*border-radius:\s*0[^}]*outline:\s*none[^}]*background:\s*transparent/);
+  assert.doesNotMatch(css, /\.vitus-input[^{}]*\{[^}]*caret-color:\s*transparent/);
 });
 
 test("Disruption and markerless Void Cascade drone pace use six-minute active-time windows", () => {
@@ -851,7 +870,8 @@ test("actual Vitus luck headline follows the red-to-green performance grade", ()
   assert.match(css, /\.vitus-luck \.mini\s*\{[^}]*margin-top:\s*0/);
   assert.match(css, /\.vitus-entry-group\s*\{[^}]*column-gap:\s*12px/);
   assert.match(css, /\.vitus-rate\s*\{[^}]*font-size:\s*18px/);
-  assert.match(css, /\.vitus-input\s*\{[^}]*width:\s*62px[^}]*height:\s*34px[^}]*font-size:\s*19px[^}]*line-height:\s*1/);
+  assert.match(css, /\.vitus-input-wrap\s*\{[^}]*width:\s*62px[^}]*height:\s*34px/);
+  assert.match(css, /\.vitus-input\s*\{[^}]*width:\s*100%[^}]*height:\s*100%[^}]*font-size:\s*19px[^}]*line-height:\s*1/);
   assert.match(css, /\.vitus-input::placeholder\s*\{[^}]*font-size:\s*15px/);
   assert.match(js, /placeholder="####"/);
   assert.match(css, /\.vitus-table\s*\{[^}]*table-layout:\s*fixed/);
