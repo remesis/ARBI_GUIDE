@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   const event20kStart = 1791691200000;
-  const event20kEnd = 1792296000000;
+  const event20kEnd = 1792468800000;
   const event20kRequests = new WeakMap();
   let event20kQueue = Promise.resolve();
 
