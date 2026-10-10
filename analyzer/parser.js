@@ -25,7 +25,7 @@
   const COMPANION_JOIN_RESOLUTION_SECONDS = 30;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20260928-18";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20261010-20";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "VOID CASCADE"]);
   const EXPANDED_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE", "VOID CASCADE"]);
@@ -173,7 +173,7 @@
   const P_ELITE_ALERT = /^!?(\d+\.\d+).*EliteAlertMission at ((?:Sol|Clan|Settlement)Node\d+)(?:\s+\(([^)]{1,120})\))?/i;
   const P_LEVEL = /^!?(\d+\.\d+).*Game \[Info\]: Level=(\/[^\s,]+)/;
   const P_LEVEL_COMPONENT = /Required by object (\/Lotus\/Levels\/[A-Za-z0-9_/-]+)\/Scope/;
-  const P_RELEVANT_TOKEN = /Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|LotusProfileData::OnRequestHubBlessings|LotusProfileData::SendHubBlessing|LotusProfileData::OnSendHubBlessing|Mission name:|ShowMissionVote|_EliteAlert|enemySpec=\/Lotus\/Types\/Game\/EnemySpecs\/Zariman\/|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|PurifyMission\.lua: ModeState =|Survival: Starting survival|Survival: Gave reward tier|Zariman Survival \(Void Cascade\): State Change: ENDLESS|ZarimanSurvivalMission\.lua: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|setting owner player to|SentinelAvatar: registering|LotusSentinelAvatar with ID|MonitoredTicking|Live /g;
+  const P_RELEVANT_TOKEN = /Starting session on HOST|Starting session on CLIENT|HostMigration::|EIDOLONMP: Going back to hub|EndOfMatch\.lua: Mission |GiveMissionRewards\. success=false|LotusGameRules::EndMissionRMI|Current time:|OnAgentCreated|Destroying CorpusEliteShieldDroneAvatar|ResourceDropChanceBlessingStoreItem|LotusProfileData::OnRequestHubBlessings|LotusProfileData::SendHubBlessing|LotusProfileData::OnSendHubBlessing|Mission name:|ShowMissionVote|_EliteAlert|enemySpec=\/Lotus\/Types\/Game\/EnemySpecs\/Zariman\/|spawn point:|AI Agent Initialize|EliteAlertMission at|Game \[Info\]: Level=|Required by object \/Lotus\/Levels\/|_SleepBetweenWaves|DefenseReward\.swf|ProjectionsCountdown\.swf|Starting wave|Defense wave:|Loop Defense wave:|TerritoryMission\.lua|PurifyMission\.lua: ModeState =|Survival: Starting survival|Survival: Gave reward tier|Zariman Survival \(Void Cascade\): State Change: ENDLESS|ZarimanSurvivalMission\.lua: Gave reward tier|Disruption: State change: ARTIFACT_ROUND|Disruption: Endless mission reward given|EOM: All players extracting|loadout loader finished|change=UNREGISTERED|received JOIN message from|received LEAVE message from|AddSquadMember:|Client joining mission in-progress|setting owner player to|SentinelAvatar: registering|LotusSentinelAvatar with ID|MonitoredTicking|Live /g;
 
   const UTC_MONTH_INDEX = Object.freeze({
     Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
@@ -440,11 +440,13 @@
 
     feedLine(line, relevantToken) {
       if (!line || line === "\r" || line.includes("Game [Warning]:") || line.includes("DamagePct")) return;
+      globalThis.event20kParser?.event20kObserve(this, line);
       const hasCurrentTime = relevantToken === "Current time:"
         || (relevantToken === undefined && line.includes("Current time:"));
       if (hasCurrentTime) {
         const processUtcEpochMs = processUtcEpochFromLine(line);
         if (Number.isFinite(processUtcEpochMs)) {
+          globalThis.event20kParser?.event20kObserveClock(this, processUtcEpochMs);
           this.processUtcEpochMs = processUtcEpochMs;
           this.cur.processUtcEpochMs = processUtcEpochMs;
         }
@@ -1174,6 +1176,7 @@
         if (Number.isFinite(run.processUtcEpochMs) && Number.isFinite(run.startTime)) {
           run.sourceDate = new Date(run.processUtcEpochMs + run.startTime * 1000);
         }
+        globalThis.event20kParser?.event20kCaptureClock(run);
         delete run.processUtcEpochMs;
         attachResourceBlessing(run, this.resourceBlessings);
       });
@@ -1264,6 +1267,7 @@
     });
     run.roboticCompanions = Object.fromEntries([...latestCompanions]
       .filter(([, kind]) => kind !== "Beast"));
+    globalThis.event20kParser?.event20kCapturePresence(run);
     delete run.playerPresence;
     delete run.openingOperationalLoads;
     delete run.recentJoinEvidence;

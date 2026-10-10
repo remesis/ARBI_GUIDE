@@ -1,0 +1,4 @@
+.event20k-cats { display:inline-flex; align-items:center; gap:0; margin-left:4px; vertical-align:middle; flex-shrink:0; }
+.event20k-cat { width:22px; height:22px; object-fit:contain; display:block; }
+.event20k-message { color:#9ca6b5; font-size:11px; margin-top:5px; }
+.event20k-message:empty { display:none; }

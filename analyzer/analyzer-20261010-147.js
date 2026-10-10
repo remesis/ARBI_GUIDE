@@ -2648,10 +2648,6 @@
     event20kPaint(run);
   }
 
-  function event20kSelectedRun() {
-    return state.activeSavedId ? state.savedRuns.find((record) => record.id === state.activeSavedId)?.run : state.runs[state.activeIndex];
-  }
-
   async function copyReportImage() {
     const button = $("#copyImageBtn");
     const sourceReport = $("#reportRoot");
@@ -2662,13 +2658,12 @@
       if (typeof globalThis.html2canvas !== "function") throw new Error("The image renderer did not load.");
       if (!globalThis.ClipboardItem || !navigator.clipboard?.write) throw new Error("Image clipboard access is unavailable in this browser.");
 
-      const event20kRun = event20kSelectedRun();
+      const event20kRun = state.activeSavedId ? state.savedRuns.find((record) => record.id === state.activeSavedId)?.run : state.runs[state.activeIndex];
       if (event20kRun) {
         await globalThis.event20k?.event20kClaim(event20kRun);
         event20kRun.event20kError = "";
         event20kPaint(event20kRun);
       }
-      if (event20kRun !== event20kSelectedRun()) throw new Error("The displayed run changed. Copy this run again.");
       stage = document.createElement("div");
       stage.className = "export-stage";
       stage.setAttribute("aria-hidden", "true");
