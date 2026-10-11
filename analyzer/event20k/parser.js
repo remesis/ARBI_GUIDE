@@ -21,8 +21,14 @@
     if (event20kLine.includes("Starting session on HOST")) {
       event20kRun.event20kHostAt ||= event20kTime;
     }
-    if (/Starting session on CLIENT|Client joining mission in-progress/.test(event20kLine)
-      || /HostMigration::(?!ResetOldServerConnection\(\))/.test(event20kLine)) event20kRun.event20kClient = true;
+    if (/Starting session on CLIENT|Client joining mission in-progress|Client loaded|HOST MIGRATION:/.test(event20kLine)
+      || /HostMigration::(?!ResetOldServerConnection\(\))/.test(event20kLine)) {
+      event20kRun.event20kClient = true;
+      event20kRun.event20kLastClientAt = event20kTime;
+    }
+    if (event20kLine.includes("HOST MIGRATION: local client") && event20kLine.includes("selected as the new host")) {
+      event20kRun.event20kTakeoverAt = event20kTime;
+    }
     if (event20kLine.includes("LotusGameRules::EndMissionRMI(0)") || event20kLine.includes("EOM: All players extracting")
       || (event20kRun.isVoidCascade && event20kLine.includes("EidolonMP.lua: EIDOLONMP: Going back to hub"))) {
       event20kRun.event20kFinishAt = event20kTime;
