@@ -9,16 +9,15 @@
   function event20kRelative(event20kRun, event20kValue) { return event20kRound(event20kValue - event20kRun.startTime); }
 
   function event20kEvidence(event20kRun) {
-    const event20kOpeningStart = event20kRun.missionType === "DEFENSE" ? event20kRun.waveStarts?.[1] : event20kRun.preciseStart;
-    const event20kOpeningTakeover = Number.isFinite(event20kOpeningStart)
+    const event20kOpeningTakeover = Number.isFinite(event20kRun.startTime)
       && Number.isFinite(event20kRun.event20kTakeoverAt)
       && event20kRun.event20kTakeoverAt >= event20kRun.missionStart
       && event20kRun.event20kHostAt >= event20kRun.event20kTakeoverAt
       && event20kRun.event20kLastClientAt <= event20kRun.event20kHostAt
-      && event20kRun.event20kHostAt <= event20kOpeningStart
       && event20kRun.event20kHostAt <= event20kRun.startTime;
     if (!Number.isFinite(event20kRun.event20kEpochMs) || !event20kRun.event20kHostAt || !event20kRun.event20kSuccessAt
-      || !event20kRun.event20kFinishAt || event20kRun.event20kFailed || (event20kRun.event20kClient && !event20kOpeningTakeover) || event20kRun.event20kDisordered) return null;
+      || event20kRun.event20kHostAt > event20kRun.startTime || !event20kRun.event20kFinishAt || event20kRun.event20kFailed
+      || (event20kRun.event20kClient && !event20kOpeningTakeover) || event20kRun.event20kDisordered) return null;
     const event20kStartMs = event20kRun.event20kEpochMs + event20kRound(event20kRun.startTime);
     const event20kLaunchMs = event20kRun.event20kEpochMs + event20kRound(event20kRun.missionStart);
     const event20kFinishMs = event20kRun.event20kEpochMs + event20kRound(event20kRun.event20kFinishAt);

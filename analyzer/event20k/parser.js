@@ -19,7 +19,7 @@
     if (event20kTime + 10 < (event20kRun.event20kLastTime || 0)) event20kRun.event20kDisordered = true;
     event20kRun.event20kLastTime = Math.max(event20kTime, event20kRun.event20kLastTime || 0);
     if (event20kLine.includes("Starting session on HOST")) {
-      event20kRun.event20kHostAt ||= event20kTime;
+      event20kRun.event20kHostAt = event20kTime;
     }
     if (/Starting session on CLIENT|Client joining mission in-progress|Client loaded|HOST MIGRATION:/.test(event20kLine)
       || /HostMigration::(?!ResetOldServerConnection\(\))/.test(event20kLine)) {
