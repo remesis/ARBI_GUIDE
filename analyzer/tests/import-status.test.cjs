@@ -31,6 +31,7 @@ function createImportHarness(parse) {
   const events = [];
   let now = 1000;
   const context = {
+    importSequence: 0,
     performance: {now: () => now},
     $: selector => selector === "#parseStatus" ? status : input,
     Parser: {parseFile: async (file, progress) => {
@@ -38,7 +39,7 @@ function createImportHarness(parse) {
       progress(1);
       return parse(file);
     }},
-    prepareRuns: async () => { now += 40_000; events.push("prepared"); },
+    prepareRuns: async () => { now += 40_000; events.push("prepared"); return true; },
     showToast: () => {},
     reportSpawnMetrics: () => {events.push("submitted");},
     focusActualVitusEntry: () => {events.push("focused");},

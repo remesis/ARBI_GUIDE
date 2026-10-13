@@ -69,6 +69,7 @@
   let reportFitFrame = 0;
   let correlationLayoutFrame = 0;
   let metricsSubmissionQueue = Promise.resolve();
+  let importSequence = 0;
   let savedRunDatabasePromise = null;
   let savedRunsInitializationPromise = null;
   let savedRunActualVitusWriteQueue = Promise.resolve();
@@ -1978,7 +1979,7 @@
     return Math.max(0, runs.length - 1);
   }
 
-  async function prepareRuns(runs, sourceName, sourceDate) {
+  async function prepareRuns(runs, sourceName, sourceDate, isCurrent = () => true) {
     await initializeSavedRuns();
     for (const run of runs) {
       run.sourceName = sourceName;
@@ -1994,6 +1995,7 @@
         run.shortId = "local";
       }
     }
+    if (!isCurrent()) return false;
     state.runs = runs;
     state.activeIndex = Number.isInteger(globalThis.event20kSelectRunFromNewest)
       ? Math.max(0, runs.length - 1 - globalThis.event20kSelectRunFromNewest) : initialRunIndex(runs);
@@ -2003,9 +2005,12 @@
     renderRunList();
     renderReport(state.runs[state.activeIndex]);
     focusActualVitusEntry();
+    return true;
   }
 
   function clearRuns() {
+    importSequence += 1;
+    globalThis.ArbitrationAlecaFrameImport?.cancel();
     state.runs = [];
     state.activeIndex = 0;
     state.activeSavedId = "";
@@ -2084,16 +2089,20 @@
     return `${size} Parsed in ${seconds}s - ${runCount} run${runCount === 1 ? "" : "s"} found.`;
   }
 
-  async function importFile(file, settleFocus = false) {
+  async function importFile(file, settleFocus = false, source = "file") {
     if (!file) return;
+    if (source !== "alecaframe") globalThis.ArbitrationAlecaFrameImport?.cancel();
+    const sequence = ++importSequence;
+    const isCurrent = () => sequence === importSequence;
     const status=$("#parseStatus");
     status.className="parse-status"; status.textContent=`Reading ${file.name} locally…`;
     try {
       const parseStarted = performance.now();
-      const runs=await Parser.parseFile(file,(progress)=>{status.textContent=`Parsing locally… ${Math.round(progress*100)}%`;});
+      const runs=await Parser.parseFile(file,(progress)=>{if(isCurrent()) status.textContent=`Parsing locally… ${Math.round(progress*100)}%`;});
+      if (!isCurrent()) return false;
       const parseElapsedMs = performance.now() - parseStarted;
       if(!runs.length) throw new Error("No complete Arbitration runs were found. The local parser requires at least 5 drones or 40 enemy spawns per run.");
-      await prepareRuns(runs,file.name,new Date(file.lastModified));
+      if (!await prepareRuns(runs,file.name,new Date(file.lastModified),isCurrent)) return false;
       status.className="parse-status success"; status.textContent=formatParseSummary(file.size, parseElapsedMs, runs.length);
       showToast(`Loaded ${runs.length} local run${runs.length===1?"":"s"}.`);
       void reportSpawnMetrics(runs, {
@@ -2103,9 +2112,12 @@
             && Number(run.totalDuration) > RESOURCE_BLESSING_SECONDS)),
       });
       if (settleFocus) focusActualVitusEntry(true);
+      return true;
     } catch(error) {
+      if (!isCurrent()) return false;
       status.className="parse-status error"; status.textContent=error.message||String(error); showToast(status.textContent,true);
-    } finally { $("#logFileInput").value=""; }
+      return false;
+    } finally { if(isCurrent()) $("#logFileInput").value=""; }
   }
 
   function reportSpawnMetrics(runs, options = {}) {
@@ -3186,4 +3198,5 @@
   renderSavedRunList();
   renderReport(null);
   void initializeSavedRuns();
+  void globalThis.ArbitrationAlecaFrameImport?.start(importFile);
 })();
