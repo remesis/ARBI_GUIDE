@@ -332,8 +332,6 @@
     const button = $("#saveRunBtn");
     if (button) button.disabled = true;
     try {
-      await globalThis.event20k?.event20kClaim(run);
-      event20kPaint(run);
       const id = run.runFingerprint || await Parser.fingerprintRun(run);
       const savedAt = Date.now();
       run.runFingerprint = id;
@@ -913,17 +911,16 @@
             <button id="squadPrivacyToggle" class="squad-privacy-toggle${state.hidePlayerNames ? " is-hidden" : ""}" type="button" aria-pressed="${state.hidePlayerNames}" aria-label="${state.hidePlayerNames ? "Show" : "Hide"} squad names" data-tooltip="${state.hidePlayerNames ? "Show" : "Hide"} squad names">
               <svg aria-hidden="true"><use href="#icon-eye"></use></svg>
             </button>
-            ${squadPlayerEntries(run).map((entry, event20kIndex) => `<span class="squad-member"><span class="squad-player${entry.hasRoboticCompanion ? " has-robotic-companion" : ""}">${h(entry.text)}</span><span class="event20k-award" data-event20k-index="${event20kIndex}">${globalThis.event20k?.event20kCats(run, [run.host, ...(run.squadmates || [])][event20kIndex]) || ""}</span><i class="squad-separator" aria-hidden="true"></i></span>`).join("")}
+            ${squadPlayerEntries(run).map((entry) => `<span class="squad-member"><span class="squad-player${entry.hasRoboticCompanion ? " has-robotic-companion" : ""}">${h(entry.text)}</span><i class="squad-separator" aria-hidden="true"></i></span>`).join("")}
             <span class="squad-phase">${phase.items.length} ${phase.noun}${phase.items.length === 1 ? "" : "s"}</span>
           </div>
         </div>
         <div class="run-identity">
           <div class="export-run-identity">
             <div class="goons-label">ARBITRATION GOONS</div>
-            <div class="run-code">RUN ${h(String(run.event20kResult?.event20kRunCode || run.shortId || "LOCAL").slice(0, 12).toUpperCase())}<br>${h(date)}</div>
+            <div class="run-code">RUN ${h(String(run.shortId || "LOCAL").slice(0, 12).toUpperCase())}<br>${h(date)}</div>
           </div>
         </div>
-        <div class="event20k-message" id="event20kMessage"></div>
         <span class="report-header-accent" aria-hidden="true"></span>
       </header>
       <div class="report-grid ${hasSpawnPoints ? "" : "no-spawns"}">
@@ -974,7 +971,6 @@
     scheduleReportFit();
     $("#saveRunBtn").addEventListener("click", () => saveAnalyzedRun(run));
     $("#copyImageBtn").addEventListener("click", () => copyReportImage());
-    void event20kRefresh(run);
     $("#squadPrivacyToggle").addEventListener("click", () => {
       state.hidePlayerNames = !state.hidePlayerNames;
       savePlayerNamePrivacy();
@@ -1997,8 +1993,7 @@
     }
     if (!isCurrent()) return false;
     state.runs = runs;
-    state.activeIndex = Number.isInteger(globalThis.event20kSelectRunFromNewest)
-      ? Math.max(0, runs.length - 1 - globalThis.event20kSelectRunFromNewest) : initialRunIndex(runs);
+    state.activeIndex = initialRunIndex(runs);
     state.activeSavedId = "";
     state.sourceName = sourceName;
     renderSavedRunList();
@@ -2637,33 +2632,6 @@
     else workspace.append(clearMap);
   }
 
-  function event20kPaint(run) {
-    if (run !== state.runs[state.activeIndex] && run !== state.savedRuns.find((record) => record.id === state.activeSavedId)?.run) return;
-    const event20kNames = [run.host, ...(run.squadmates || [])];
-    document.querySelectorAll("#reportRoot .event20k-award").forEach((event20kSlot) => {
-      event20kSlot.innerHTML = globalThis.event20k?.event20kCats(run, event20kNames[Number(event20kSlot.dataset.event20kIndex)]) || "";
-    });
-    const event20kMessage = document.querySelector("#event20kMessage");
-    if (event20kMessage) event20kMessage.textContent = run.event20kError || globalThis.event20k?.event20kMessage(run) || "";
-    const event20kCode = document.querySelector("#reportRoot .run-code");
-    if (event20kCode && run.event20kResult?.event20kRunCode) event20kCode.innerHTML = `RUN ${h(run.event20kResult.event20kRunCode.toUpperCase())}<br>${h(localRunDate(run))}`;
-    syncReportHeaderAccent();
-    scheduleReportFit();
-  }
-
-  async function event20kRefresh(run) {
-    if (globalThis.event20kBotRender || globalThis.ClipboardItem?.name === "BotClipboardItem") return;
-    try {
-      await globalThis.event20k?.event20kClaim(run);
-      run.event20kError = "";
-    } catch (_) { run.event20kError = "Cat results are unavailable. Try copying again shortly."; }
-    event20kPaint(run);
-  }
-
-  function event20kSelectedRun() {
-    return state.activeSavedId ? state.savedRuns.find((record) => record.id === state.activeSavedId)?.run : state.runs[state.activeIndex];
-  }
-
   async function copyReportImage() {
     const button = $("#copyImageBtn");
     const sourceReport = $("#reportRoot");
@@ -2674,13 +2642,6 @@
       if (typeof globalThis.html2canvas !== "function") throw new Error("The image renderer did not load.");
       if (!globalThis.ClipboardItem || !navigator.clipboard?.write) throw new Error("Image clipboard access is unavailable in this browser.");
 
-      const event20kRun = event20kSelectedRun();
-      if (event20kRun) {
-        await globalThis.event20k?.event20kClaim(event20kRun);
-        event20kRun.event20kError = "";
-        event20kPaint(event20kRun);
-      }
-      if (event20kRun !== event20kSelectedRun()) throw new Error("The displayed run changed. Copy this run again.");
       stage = document.createElement("div");
       stage.className = "export-stage";
       stage.setAttribute("aria-hidden", "true");

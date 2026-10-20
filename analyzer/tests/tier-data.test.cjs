@@ -37,7 +37,9 @@ test("exports tier data to the browser before the Analyzer app loads", () => {
   assert.equal(context.window.ArbitrationTierData.findTier("Larzac").name, "B-Tier");
 
   const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
-  assert.ok(html.indexOf("tier-data.js") < html.indexOf("analyzer-20261009-146.js"));
+  const appScript = html.match(/src="\.\/analyzer-\d{8}-\d+\.js"/);
+  assert.ok(appScript);
+  assert.ok(html.indexOf("tier-data.js") < appScript.index);
 });
 
 test("tier pill uses a single decorative outline with optical text centering", () => {

@@ -28,7 +28,10 @@ test("local page includes guide navigation, log-folder helper, and PNG clipboard
   assert.match(html, /html2canvas\.min\.js/);
   assert.match(html, /spawn-alignment\.js/);
   assert.match(html, /minimaps\/catalog-20260908-8\.js/);
-  assert.match(html, /analyzer-20261009-146\.js/);
+  const appBundles = [...html.matchAll(/src="\.\/(analyzer-\d{8}-\d+\.js)"/g)];
+  assert.equal(appBundles.length, 1);
+  assert.equal(fs.readFileSync(path.join(analyzerDir, appBundles[0][1]), "utf8"),
+    fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8"));
   assert.match(html, /analyzer\.css\?v=20261009-102/);
   assert.match(html, /document\.documentElement\.dataset\.analyzerLayout = "correlation-test"/);
   assert.match(html, /correlation-test\.css\?v=20260928-41/);
@@ -361,16 +364,20 @@ test("large logs use the same parser through a same-origin parallel scanner", ()
   assert.match(parser, /return await parseFileParallel\(file, onProgress\)/);
   assert.match(parser, /new Worker\(workerUrl/);
   assert.match(parser, /parser\.feedLine\(lines\[index \+ 1\], lines\[index\]\)/);
-  assert.match(worker, /importScripts\("\.\/parser\.js\?v=20260928-85"\)/);
+  const parserUrl = html.match(/src="(\.\/parser\.js\?v=\d{8}-\d+)"/)?.[1];
+  assert.ok(parserUrl);
+  assert.ok(worker.includes(`importScripts("${parserUrl}")`));
   assert.match(worker, /Parser\.forEachRelevantLine/);
   assert.match(worker, /lines\.push\(internToken\(token\), detach\(line\)\)/);
-  assert.match(parser, /scanner-worker\.js\?v=20260928-18/);
-  assert.match(html, /parser\.js\?v=20260928-85/);
+  assert.match(parser, /scanner-worker\.js\?v=\d{8}-\d+/);
 });
 
 test("Expected Vitus uses explicit booster copy without unscoped mod detection", () => {
   const js = fs.readFileSync(path.join(analyzerDir, "analyzer.js"), "utf8");
-  const immutableJs = fs.readFileSync(path.join(analyzerDir, "analyzer-20261009-146.js"), "utf8");
+  const html = fs.readFileSync(path.join(analyzerDir, "index.html"), "utf8");
+  const bundleName = html.match(/src="\.\/(analyzer-\d{8}-\d+\.js)"/)?.[1];
+  assert.ok(bundleName);
+  const immutableJs = fs.readFileSync(path.join(analyzerDir, bundleName), "utf8");
   assert.equal(immutableJs, js);
   const parser = fs.readFileSync(path.join(analyzerDir, "parser.js"), "utf8");
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
