@@ -1842,11 +1842,11 @@
   }
 
   function minimapDisplayFrame(config, verified) {
-    const imageWidth = Number.isFinite(Number(config.width)) && Number(config.width) > 0 ? Number(config.width) : 100;
-    const imageHeight = Number.isFinite(Number(config.height)) && Number(config.height) > 0 ? Number(config.height) : 100;
+    let imageWidth = Number.isFinite(Number(config.width)) && Number(config.width) > 0 ? Number(config.width) : 100;
+    let imageHeight = Number.isFinite(Number(config.height)) && Number(config.height) > 0 ? Number(config.height) : 100;
     let left = 0, top = 0, right = imageWidth, bottom = imageHeight;
-    // Extend only reviewed layouts and only for verified positions. Preserve
-    // the image's calibrated scale and leave uncharted entrance geometry blank.
+    // Extend only reviewed layouts and only for verified positions, keeping
+    // the artwork and spawn dots on the same calibrated scale.
     if (config.fitObservedSpawns) {
       const [a,b,c,d,e,f] = config.matrix;
       for (const { position } of verified) {
@@ -1858,11 +1858,20 @@
         bottom = Math.max(bottom, Math.ceil(y + 32));
       }
     }
+    const expanded = left !== 0 || top !== 0 || right !== imageWidth || bottom !== imageHeight;
+    const extendedImage = expanded ? config.extendedImage : null;
+    if (extendedImage) {
+      imageWidth = extendedImage.width;
+      imageHeight = extendedImage.height;
+      right = Math.max(right, imageWidth);
+      bottom = Math.max(bottom, imageHeight);
+    }
     const width = right - left, height = bottom - top;
-    const expanded = left !== 0 || top !== 0 || width !== imageWidth || height !== imageHeight;
     return {
       x: left, y: top, width, height, expanded,
-      imageStyle: expanded
+      imageSrc: extendedImage?.src || config.src,
+      unmappedArea: left < 0 || top < 0 || right > imageWidth || bottom > imageHeight,
+      imageStyle: left !== 0 || top !== 0 || width !== imageWidth || height !== imageHeight
         ? `left:${-left/width*100}%;top:${-top/height*100}%;width:${imageWidth/width*100}%;height:${imageHeight/height*100}%;`
         : "",
     };
@@ -1914,8 +1923,8 @@
       ? `${config.floorFilter?.label === "bottom" ? "Bottom floor only. " : ""}Bubble size and heat = enemies produced.`
       : `Spawn overlay unavailable for this tile variation.`;
     const elevationLegend = exactTileMatch ? renderElevationLegend() : "";
-    const extensionNote = frame.expanded ? `<p class="card-subtitle">Outer spawn positions shown; entrance geometry is not mapped.</p>` : "";
-    return `<section class="card"><h3 class="card-title">Tile layout</h3><p class="card-subtitle">${subtitle}</p><div class="minimap-wrap" role="button" tabindex="0" aria-label="Expand tile layout for ${h(config.label)}"><div class="minimap-stage" data-minimap-width="${mapWidth}" data-minimap-height="${mapHeight}" style="aspect-ratio:${mapWidth}/${mapHeight}"><img src="${h(config.src)}" alt="Tile layout for ${h(config.label)}" style="${frame.imageStyle}"><svg class="minimap-overlay" ${dimensions} preserveAspectRatio="none">${bubbles}</svg></div></div>${elevationLegend}${extensionNote}</section>`;
+    const extensionNote = frame.unmappedArea ? `<p class="card-subtitle">Outer spawn positions shown; entrance geometry is not mapped.</p>` : "";
+    return `<section class="card"><h3 class="card-title">Tile layout</h3><p class="card-subtitle">${subtitle}</p><div class="minimap-wrap" role="button" tabindex="0" aria-label="Expand tile layout for ${h(config.label)}"><div class="minimap-stage" data-minimap-width="${mapWidth}" data-minimap-height="${mapHeight}" style="aspect-ratio:${mapWidth}/${mapHeight}"><img src="${h(frame.imageSrc)}" alt="Tile layout for ${h(config.label)}" style="${frame.imageStyle}"><svg class="minimap-overlay" ${dimensions} preserveAspectRatio="none">${bubbles}</svg></div></div>${elevationLegend}${extensionNote}</section>`;
   }
 
   function syncMinimapStages(root = document) {

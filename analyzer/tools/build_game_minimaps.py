@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20260908-8.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20261021-10.js"
 
 
 GROUP_NODES = {
@@ -1735,6 +1735,11 @@ def render_map(
         "levelPaths": overlay.get("levelPaths", []),
         "spawnPoints": mapped_spawns,
         **({"fitObservedSpawns": True} if group_id == KADESH_DEFENSE_GROUP else {}),
+        **({"extendedImage": {
+            "src": "./minimaps/alator+kadesh+spear-entrance-floor.webp?v=20261021",
+            "width": 1430,
+            "height": 1000,
+        }} if group_id == KADESH_DEFENSE_GROUP else {}),
         **({
             "proceduralSpawnExtras": {
                 "minMatchedPoints": 24,

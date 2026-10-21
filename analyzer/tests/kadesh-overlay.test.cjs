@@ -46,6 +46,8 @@ test("ordinary Spear and Kadesh arena runs retain their original frame", () => {
   assert.equal(frame.width, 1000);
   assert.equal(frame.height, 1000);
   assert.equal(frame.expanded, false);
+  assert.equal(frame.imageSrc, layout.src);
+  assert.equal(frame.unmappedArea, false);
   assert.equal(frame.imageStyle, "");
   const heights = arena.map(p => p[1]).sort((a,b) => a-b);
   assert.deepEqual(layout.elevationBands, [.2,.4,.6,.8].map(f => heights[Math.ceil(heights.length*f)-1]));
@@ -59,9 +61,11 @@ test("extended frame keeps every verified spawn visible and preserves image cali
   const verified = [...arena, ...entrance].map(position => ({ position }));
   const frame = context.frame(layout, verified);
   assert.equal(frame.expanded, true);
-  assert.equal(frame.width, 1316);
+  assert.equal(frame.width, layout.extendedImage.width);
   assert.equal(frame.height, 1000);
-  const styles = Object.fromEntries([...frame.imageStyle.matchAll(/(left|top|width|height):([^;]+)%;/g)].map(m => [m[1], Number(m[2]) / 100]));
+  assert.equal(frame.imageSrc, layout.extendedImage.src);
+  assert.equal(frame.unmappedArea, false);
+  assert.equal(frame.imageStyle, "");
   for (const { position: p } of verified) {
     const [a,b,c,d,e,f] = layout.matrix;
     const x = a*p[0] + b*p[2] + c, y = d*p[0] + e*p[2] + f;
@@ -69,8 +73,8 @@ test("extended frame keeps every verified spawn visible and preserves image cali
     assert.ok(y - 21 >= frame.y && y + 21 <= frame.y + frame.height);
     for (const displayWidth of [300, 500, 900, 1400]) {
       const scale = displayWidth / frame.width;
-      const imageX = (styles.left + x / layout.width * styles.width) * displayWidth;
-      const imageY = (styles.top + y / layout.height * styles.height) * frame.height * scale;
+      const imageX = x / layout.extendedImage.width * displayWidth;
+      const imageY = y / layout.extendedImage.height * frame.height * scale;
       assert.ok(Math.abs(imageX - (x - frame.x) * scale) < 1e-8);
       assert.ok(Math.abs(imageY - (y - frame.y) * scale) < 1e-8);
     }
@@ -83,7 +87,7 @@ test("unverified points cannot expand the frame and other maps do not opt in", (
   assert.equal(context.frame(other, [{ position: [500, 0, 500] }]).expanded, false);
 });
 
-test("renderer shows the extended overlay with an explicit geometry note", () => {
+test("renderer uses the entrance artwork only for the extended overlay", () => {
   const renderSource = source.match(/function renderMinimap\(run, points\) \{[\s\S]*?\n  \}/)[0];
   const ctx = {
     MINIMAPS: { ClanNode8: [layout] }, SpawnAlignment: Alignment,
@@ -95,11 +99,22 @@ test("renderer shows the extended overlay with an explicit geometry note", () =>
   vm.runInNewContext(`${frameSource}; ${renderSource}; this.render = renderMinimap;`, ctx);
   const html = ctx.render({ nodeKey: "ClanNode8", node: "Kadesh" }, points([...arena.slice(0, 206), ...entrance]));
   assert.equal((html.match(/class="spawn-bubble"/g) || []).length, 233);
-  assert.match(html, /viewBox="0 0 1316 1000"/);
-  assert.match(html, /data-minimap-width="1316"/);
-  assert.match(html, /entrance geometry is not mapped/);
+  assert.match(html, /viewBox="0 0 1430 1000"/);
+  assert.match(html, /data-minimap-width="1430"/);
+  assert.match(html, /alator\+kadesh\+spear-entrance-floor\.webp/);
+  assert.doesNotMatch(html, /entrance geometry is not mapped/);
   assert.doesNotMatch(html, /Spawn overlay unavailable/);
   const normal = ctx.render({ nodeKey: "ClanNode8", node: "Kadesh" }, points(arena.slice(0, 205)));
   assert.match(normal, /viewBox="0 0 1000 1000"/);
+  assert.doesNotMatch(normal, /spear-entrance-floor\.webp/);
   assert.doesNotMatch(normal, /entrance geometry is not mapped/);
+});
+
+test("layouts without extended artwork retain calibrated padding and the unmapped flag", () => {
+  const legacy = { ...layout, extendedImage: undefined };
+  const frame = context.frame(legacy, entrance.map(position => ({ position })));
+  assert.equal(frame.width, 1316);
+  assert.equal(frame.imageSrc, layout.src);
+  assert.equal(frame.unmappedArea, true);
+  assert.match(frame.imageStyle, /width:75\.987/);
 });
