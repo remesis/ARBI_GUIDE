@@ -901,7 +901,6 @@
           <div class="report-badges">
             <span class="badge mission">${h(run.missionType)}</span><span class="badge">${h(run.planet)}</span>
             <span class="badge">${h(run.faction)}</span><span class="badge">${h(run.tileset)}</span>
-            ${run.levelPath ? `<span class="badge" data-tooltip="${h(run.levelPath)}">${h(run.levelPath.split("/").pop().replace(/\.level$/i, ""))}</span>` : ""}
             <div class="report-actions">
               <button id="saveRunBtn" class="save-run-button" type="button"><svg width="17" height="17"><use href="#icon-save"></use></svg> SAVE</button>
               <button id="copyImageBtn" class="copy-image-button" type="button"><svg width="17" height="17"><use href="#icon-copy"></use></svg> COPY RUN IMAGE</button>
