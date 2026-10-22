@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 
-IMMUTABLE_CATALOG_FILENAME = "catalog-20261021-10.js"
+IMMUTABLE_CATALOG_FILENAME = "catalog-20261021-11.js"
 
 
 GROUP_NODES = {
@@ -1795,6 +1795,9 @@ def main() -> None:
                 else None
             ),
         )
+        if group_id == "casta+seimeni+cinxia":
+            # Retain the reviewed floor plan alongside its calibrated references.
+            entry["src"] = "./minimaps/casta+seimeni+cinxia-floor.webp"
         if group_id == GAS_SPAWN_04_GROUP:
             gas_spawn_04_geometry = (positions, faces)
         if group_id == KADESH_DEFENSE_GROUP:
