@@ -1,5 +1,5 @@
 import {SearchCombo} from './combobox.mjs';
-import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, splicedTrait, SPLICE_BASELINE_DATE, spliceRecipes} from './catalog.mjs?v=20261007-splice-values';
+import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, splicedTrait, SPLICE_BASELINE_DATE, spliceRecipes} from './catalog.mjs?v=20261022-unified-ranges';
 import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, retainedSpliceSetup, selectedLockChance} from './odds.mjs?v=20261009-vintage-setup';
 import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20261008-negative-grades';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
@@ -8,7 +8,7 @@ const $ = selector => document.querySelector(selector);
 const CATEGORIES = ['Primary', 'Secondary', 'Melee', 'Sentinel', 'Hound', 'Archgun'];
 const CC = 'critical-chance', CD = 'critical-damage', MS = 'multishot';
 const aliases = {[CC]: 'cc crit', [CD]: 'cd crit', [MS]: 'ms', 'melee-damage': 'dmg damage', 'damage': 'dmg', 'projectile-speed': 'pfs flight speed', 'puncture': 'ips puncture', 'impact': 'ips', 'slash': 'ips'};
-const state = {category: 'Primary', weapon: null, variant: null, positives: [CC, CD, MS], negatives: ['weapon-recoil'], hasNegative: true, heldNegative: 'weapon-recoil', lock: null};
+const state = {category: 'Primary', weapon: null, positives: [CC, CD, MS], negatives: ['weapon-recoil'], hasNegative: true, heldNegative: 'weapon-recoil', lock: null};
 let catalog, weapon, variant, family, definitions, pools, research;
 const combos = {}, poolCache = new Map(), spliceSetupCache = new Map();
 const selectionStorageKey = 'riven-selection-v1';
@@ -37,7 +37,6 @@ function restoreSelection() {
     hasSplice = true; return id;
   });
   Object.assign(state, {category: selectedWeapon.category, weapon: selectedWeapon.id,
-    variant: selectedWeapon.variants.some(row => row.id === saved.variant) ? saved.variant : null,
     positives, negatives: saved.hasNegative ? saved.negatives : [], hasNegative: saved.hasNegative,
     heldNegative: validId(saved.heldNegative) ? saved.heldNegative : null,
     lock: [null, 'negative', '0', '1', '2'].includes(saved.lock) ? saved.lock : null});
@@ -134,8 +133,7 @@ function selectWeapon(id, {selectBest = true, autoNegative = true} = {}) {
   state.category = weapon.category;
   family = catalog.families.find(f => f.id === weapon.family);
   definitions = catalog.definitions[family.definition];
-  variant = weapon.variants.find(v => v.id === state.variant) || weapon.variants[0];
-  state.variant = variant.id;
+  variant = {...weapon.variants[0], name: weapon.name};
   if (!poolCache.has(family.id)) poolCache.set(family.id, enumeratePools(family));
   pools = poolCache.get(family.id);
   normalize(autoNegative);
@@ -242,10 +240,7 @@ function connectControls() {
   bind('category', {label: 'Category', placeholder: 'Search categories...', selected: () => state.category,
     options: () => CATEGORIES.map(category => ({value: category, label: category, description: `${catalog.weapons.filter(w => w.category === category).length} weapons`})), onChange: selectCategory});
   bind('weapon', {label: 'Weapon', placeholder: 'Search weapons...', selected: () => state.weapon,
-    options: () => catalog.weapons.filter(w => w.category === state.category).map(w => ({value: w.id, label: w.name, search: w.variants.map(v => v.name).join(' '), description: `${w.kind === 'Kitgun' ? `${w.category} Kitgun` : w.kind} · ${w.variants.length} variant${w.variants.length === 1 ? '' : 's'}`})), onChange: selectWeapon});
-  bind('variant', {label: 'Variant', placeholder: 'Search variants...', selected: () => state.variant,
-    options: () => weapon.variants.map(v => ({value: v.id, label: v.label, search: v.name, description: `${v.name} · ${v.disposition.toFixed(2)}`})),
-    onChange: id => { state.variant = id; variant = weapon.variants.find(v => v.id === id); render(); }});
+    options: () => catalog.weapons.filter(w => w.category === state.category).map(w => ({value: w.id, label: w.name, search: w.variants.map(v => v.name).join(' '), description: w.kind === 'Kitgun' ? `${w.category} Kitgun` : w.kind})), onChange: selectWeapon});
   for (let row = 0; row < 3; row++) bind(`positive${row}`, {label: `Positive stat ${row + 1}`, placeholder: 'Search positive stats...', selected: () => state.positives[row] || '_none', options: () => statOptions('positive', row), onChange: id => selectPositive(row, id)});
   bind('negative', {label: 'Acceptable negative stats', placeholder: 'Search negative stats...', multiple: true, selected: () => state.hasNegative ? state.negatives : ['_none'], options: () => statOptions('negative'), onChange: selectNegative, footer: () => `${state.negatives.length} acceptable negative${state.negatives.length === 1 ? '' : 's'}`});
   document.querySelectorAll('[data-lock]').forEach(button => button.addEventListener('click', () => {
@@ -267,7 +262,7 @@ function connectControls() {
   });
   $('#resetTarget').addEventListener('click', () => {
     for (const key of ['splice', 'selected-lock']) saveSetupGrade(key, defaultSetupGrade(key));
-    Object.assign(state, {positives: [CC, CD, MS], negatives: ['weapon-recoil'], hasNegative: true, heldNegative: 'weapon-recoil', lock: null, variant: null});
+    Object.assign(state, {positives: [CC, CD, MS], negatives: ['weapon-recoil'], hasNegative: true, heldNegative: 'weapon-recoil', lock: null});
     $('#rangeSearch').value = ''; selectCategory('Primary');
   });
   $('#fullMath').addEventListener('toggle', () => { if ($('#fullMath').open) renderDerivation(); });
@@ -285,7 +280,7 @@ function renderRanges() {
       const status = family.traits[trait.id], excluded = status[polarity] === 'excluded', uncertain = status[polarity] === 'unresolved';
       const kind = excluded ? 'unrollable' : uncertain ? 'unverified' : '';
       const flag = excluded ? status.vintage ? 'Vintage' : 'Not rollable' : uncertain ? 'Under research' : '';
-      const title = excluded ? 'Not currently rollable. Range is a reference value for this format and disposition.' : uncertain ? 'Range is conditional on this trait being eligible.' : '';
+      const title = excluded ? 'Not currently rollable. Range is a reference value for this format.' : uncertain ? 'Range is conditional on this trait being eligible.' : '';
       const range = formatRange(traitRange(trait, variant.disposition, format(), polarity, catalog.rangeModel));
       rows.push(`<div class="range-row ${kind}"${title ? ` title="${esc(title)}"` : ''}><span>${esc(trait.name)}${flag ? `<small class="range-flag">${flag}</small>` : ''}</span><div class="${kind || `range-${polarity}`}">${esc(range || 'Not available')}</div></div>`);
     }
@@ -297,7 +292,7 @@ function renderRanges() {
     for (const entry of splices) {
       const trait = splicedTrait(entry.id, family.definition);
       const range = formatRange(traitRange(trait, variant.disposition, format(), 'positive', catalog.rangeModel));
-      const note = range ? 'Range for the selected weapon, variant and format.' : 'No usable baseline for this weapon type. This does not mean the splice is unavailable.';
+      const note = range ? 'Range for the selected weapon and format, using the shared 1.2 multiplier.' : 'No usable baseline for this weapon type. This does not mean the splice is unavailable.';
       rows.push(`<div class="range-row spliced-range${range ? '' : ' unverified'}" data-splice-range="${esc(entry.id)}" title="${esc(note)}"><span>${esc(entry.name)}</span><div class="${range ? 'range-positive' : 'unverified'}">${esc(range || 'Unknown')}</div></div>`);
     }
     rows.push('</section>');
@@ -309,13 +304,10 @@ function render({selectBest = false} = {}) {
   research = analyze(pools, target(), catalog.assumptions);
   if (selectBest) { selectBestLock(); research = analyze(pools, target(), catalog.assumptions); }
   const hasUncertainty = pools.length > 1;
-  combos.category.update(state.category); combos.weapon.update(weapon.name); combos.variant.update(variant.label);
+  combos.category.update(state.category); combos.weapon.update(weapon.name);
   state.positives.forEach((id, i) => combos[`positive${i}`].update(id ? nameOf(id) : 'No third positive'));
   const negLabel = !state.hasNegative ? 'No negative' : !state.negatives.length ? 'Choose a negative' : state.negatives.length === 1 ? nameOf(state.negatives[0]) : `${state.negatives.length} acceptable negatives`;
   combos.negative.update(negLabel);
-  $('#dispositionValue').textContent = variant.disposition.toFixed(2);
-  const dots = variant.disposition < .7 ? 1 : variant.disposition < .9 ? 2 : variant.disposition < 1.11 ? 3 : variant.disposition < 1.31 ? 4 : 5;
-  $('#dispositionDots').innerHTML = Array.from({length: 5}, (_, i) => `<i${i >= dots ? ' class="dim"' : ''}></i>`).join('');
   $('#poolSummary').textContent = `${intervalText(research.p)} ${combinedTargets().length ? 'ordinary ' : ''}positive traits · ${intervalText(research.n)} negative traits`;
   $('#poolNotice').hidden = !hasUncertainty;
   $('#poolNotice').textContent = 'Some trait eligibility for this weapon is still being researched. Amber entries are not confirmed exclusions. Odds are conservative ranges across possible pools, not a claim that all those pools are equally likely.';
@@ -555,13 +547,13 @@ function renderCrossovers() {
 }
 
 async function renderDerivation() {
-  const {renderMath} = await import('./math.mjs?v=20261009-vintage-setup');
+  const {renderMath} = await import('./math.mjs?v=20261022-unified-ranges');
   $('#mathContent').innerHTML = renderMath({catalog, research, target: target(), variant, format: format(), nameOf});
   document.dispatchEvent(new window.Event('riven:render'));
 }
 
 try {
-  const response = await fetch('./data.json?v=20261007-splice-values');
+  const response = await fetch('./data.json?v=20261022-unified-ranges');
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
   catalog = unpackCatalog(await response.json());
   connectControls(); if (!restoreSelection()) selectCategory('Primary');

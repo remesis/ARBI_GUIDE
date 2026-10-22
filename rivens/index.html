@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://arbi.guide/rivens/">
   <title>Stat Locking · Warframe Arbitrations Guide</title>
-  <meta name="description" content="Research Riven stat-locking odds, compare Kuva reduction, and explore weapon-specific traits and disposition-scaled stat ranges.">
+  <meta name="description" content="Research Riven stat-locking odds, compare Kuva reduction, and explore weapon-specific traits and stat ranges with the shared 1.2 multiplier.">
   <meta property="og:title" content="Stat Locking · arbi.guide">
   <meta property="og:description" content="Weapon-specific Riven traits, stat ranges, and a positives-first stat-locking calculator.">
   <meta property="og:image" content="https://arbi.guide/logo.png">
@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="apple-touch-icon" href="/logo.png">
   <link rel="stylesheet" href="./guide-shell.css">
-  <link rel="stylesheet" href="./rivens.css?v=20261009-vintage-setup">
+  <link rel="stylesheet" href="./rivens.css?v=20261022-unified-ranges">
 </head>
 <body class="rivens-page">
   <a class="skip-link" href="#content">Skip to Riven calculator</a>
@@ -134,10 +134,10 @@
     <aside id="sidebar" class="sidebar" aria-label="Weapon Riven stat ranges">
       <div class="sidebar-updated"><span>Last updated: 2026-10-21</span><span class="viewer-count" id="viewerCount"><svg width="14" height="10" aria-hidden="true"><use href="#icon-eye"/></svg><span id="viewerCountNum"></span></span></div>
       <div id="sidebarLinks" class="sidebar-links riven-sidebar-content">
-      <div class="range-heading"><span class="section-kicker">STAT RANGES</span><div class="range-title-row"><h2 id="rangeWeapon">Sobek</h2><div class="disposition"><span>Disposition</span><strong id="dispositionValue">1.33</strong><div id="dispositionDots" class="disposition-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></div></div><p id="rangeSubtitle">3p1n</p></div>
+      <div class="range-heading"><span class="section-kicker">STAT RANGES</span><div class="range-title-row"><h2 id="rangeWeapon">Sobek</h2></div><p id="rangeSubtitle">3p1n</p></div>
       <label class="range-search"><svg width="15" height="15"><use href="#r-search"/></svg><input id="rangeSearch" type="search" placeholder="Filter stats" aria-label="Filter stat ranges" autocomplete="off"></label>
       <div class="range-column-head"><span>Stat</span><span>Positive / negative</span></div>
-      <div id="rangeList" class="range-list" aria-live="polite"><div class="range-row"><span>Critical Chance</span><div><span class="range-positive">+101.0 to +123.4%</span><span class="range-negative">−80.8 to −98.8%</span></div></div><div class="range-row"><span>Critical Damage</span><div><span class="range-positive">+101.0 to +123.4%</span><span class="range-negative">−80.8 to −98.8%</span></div></div><div class="range-row"><span>Heat</span><div><span class="range-positive">+101.0 to +123.4%</span><span class="unrollable">Cannot roll negative</span></div></div></div>
+      <div id="rangeList" class="range-list" aria-live="polite"><div class="range-row"><span>Critical Chance</span><div><span class="range-positive">+91.1 to +111.4%</span><span class="range-negative">−72.9 to −89.1%</span></div></div><div class="range-row"><span>Critical Damage</span><div><span class="range-positive">+91.1 to +111.4%</span><span class="range-negative">−72.9 to −89.1%</span></div></div><div class="range-row"><span>Heat</span><div><span class="range-positive">+91.1 to +111.4%</span><span class="unrollable">Cannot roll negative</span></div></div></div>
       <div class="range-legend"><span><i class="legend-dot red"></i> Vintage / not rollable</span><span><i class="legend-dot amber"></i> Eligibility under research</span></div>
       </div>
     </aside>
@@ -156,7 +156,6 @@
             <div class="weapon-selectors">
               <div class="selector-group"><div class="selector-label-row"><label id="categoryLabel">Category</label><button id="resetTarget" class="text-button" type="button">Reset selection</button></div><div id="categorySelect" class="combo cyan-combo" data-combo="category"><button type="button" class="combo-trigger" aria-labelledby="categoryLabel categoryValue" aria-haspopup="listbox" aria-expanded="false"><span id="categoryValue">Primary</span><svg width="19" height="19"><use href="#r-chevron"/></svg></button></div></div>
               <div class="selector-group"><label id="weaponLabel">Weapon</label><div id="weaponSelect" class="combo cyan-combo" data-combo="weapon"><button type="button" class="combo-trigger" aria-labelledby="weaponLabel weaponValue" aria-haspopup="listbox" aria-expanded="false"><span id="weaponValue">Sobek</span><svg width="19" height="19"><use href="#r-chevron"/></svg></button></div></div>
-              <div class="selector-group"><label id="variantLabel">Variant</label><div id="variantSelect" class="combo cyan-combo" data-combo="variant"><button type="button" class="combo-trigger" aria-labelledby="variantLabel variantValue" aria-haspopup="listbox" aria-expanded="false"><span id="variantValue">Base</span><svg width="19" height="19"><use href="#r-chevron"/></svg></button></div></div>
             </div>
           <section class="target-section" aria-labelledby="targetTitle">
             <div class="section-heading"><h2 id="targetTitle">Your target roll</h2></div>
@@ -208,6 +207,6 @@
   <div id="rivenStatus" class="sr-only" role="status" aria-live="polite"></div>
   <noscript><p class="noscript-notice">Enable JavaScript to select a weapon and calculate Riven odds.</p></noscript>
   <script type="module" src="./shell.mjs"></script>
-  <script type="module" src="./app.mjs?v=20261009-site-date"></script>
+  <script type="module" src="./app.mjs?v=20261022-unified-ranges"></script>
 </body>
 </html>

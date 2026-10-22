@@ -8,9 +8,6 @@
 .range-heading { padding: 13px 16px 9px; }
 .range-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .range-title-row h2 { min-width: 0; overflow-wrap: anywhere; }
-.range-title-row .disposition { column-gap: 5px; }
-.range-title-row .disposition > span { font-size: 9px; }
-.range-title-row .disposition strong { font-size: 20px; }
 .section-kicker { color: var(--accent); font-size: calc(10px * var(--riven-text-scale)); font-weight: 700; letter-spacing: .12em; }
 .range-heading h2 { margin: 5px 0 2px; font-size: calc(23px * var(--riven-text-scale)); font-weight: 600; }
 .range-heading p { margin: 0; color: var(--muted); font-size: calc(11px * var(--riven-text-scale)); }
@@ -68,11 +65,6 @@
 .combo-divider { height: 1px; background: #304050; margin: 5px; }
 .combo-menu-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding: 8px 5px 3px; color: var(--muted); font-size: calc(10px * var(--riven-text-scale)); }
 .combo-done { color: #b2e6ff; border: 1px solid #416276; border-radius: 4px; background: #1b3040; padding: 4px 11px; font-size: calc(11px * var(--riven-text-scale)); }
-.disposition { display: grid; grid-template-columns: auto auto; align-items: center; column-gap: 8px; text-align: right; flex: 0 0 auto; }
-.disposition > span { grid-column: 1; grid-row: 1; color: var(--muted); font-size: calc(10px * var(--riven-text-scale)); }
-.disposition strong { grid-column: 2; grid-row: 1 / 3; color: var(--accent); font-size: calc(25px * var(--riven-text-scale)); font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-.disposition-dots { grid-column: 1; grid-row: 2; display: flex; justify-content: flex-end; gap: 3px; }
-.disposition-dots i { width: 5px; height: 5px; border-radius: 50%; background: #8ecef3; }.disposition-dots i.dim { background: #304353; }
 .pool-line { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 14px; margin: 0 0 14px; color: #8999a9; font-size: calc(11px * var(--riven-text-scale)); }
 .model-label { margin-left: auto; color: #8698aa; }
 .research-notice { padding: 10px 13px; margin: 0 0 16px; border: 1px solid #5a4932; background: #211c13; border-radius: 6px; font-size: calc(12px * var(--riven-text-scale)); color: #dfc59e; line-height: 1.5; }

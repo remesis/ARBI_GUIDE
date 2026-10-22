@@ -1,5 +1,6 @@
 // Expand the small, shared pool profiles into the calculator's working model.
 const states = ['excluded', 'allowed', 'unresolved'];
+export const DISPOSITION = 1.2;
 const slug = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 // Spliced targets are separate from every ordinary cycling pool.
@@ -117,7 +118,7 @@ export function unpackCatalog(data) {
     const family = families[familyIndex];
     if (!family) throw new Error('Invalid weapon family.');
     return {id: `${family.id}-${category.toLowerCase()}`, name: family.name, category, family: family.id, kind: family.definition,
-      variants: variants.map(([name, label, disposition]) => ({id: slug(name), name, label, disposition}))};
+      variants: variants.map(([name, label]) => ({id: slug(name), name, label, disposition: DISPOSITION}))};
   });
   return {...data, families, weapons};
 }
