@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="apple-touch-icon" href="/logo.png">
   <link rel="stylesheet" href="./guide-shell.css">
-  <link rel="stylesheet" href="./rivens.css?v=20261022-unified-ranges">
+  <link rel="stylesheet" href="./rivens.css?v=20261023-scrollbars-totals">
 </head>
 <body class="rivens-page">
   <a class="skip-link" href="#content">Skip to Riven calculator</a>
@@ -171,6 +171,10 @@
                 <p class="card-footer">Can select multiple acceptable Negatives.</p>
               </div>
             </div>
+            <dl class="target-totals" aria-label="Estimated combined planning cost" title="Includes the displayed splice setup, selected lock acquisition and final target stages, using capped cycling costs. Excludes the starting Riven and splicer acquisition.">
+              <div><dt>Average total rolls</dt><dd id="totalRolls">Loading</dd></div>
+              <div><dt>Estimated Kuva cost</dt><dd id="totalKuva">Loading</dd></div>
+            </dl>
             <div id="negativeLockChoice" class="negative-lock-choice" hidden><label for="heldNegative">Negative to keep locked</label><select id="heldNegative"></select></div>
           </section>
           </div>
@@ -207,6 +211,6 @@
   <div id="rivenStatus" class="sr-only" role="status" aria-live="polite"></div>
   <noscript><p class="noscript-notice">Enable JavaScript to select a weapon and calculate Riven odds.</p></noscript>
   <script type="module" src="./shell.mjs"></script>
-  <script type="module" src="./app.mjs?v=20261022-unified-ranges"></script>
+  <script type="module" src="./app.mjs?v=20261023-scrollbars-totals"></script>
 </body>
 </html>

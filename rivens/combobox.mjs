@@ -42,6 +42,7 @@ export class SearchCombo {
     this.menu.className = 'combo-menu';
     this.list = document.createElement('div');
     this.list.className = 'combo-list';
+    this.list.tabIndex = -1;
     this.list.id = this.id;
     this.list.setAttribute('role', 'listbox');
     this.list.setAttribute('aria-label', this.label);
@@ -60,6 +61,7 @@ export class SearchCombo {
     this.root.append(this.input, this.menu);
     this.input.addEventListener('input', () => this.renderOptions());
     this.input.addEventListener('keydown', event => this.keydown(event));
+    this.list.addEventListener('keydown', event => this.keydown(event));
     this.renderOptions();
     this.input.focus();
   }

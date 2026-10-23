@@ -1,6 +1,6 @@
-import {SearchCombo} from './combobox.mjs';
+import {SearchCombo} from './combobox.mjs?v=20261023-scrollbars-totals';
 import {unpackCatalog, COMBINED_TRAITS, isCombinedTrait, splicedTraitsFor, splicedTrait, SPLICE_BASELINE_DATE, spliceRecipes} from './catalog.mjs?v=20261022-unified-ranges';
-import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, retainedSpliceSetup, selectedLockChance} from './odds.mjs?v=20261009-vintage-setup';
+import {enumeratePools, analyze, bounds, choose, attemptsFor, optimalSpliceSetup, retainedSpliceSetup, selectedLockChance, stagedCost} from './odds.mjs?v=20261023-scrollbars-totals';
 import {FORMATS, GRADES, traitRange, traitGradeRange, formatRange} from './ranges.mjs?v=20261008-negative-grades';
 import {escapeHTML as esc, number, same, oddsText, percentText, magnitude, intervalText} from './format.mjs';
 
@@ -220,7 +220,7 @@ function connectControls() {
     const grade = GRADES.find(row => row.name === event.target.value);
     if (!grade) return;
     saveSetupGrade(key, grade);
-    if (key === 'splice') renderSpliceSetup(); else renderSelectedLockSetup();
+    renderResults(renderSpliceSetup(), renderSelectedLockSetup());
     numberSections();
     $(`[data-riven-grade="${key}"]`)?.focus({preventScroll: true});
     $('#rivenStatus').textContent = `${key === 'splice' ? 'Splice setup' : 'Selected lock'} estimates updated for ${grade.name} or better.`;
@@ -331,7 +331,9 @@ function render({selectBest = false} = {}) {
   $('#negativeLockChoice').hidden = !state.hasNegative || state.negatives.length < 2;
   $('#negativeLockChoice label').textContent = state.lock === 'negative' ? 'Negative to keep locked' : 'Negative used for lock comparison';
   $('#heldNegative').innerHTML = state.negatives.map(id => `<option value="${esc(id)}"${id === state.heldNegative ? ' selected' : ''}>${esc(nameOf(id))}</option>`).join('');
-  renderRanges(); renderSpliceSetup(); renderSelectedLockSetup(); renderResults(); renderCrossovers(); numberSections();
+  renderRanges();
+  const spliceSetup = renderSpliceSetup(), lockSetup = renderSelectedLockSetup();
+  renderResults(spliceSetup, lockSetup); renderCrossovers(); numberSections();
   if ($('#fullMath').open) renderDerivation();
   $('#rivenStatus').textContent = `${variant.name}. ${FORMATS[format()].name}. ${combinedTargets().length ? 'Spliced trait retained for free. ' : ''}${state.lock === null ? 'No manual lock' : state.lock === 'negative' ? 'Negative locked' : 'Positive locked'}.`;
   saveSelection();
@@ -373,7 +375,7 @@ function renderSpliceSetup() {
   const heading = `<details class="math-details splice-disclosure" data-riven-section="splice"${expanded ? ' open' : ''}><summary class="section-heading"><h2><span id="spliceSetupTitle">Getting Optimal Splice</span> ${summary}</h2><svg class="splice-toggle" width="20" height="20" aria-hidden="true"><use href="#r-chevron"/></svg></summary><div class="splice-body"><div class="splice-recipe-row">${gradeSelector('splice', 'Splice minimum grade')}<p class="splice-recipe">${esc(nameOf(splice))} · ${format()}${recipeText ? ` (${esc(recipeText)})` : ''}</p></div>`;
   if (!result.available) {
     section.innerHTML = heading + `<p class="research-notice">${retained ? 'No complete ingredient pair can be confirmed for this pool and format while retaining the selected vintage stat.' : result.uncertain ? 'Unresolved ingredient eligibility changes which setup route is possible or best. No single optimal route is shown until that pool is confirmed.' : 'No complete recipe can be rolled in this weapon’s eligible pools and selected format. Existing vintage ingredients are outside this setup estimate.'}</p></div></details>`;
-    return;
+    return result;
   }
   const rolls = value => intervalText(value, n => number(n, 1));
   const kuva = {min: result.total.min * catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier, max: result.total.max * catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier};
@@ -390,7 +392,7 @@ function renderSpliceSetup() {
       </div></div>
       ${setupInfo('splice', `<p class="cost-caption">A usable newly rolled positive ingredient has an independent ${number(grade.atLeastChance * 100, 1)}% chance of meeting the selected grade under the uniform ±10% model. The estimate counts complete pairs only, without double-counting overlapping recipes. The vintage line stays locked and is never consumed as an ingredient. ${result.uncertain ? 'Ranges reflect unresolved pool eligibility. ' : ''}Excludes acquiring the starting Riven, vintage lock and splicer, and the final target below. Every setup roll uses ${number(catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier)} Kuva at the cap.</p>`)}
       </div></details>`;
-    return;
+    return result;
   }
   const alternatives = result.equivalentLocks, ingredients = new Set(recipes.flat());
   const completeClass = (polarity, predicate) => alternatives.length > 1 && pools.length === 1
@@ -449,6 +451,7 @@ function renderSpliceSetup() {
     ${setupInfo('splice', `<p class="cost-caption">${esc(gradeName)} here means ${grade.min >= 0 ? '+' : '−'}${number(Math.abs(grade.min), 1)}% or better relative to the stat’s mean, modeled as a ${number(grade.atLeastChance * 100, 1)}% independent chance across the uniform ±10% band. Best two-stage route among existing ordinary locks in ${format()}; assumes no qualifying positive ingredient yet. Both steps use ${number(catalog.assumptions.kuvaPerRoll * catalog.assumptions.lockedKuvaMultiplier)} Kuva per roll at the cap. ${result.uncertain ? 'Ranges reflect unresolved pool eligibility. ' : ''}Excludes the starting Riven, splicer acquisition and the final target below. Other target traits, including vintage lines, are not preserved during setup.</p>
     <p class="cost-caption">Splice the pair to keep the higher grade permanently as a positive. The replacement uses the other ingredient’s ${replacementSlot} slot, and either ingredient can appear again if eligible. The final-roll odds below start after this step.</p>`)}
     </div></details>`;
+  return result;
 }
 
 function renderSelectedLockSetup() {
@@ -458,7 +461,7 @@ function renderSelectedLockSetup() {
   if (section.hidden) { section.replaceChildren(); return; }
   const polarity = state.lock === 'negative' ? 'negative' : 'positive';
   const id = polarity === 'negative' ? state.heldNegative : state.positives[Number(state.lock)];
-  if (isVintage(id, polarity)) { section.hidden = true; section.replaceChildren(); return; }
+  if (isVintage(id, polarity)) { section.hidden = true; section.replaceChildren(); return {vintage: true}; }
   const trait = definitions.find(row => row.id === id), [splice] = combinedTargets();
   const probability = bounds(pools.map(pool => selectedLockChance(pool, {id, polarity,
     positives: target().positives.length, hasNegative: state.hasNegative, hasSplice: Boolean(splice)}, catalog.assumptions)));
@@ -479,9 +482,10 @@ function renderSelectedLockSetup() {
     ${setupInfo('selected-lock', `<p class="cost-caption">Rank 8. Ranges show each grade’s band; odds include finding this stat at that grade or better. ${polarity === 'negative' ? 'Higher negative grades mean a stronger penalty, not a better negative.' : 'Higher positive grades mean a stronger benefit.'} Rounded display ranges can overlap at grade boundaries.</p>
     <p class="cost-caption">Uses uniform grades across the ±10% band, independent of trait selection, under the positives-first model. ${pools.length > 1 ? 'Odds are bounds across unresolved eligible pools. ' : ''}${splice ? 'Spliced traits retain their grade. Missing baselines remain unknown. ' : ''}This step does not require the rest of the final target.</p>`)}
     </div></details>`;
+  return {vintage: false, probability: chance};
 }
 
-function renderResults() {
+function renderResults(spliceSetup, lockSetup) {
   const active = state.lock === null ? 'none' : state.lock === 'negative' ? 'negative' : 'positive';
   const spliced = combinedTargets().length === 1;
   const labels = {none: spliced ? 'Splice only' : 'No lock', positive: spliced ? 'Splice + positive lock' : 'Lock positive', negative: spliced ? 'Splice + negative lock' : 'Lock negative'};
@@ -512,6 +516,9 @@ function renderResults() {
   const noCyclingChance = (retained.length || retainedNegative.length) && probability.max <= 0;
   const selectedName = retained.length && active === 'positive' ? `LOCK ${nameOf(positiveForComparison()).toUpperCase()}` : labels[active].toUpperCase();
   const alreadyComplete = spliced && active === 'positive' && !state.hasNegative && research.scenarios.every(row => row.positiveDraws === 0 && row.qPositive === 1);
+  const total = stagedCost({strategy: active, probability, splice: spliceSetup, lock: lockSetup}, catalog.assumptions, alreadyComplete);
+  $('#totalRolls').textContent = intervalText(total?.rolls, n => number(n, 1));
+  $('#totalKuva').textContent = intervalText(total?.kuva, magnitude);
   const note = noCyclingChance ? 'This strategy cannot retain every selected vintage line. Additional acquisition steps are outside this estimate.' : alreadyComplete ? 'Both target traits are already retained. No further reroll is needed for this trait-identity target.' : `${pools.length > 1 ? 'Conditional on eligibility. ' : ''}A 1 / X chance means X rolls on average, not a guarantee.`;
   $('#activeStrategy').innerHTML = `<span>SELECTED STRATEGY · ${esc(selectedName)}</span><strong${!same(probability) || noCyclingChance ? ' class="active-range"' : ''}>${esc(noCyclingChance ? 'No cycling outcome' : oddsText(probability))}</strong><p>${esc(note)}</p>`;
   if (noCyclingChance) {
@@ -561,6 +568,7 @@ try {
   $('#loadError').hidden = false;
   $('#loadError').textContent = 'The Riven data could not load. Refresh the page to try again.';
   $('#strategyRows').replaceChildren(); $('#activeStrategy').textContent = 'Calculator unavailable'; $('#planningStats').replaceChildren();
+  $('#totalRolls').textContent = $('#totalKuva').textContent = 'Unavailable';
   $('#strategyRecommendation').textContent = 'Unable to calculate odds until the catalog loads.';
   document.querySelectorAll('.combo-trigger, .lock-button, #resetTarget').forEach(button => button.disabled = true);
   console.error('Riven calculator:', error);

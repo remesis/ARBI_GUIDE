@@ -3,6 +3,31 @@ import {isCombinedTrait} from './catalog.mjs?v=20260924-splice-range-fallback';
 
 export const S_GRADE_CHANCE = .025;
 
+export function stagedCost({strategy, probability, splice, lock}, assumptions, finalComplete = false) {
+  const base = assumptions.kuvaPerRoll, locked = base * assumptions.lockedKuvaMultiplier;
+  const stages = [];
+  if (splice) {
+    if (!splice.available) return null;
+    stages.push([splice.total, locked]);
+  }
+  const vintageHeld = lock?.vintage && splice?.singleStage;
+  if (lock?.vintage && !vintageHeld) return null;
+  for (const [chance, cost, complete] of [
+    [lock && !vintageHeld ? lock.probability : null, base, false],
+    [probability, strategy === 'none' ? base : locked, finalComplete],
+  ]) {
+    if (!chance || complete) continue;
+    if (chance.max <= 0) return null;
+    stages.push([{min: 1 / chance.max, max: 1 / chance.min}, cost]);
+  }
+  const total = {rolls: {min: 0, max: 0}, kuva: {min: 0, max: 0}};
+  for (const [rolls, cost] of stages) for (const bound of ['min', 'max']) {
+    total.rolls[bound] += rolls[bound];
+    total.kuva[bound] += rolls[bound] * cost;
+  }
+  return total;
+}
+
 function* subsets(items, count, start = 0, prefix = []) {
   if (!count) { yield prefix; return; }
   for (let i = start; i <= items.length - count; i++) yield* subsets(items, count - 1, i + 1, [...prefix, items[i]]);
