@@ -2,6 +2,20 @@
   Content-Security-Policy: frame-ancestors 'none'
   X-Frame-Options: DENY
 
+# The tierlist README is plain UTF-8 text.
+/tierlist
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff
+/tierlist/
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff
+/tierlist.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff
+
 # Calculator modules use explicit MIME types and revalidate on updates.
 /rivens/*
   Cache-Control: no-cache

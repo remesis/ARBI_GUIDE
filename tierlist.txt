@@ -1,0 +1,34 @@
+Arbitration tierlist API
+
+GET https://arbi.guide/tierlist.json
+
+No token needed. Use this for your bot or site instead of scraping the page.
+Cache it for at least 5 minutes, not a request for every command or page view.
+
+nodes contains each node's id, name, planet, mission_type, tier and saryn_viable.
+Match by id. Tiers are S, A, B, C, D, F or Special.
+TIERS is the S-D tier block. Anything outside it and our Special list is F.
+Unknown nodes should also fall back to F.
+saryn_viable is what the * means: Saryn off-meta viable.
+version changes when the data changes; updated_at is the last saved update.
+
+What the tiers mean:
+S: 12+ VE/min
+A: 11+ VE/min
+B: 10+ VE/min
+C: 9+ VE/min
+D: below 9 VE/min
+F: unlisted nodes
+Special: Survival / Disruption, rated separately
+These are tileset specific averages across analyzed runs, with optimal squads and conditions.
+
+Example:
+const response = await fetch("https://arbi.guide/tierlist.json");
+if (!response.ok) throw new Error("Tierlist unavailable");
+const data = await response.json();
+const tier = data.nodes.find(node => node.id === "SolNode25")?.tier
+  ?? data.default_tier;
+
+If it's unavailable, keep your last good copy and try again later.
+For HTTP 429, wait for Retry-After before retrying.
+Please link back to https://arbi.guide when showing the tiers.
