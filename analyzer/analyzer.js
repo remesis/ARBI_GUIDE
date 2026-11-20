@@ -49,6 +49,8 @@
   });
   const INITIAL_RUN_MIN_SECONDS = 5 * 60;
   const RESOURCE_BLESSING_SECONDS = 3 * 60 * 60;
+  const DOUBLE_RESOURCE_START_MS = Date.parse("2026-11-20T19:00:00Z");
+  const DOUBLE_RESOURCE_END_MS = Date.parse("2026-11-23T19:00:00Z");
   const initialDisplayPreferences = loadDisplayPreferences();
   const state = {
     runs: [], activeIndex: 0, query: "", sourceName: "", toastTimer: 0,
@@ -1199,7 +1201,7 @@
     const classified = hasActual ? Parser.classifyVitusScenario(result.scenarios, entered) : result.scenarios[3];
     const color = vitusLuckColor(result.scenarios, classified);
     const rate = actualVitusRate(run);
-    const averageRate = Number(run.tilesetAverageVitusRate);
+    const averageRate = displayedTilesetVitusRate(run);
     const hasAverage = Number.isFinite(averageRate) && averageRate > 0;
     const tilesetExpected = hasAverage && Number(run.totalDuration) > 0
       ? averageRate * Number(run.totalDuration) / 60
@@ -1541,6 +1543,7 @@
         return payload?.schema === "arbi-analyzer-node-average/v1" && payload?.sol_node === nodeKey && Number.isFinite(rate) && rate > 0
           ? {
             rate,
+            droneRate: finiteAverage(payload.expected_drone_ve_per_minute),
             runs: Number(payload.collected_runs) || 0,
             dronesPerComparisonInterval: finiteAverage(payload.drones_per_comparison_interval),
             enemiesPerComparisonInterval: finiteAverage(payload.enemies_per_comparison_interval),
@@ -1577,7 +1580,49 @@
   }
 
   function computeRunVitus(run) {
-    return Parser.computeVitus(run.droneKills, run.rotations, run.missionType, effectiveBlessedDroneKills(run));
+    return Parser.computeVitus(run.droneKills, run.rotations, run.missionType,
+      effectiveBlessedDroneKills(run), doubleResourceForRun(run));
+  }
+
+  function doubleResourceForRun(run) {
+    const startMs = normalizedRunDate(run)?.valueOf();
+    const durationMs = Number(run.totalDuration) * 1000;
+    const none = { fraction: 0, blessedDroneKills: 0, unblessedDroneKills: 0 };
+    if (run.sourceDateFromLog === false || !Number.isFinite(startMs) || !Number.isFinite(durationMs) || durationMs <= 0) return none;
+    const endMs = startMs + durationMs;
+    const overlapMs = Math.max(0, Math.min(endMs, DOUBLE_RESOURCE_END_MS)
+      - Math.max(startMs, DOUBLE_RESOURCE_START_MS));
+    if (!overlapMs) return none;
+    const fraction = startMs >= DOUBLE_RESOURCE_START_MS && endMs <= DOUBLE_RESOURCE_END_MS
+      ? 1 : Math.min(1, overlapMs / durationMs);
+    const drones = Math.max(0, Number(run.droneKills) || 0);
+    const blessed = Math.max(0, Math.min(drones, effectiveBlessedDroneKills(run)));
+    if (fraction === 1) return { fraction, blessedDroneKills: blessed, unblessedDroneKills: drones - blessed };
+
+    const timestamps = (Array.isArray(run.droneTimestamps) ? run.droneTimestamps : [])
+      .filter(Number.isFinite).sort((left, right) => left - right);
+    if (timestamps.length !== drones || !Number.isFinite(run.startTime)) {
+      // Older saved reports may lack timestamps; estimate their boundary overlap.
+      return { fraction, blessedDroneKills: blessed * fraction, unblessedDroneKills: (drones - blessed) * fraction };
+    }
+    const event = { fraction, blessedDroneKills: 0, unblessedDroneKills: 0 };
+    timestamps.forEach((timestamp, index) => {
+      const timeMs = startMs + (timestamp - run.startTime) * 1000;
+      if (timeMs >= DOUBLE_RESOURCE_START_MS && timeMs < DOUBLE_RESOURCE_END_MS) {
+        if (index < blessed) event.blessedDroneKills += 1;
+        else event.unblessedDroneKills += 1;
+      }
+    });
+    return event;
+  }
+
+  function displayedTilesetVitusRate(run) {
+    const rate = finiteAverage(run.tilesetAverageVitusRate);
+    if (rate === null) return null;
+    const { fraction } = doubleResourceForRun(run);
+    if (!fraction) return rate;
+    const droneRate = finiteAverage(run.tilesetAverages?.droneRate);
+    return droneRate === null ? null : rate + Math.min(rate, droneRate) * fraction;
   }
 
   function effectiveBlessedDroneKills(run) {
@@ -1627,6 +1672,13 @@
   }
 
   function vitusAssumptionCopy(run) {
+    const { fraction } = doubleResourceForRun(run);
+    const event = fraction ? `2× Resource Weekend${fraction < 1 ? " (part of run)" : ""}. `
+      : run.sourceDateFromLog === false ? "Run date unconfirmed; weekend boost not applied. " : "";
+    return event + vitusBaselineAssumptionCopy(run);
+  }
+
+  function vitusBaselineAssumptionCopy(run) {
     if (run.resourceBlessingRefreshUnconfirmed && !run.clientFreshBlessing) {
       return Number.isFinite(run.resourceBlessingConfirmedAt)
         ? "New Drop Blessing not confirmed before launch; using the previous confirmed timer."
@@ -1987,6 +2039,7 @@
     await initializeSavedRuns();
     for (const run of runs) {
       run.sourceName = sourceName;
+      run.sourceDateFromLog = Boolean(run.sourceDate);
       run.sourceDate = run.sourceDate || sourceDate;
       run.actualVitus = "";
       run.clientFreshBlessing = false;

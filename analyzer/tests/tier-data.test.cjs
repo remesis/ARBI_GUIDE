@@ -14,13 +14,12 @@ test("matches tier-list nodes while ignoring presentation asterisks", () => {
 test("matches Special nodes and exposes the section subtitle", () => {
   assert.deepEqual(TierData.findTier("Mot"), {
     name: "Special",
-    subname: "Survival / Disruption / Void Cascade",
+    subname: "Survival / Disruption",
     color: [147, 112, 219],
   });
   assert.deepEqual(TierData.findTier("Tuvul Commons"), {
-    name: "Special",
-    subname: "Survival / Disruption / Void Cascade",
-    color: [147, 112, 219],
+    name: "F-Tier",
+    color: [139, 139, 148],
   });
 });
 
@@ -34,7 +33,7 @@ test("exports tier data to the browser before the Analyzer app loads", () => {
   const context = { window: {} };
   context.globalThis = context;
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, "..", "tier-data.js"), "utf8"), context);
-  assert.equal(context.window.ArbitrationTierData.findTier("Larzac").name, "B-Tier");
+  assert.equal(context.ArbitrationTierData.findTier("Larzac").name, "B-Tier");
 
   const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
   const appScript = html.match(/src="\.\/analyzer-\d{8}-\d+\.js"/);

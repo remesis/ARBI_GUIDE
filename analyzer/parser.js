@@ -25,7 +25,7 @@
   const COMPANION_JOIN_RESOLUTION_SECONDS = 30;
   const PARALLEL_PARSE_MIN_BYTES = 512 * 1024 * 1024;
   const PARALLEL_PARSE_MAX_WORKERS = 4;
-  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20261020-22";
+  const PARALLEL_SCANNER_URL = "./scanner-worker.js?v=20261119-23";
   const LIVE_SEGMENT_CACHE = new WeakMap();
   const HIGH_DENSITY_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "VOID CASCADE"]);
   const EXPANDED_SATURATION_TYPES = new Set(["SURVIVAL", "DISRUPTION", "MIRROR DEFENSE", "VOID CASCADE"]);
@@ -1713,7 +1713,7 @@
     return gaps.sort((a, b) => b[0] - a[0]).slice(0, limit);
   }
 
-  function computeVitus(droneKills, rotations, missionType = "", blessedDroneKills = null) {
+  function computeVitus(droneKills, rotations, missionType = "", blessedDroneKills = null, doubleResourceDrones = null) {
     const rot = Math.max(0, rotations || 0);
     const drones = Math.max(0, droneKills || 0);
     const mode = String(missionType).trim().toUpperCase().replace(/[_-]+/g, " ");
@@ -1738,8 +1738,18 @@
     const meanValue = 4 * RETRIEVER_CHANCE + 2 * (1 - RETRIEVER_CHANCE);
     const expectedValueSquared = 16 * RETRIEVER_CHANCE + 4 * (1 - RETRIEVER_CHANCE);
     const varianceValue = expectedValueSquared - meanValue ** 2;
-    const droneMean = meanDrops * meanValue;
-    const droneVariance = meanDrops * varianceValue + meanValue ** 2 * varianceDrops;
+    const eventBlessed = Number.isFinite(doubleResourceDrones?.blessedDroneKills)
+      ? Math.max(0, Math.min(blessedDrones, doubleResourceDrones.blessedDroneKills)) : 0;
+    const eventUnblessed = Number.isFinite(doubleResourceDrones?.unblessedDroneKills)
+      ? Math.max(0, Math.min(unblessedDrones, doubleResourceDrones.unblessedDroneKills)) : 0;
+    const eventMeanDrops = eventBlessed * BLESSED_DROP_CHANCE + eventUnblessed * BOOSTED_DROP_CHANCE;
+    const eventVarianceDrops = eventBlessed * BLESSED_DROP_CHANCE * (1 - BLESSED_DROP_CHANCE)
+      + eventUnblessed * BOOSTED_DROP_CHANCE * (1 - BOOSTED_DROP_CHANCE);
+    // Double pickup amounts, with four times the variance, only for event drones.
+    // Rotation rewards and the default baseline calculation stay unchanged.
+    const droneMean = (meanDrops + eventMeanDrops) * meanValue;
+    const droneVariance = (meanDrops + 3 * eventMeanDrops) * varianceValue
+      + meanValue ** 2 * (varianceDrops + 3 * eventVarianceDrops);
     const mean = rotationMean + droneMean;
     const standardDeviation = Math.sqrt(Math.max(0, rotationVariance + droneVariance));
     const scenarios = [

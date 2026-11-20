@@ -383,7 +383,7 @@ test("Expected Vitus uses explicit booster copy without unscoped mod detection",
   assert.match(js, /Blessing, Both Boosters and Resourceful Retriever\./);
   assert.match(js, /Both Boosters and Resourceful Retriever\./);
   assert.doesNotMatch(js, /the logged Drop Blessing had expired/);
-  assert.match(js, /computeVitus\(run\.droneKills, run\.rotations, run\.missionType, effectiveBlessedDroneKills\(run\)\)/);
+  assert.match(js, /computeVitus\(run\.droneKills, run\.rotations, run\.missionType,\s*effectiveBlessedDroneKills\(run\), doubleResourceForRun\(run\)\)/);
   assert.match(parser, /ResourceDropChanceBlessingStoreItem/);
   assert.match(parser, /const BOOSTED_DROP_CHANCE = 0\.12/);
   assert.doesNotMatch(js, /MISSING RESOURCEFUL RETRIEVER MOD/);
@@ -452,6 +452,8 @@ test("fresh client Blessing override lasts three hours from mission start", () =
   const expirySource = js.match(/function effectiveBlessingExpiry\(run\) \{[\s\S]*?\n  \}/)?.[0];
   const eligibilitySource = js.match(/function canUseClientFreshBlessing\(run\) \{[\s\S]*?\n  \}/)?.[0];
   const copySource = js.match(/function vitusAssumptionCopy\(run\) \{[\s\S]*?\n  \}/)?.[0];
+  const eventSources = ["normalizedRunDate", "doubleResourceForRun", "vitusBaselineAssumptionCopy"]
+    .map((name) => js.match(new RegExp(`function ${name}\\([^]*?\\n  \\}`))?.[0]).join("\n");
   const durationSource = js.match(/function blessingDuration\(seconds\) \{[\s\S]*?\n  \}/)?.[0];
   assert.ok(blessedSource);
   assert.ok(expirySource);
@@ -466,6 +468,7 @@ test("fresh client Blessing override lasts three hours from mission start", () =
     ${eligibilitySource}
     ${durationSource}
     ${copySource}
+    ${eventSources}
     const shortRun = { clientFreshBlessing: true, startTime: 100, totalDuration: 8100, droneKills: 3, droneTimestamps: [200, 1000, 8000] };
     const longRun = { clientFreshBlessing: true, startTime: 100, totalDuration: 14400, droneKills: 3, droneTimestamps: [200, 10900, 10901] };
     const markerlessLongRun = { clientFreshBlessing: false, startTime: 100, endTime: 15160, totalDuration: 15060, droneKills: 4, droneTimestamps: [200, 10900, 10901, 15000] };
@@ -1095,7 +1098,7 @@ test("production correlation layout keeps the compact metrics and fixed hover re
   assert.match(js, /Blessing had expired before this run/);
   assert.match(js, /Click this button if Client had Fresher Blessing/);
   assert.match(js, /const RESOURCE_BLESSING_SECONDS = 3 \* 60 \* 60/);
-  assert.match(js, /Parser\.computeVitus\(run\.droneKills, run\.rotations, run\.missionType, effectiveBlessedDroneKills\(run\)\)/);
+  assert.match(js, /Parser\.computeVitus\(run\.droneKills, run\.rotations, run\.missionType,\s*effectiveBlessedDroneKills\(run\), doubleResourceForRun\(run\)\)/);
   assert.match(js, /Number\(run\.totalDuration\) <= RESOURCE_BLESSING_SECONDS/);
   assert.match(js, /run\.clientFreshBlessing = !run\.clientFreshBlessing/);
   assert.match(js, /scheduleBlessingMetricSync\(run\)/);
